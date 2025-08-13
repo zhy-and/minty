@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="@drawable/dialog_left_right_shape"
+    android:layout_height="wrap_content">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:paddingHorizontal="10dp"
+        android:paddingTop="10dp"
+        android:paddingBottom="12dp"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        >
+
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            app:layout_constraintTop_toTopOf="parent"
+            android:id="@+id/play_now"
+            android:padding="10dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <TextView
+                app:layout_constraintTop_toTopOf="parent"
+                android:id="@+id/tv1"
+                app:layout_constraintStart_toStartOf="parent"
+                android:background="@mipmap/dialog_now"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                />
+
+            <TextView
+                android:layout_marginStart="14dp"
+                app:layout_constraintStart_toEndOf="@id/tv1"
+                app:layout_constraintTop_toTopOf="parent"
+                android:id="@+id/titles"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Play now"
+                android:textColor="#000000"
+                android:textSize="16sp"
+
+                />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            app:layout_constraintTop_toBottomOf="@id/play_now"
+            android:id="@+id/play_next"
+            android:padding="10dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <TextView
+                app:layout_constraintTop_toTopOf="parent"
+                android:id="@+id/tv2"
+                app:layout_constraintStart_toStartOf="parent"
+                android:background="@mipmap/dialog_next"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                />
+
+            <TextView
+                android:layout_marginStart="14dp"
+                app:layout_constraintStart_toEndOf="@id/tv2"
+                app:layout_constraintTop_toTopOf="parent"
+                android:id="@+id/titles2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Play next"
+                android:textColor="#000000"
+                android:textSize="16sp"
+                />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            app:layout_constraintTop_toBottomOf="@id/play_next"
+            android:id="@+id/add_queue"
+            android:padding="10dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <TextView
+                app:layout_constraintTop_toTopOf="parent"
+                android:id="@+id/tv3"
+                app:layout_constraintStart_toStartOf="parent"
+                android:background="@mipmap/dialog_add_q"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                />
+
+            <TextView
+                android:layout_marginStart="14dp"
+                app:layout_constraintStart_toEndOf="@id/tv3"
+                app:layout_constraintTop_toTopOf="parent"
+                android:id="@+id/titles3"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Add to queue"
+                android:textColor="#000000"
+                android:textSize="16sp"
+                />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            app:layout_constraintTop_toBottomOf="@id/add_queue"
+            android:id="@+id/add_fav"
+            android:padding="10dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <TextView
+                app:layout_constraintTop_toTopOf="parent"
+                android:id="@+id/tv4"
+                app:layout_constraintStart_toStartOf="parent"
+                android:background="@mipmap/dialog_add_f"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                />
+
+            <TextView
+                android:layout_marginStart="14dp"
+                app:layout_constraintStart_toEndOf="@id/tv4"
+                app:layout_constraintTop_toTopOf="parent"
+                android:id="@+id/titles4"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Add to favourite"
+                android:textColor="#000000"
+                android:textSize="16sp"
+                />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

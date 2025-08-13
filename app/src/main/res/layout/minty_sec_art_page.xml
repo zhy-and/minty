@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#1e1d18"
+    xmlns:mlns="http://schemas.android.com/apk/res-auto"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical">
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:id="@+id/appbar"
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+        android:layout_height="wrap_content">
+        <com.google.android.material.appbar.CollapsingToolbarLayout
+            android:layout_width="match_parent"
+            android:layout_height="350dp"
+            mlns:expandedTitleMarginStart="48dp"
+
+            mlns:expandedTitleMarginEnd="64dp"
+            mlns:title="标题"
+            mlns:contentScrim="?attr/colorPrimary"
+            mlns:layout_scrollFlags="scroll|exitUntilCollapsed"
+            >
+            <ImageView
+                mlns:layout_collapseMode="parallax"
+                mlns:layout_collapseParallaxMultiplier="0.7"
+                android:scaleType="centerCrop"
+                mlns:layout_constraintStart_toStartOf="parent"
+                mlns:layout_constraintEnd_toEndOf="parent"
+                mlns:layout_constraintTop_toTopOf="parent"
+                android:id="@+id/thumbnailss"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                />
+
+            <ImageView
+                android:layout_gravity="bottom"
+                android:background="@mipmap/b_shadow"
+                android:scaleType="fitXY"
+                android:id="@+id/shadow"
+                android:layout_width="match_parent"
+                android:layout_height="244dp"
+                />
+            <androidx.appcompat.widget.Toolbar
+                android:layout_marginTop="30dp"
+                mlns:layout_collapseMode="pin"
+                mlns:popupTheme="@style/ThemeOverlay.AppCompat.Light"
+                android:layout_width="match_parent"
+                android:layout_height="?attr/actionBarSize">
+                <include
+                    android:id="@+id/tops"
+                    layout="@layout/top_containers"
+                    />
+            </androidx.appcompat.widget.Toolbar>
+        </com.google.android.material.appbar.CollapsingToolbarLayout>
+
+    </com.google.android.material.appbar.AppBarLayout>
+
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_marginTop="-80dp"
+        mlns:layout_behavior="@string/appbar_scrolling_view_behavior"
+        app:layout_constraintStart_toStartOf="parent"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:paddingBottom="80dp"
+
+            android:layout_width="match_parent"
+
+            android:layout_height="match_parent">
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                mlns:layout_constraintTop_toTopOf="parent"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/container"
+                android:orientation="vertical"
+                >
+
+                <ImageView
+                    mlns:layout_constraintTop_toTopOf="parent"
+                    android:background="@mipmap/al_play"
+                    mlns:layout_constraintStart_toStartOf="parent"
+                    android:layout_marginStart="16dp"
+                    android:id="@+id/play_btns"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintDimensionRatio="H,1:1" />
+                <TextView
+                    android:layout_marginStart="18dp"
+                    android:textColor="#ffffff"
+                    mlns:layout_constraintStart_toEndOf="@id/play_btns"
+                    mlns:layout_constraintTop_toTopOf="@id/play_btns"
+                    android:layout_marginTop="6dp"
+                    android:id="@+id/titles"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="24sp"
+                    android:textStyle="bold" />
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    mlns:layout_constraintTop_toBottomOf="@id/play_btns"
+                    android:layout_width="match_parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    android:id="@+id/ad_con"
+                    android:background="#ffffff"
+                    android:layout_height="wrap_content">
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:layout_marginTop="20dp"
+                    android:nestedScrollingEnabled="false"
+                    app:layout_constraintTop_toBottomOf="@id/ad_con"
+                    app:layout_constraintStart_toStartOf="parent"
+                    android:id="@+id/home_page_sections_recycler_view"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+    </androidx.core.widget.NestedScrollView>
+
+
+    <io.supercharge.shimmerlayout.ShimmerLayout
+        android:visibility="gone"
+        mlns:layout_constraintTop_toBottomOf="@id/tops"
+        mlns:layout_constraintBottom_toTopOf="@id/bottom_player"
+        android:id="@+id/spec_anm"
+        app:shimmer_animation_duration="1000"
+        app:layout_constraintStart_toStartOf="parent"
+        android:layout_width="match_parent"
+        android:layout_height="0dp">
+        <include layout="@layout/include_loading"/>
+    </io.supercharge.shimmerlayout.ShimmerLayout>
+
+    <include
+        android:id="@+id/bottom_player"
+        layout="@layout/bottom_mp"
+        />
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

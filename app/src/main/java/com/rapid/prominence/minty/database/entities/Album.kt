@@ -1,0 +1,34 @@
+package com.rapid.prominence.minty.database.entities
+
+import androidx.compose.runtime.Immutable
+import androidx.room.Embedded
+import androidx.room.Junction
+import androidx.room.Relation
+import com.rapid.prominence.minty.database.entities.AlbumArtistMap
+import com.rapid.prominence.minty.database.entities.AlbumEntity
+import com.rapid.prominence.minty.database.entities.ArtistEntity
+
+@Immutable
+data class Album(
+    @Embedded
+    val album: AlbumEntity,
+    @Relation(
+        entity = ArtistEntity::class,
+        entityColumn = "id",
+        parentColumn = "id",
+        associateBy = Junction(
+            value = AlbumArtistMap::class,
+            parentColumn = "albumId",
+            entityColumn = "artistId"
+        )
+    )
+    val artists: List<ArtistEntity>,
+) : LocalItem() {
+    override val id: String
+        get() = album.id
+    override val title: String
+        get() = album.title
+    override val thumbnailUrl: String?
+        get() = album.thumbnailUrl
+}
+

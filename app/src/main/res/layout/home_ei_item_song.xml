@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_marginBottom="14dp"
+    android:layout_height="wrap_content"
+    >
+
+
+
+    <ImageView
+        android:id="@+id/thumbnail"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
+    <!--            android:contentDescription="@string/close"-->
+    <!--            android:src="@drawable/ic_arrow_down"-->
+    <!--            />-->
+
+    <TextView
+        android:layout_marginEnd="10dp"
+        android:layout_marginTop="6dp"
+        android:layout_marginStart="8dp"
+        app:layout_constraintStart_toEndOf="@id/thumbnail"
+        android:id="@+id/title"
+        android:layout_width="0dp"
+        android:lines="1"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toStartOf="@id/ivgs"
+        android:textColor="#ffffff"
+        android:ellipsize="end"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+
+        />
+
+    <TextView
+        android:layout_marginEnd="10dp"
+
+        android:textSize="12sp"
+        android:textColor="#829D77"
+        android:id="@+id/title2"
+        android:layout_width="0dp"
+        android:layout_marginTop="4dp"
+        android:layout_marginStart="8dp"
+        app:layout_constraintEnd_toStartOf="@id/ivgs"
+
+        app:layout_constraintTop_toBottomOf="@id/title"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toEndOf="@id/thumbnail"
+        app:layout_constraintEnd_toEndOf="parent"
+
+        />
+
+
+    <ImageView
+        android:src="@mipmap/play_green"
+        android:id="@+id/ivgs"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
+    <TextView
+        android:visibility="gone"
+        android:id="@+id/subtitle"
+        android:layout_width="100dp"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
+    <!--            android:contentDescription="@string/like"-->
+    <!--            android:src="@drawable/ic_favorite_border"-->
+    <!--            />-->
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>
