@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <application
+        android:name=".application.App"
+        android:allowBackup="true"
+        android:requestLegacyExternalStorage="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@mipmap/minty_icon"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/minty_icon_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.MintyMusic"
+        tools:targetApi="31">
+        <meta-data
+            android:name="ScopedStorage"
+            android:value="true" />
+        <uses-library
+            android:name="org.apache.http.legacy"
+            android:required="false" />
+
+        <activity
+            android:theme="@style/Minty.LauchTheme"
+            android:name=".view.AppStart"
+            android:exported="true"
+            android:windowSoftInputMode="adjustResize">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <action android:name="android.intent.action.VIEW" />
+                <action android:name="android.intent.action.MUSIC_PLAYER" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+                <category android:name="android.intent.category.APP_MUSIC" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+
+        </activity>
+
+
+        <activity android:name=".ei.main.EiMainPage"
+            />
+
+        <activity android:name=".special.SpecialAbout"
+            />
+
+        <activity android:name=".privacy.Privacys"
+            />
+
+        <activity android:name=".second.MintySecAlbumDetailPage"/>
+        <activity android:name=".second.MintySecArtistDetailPage"/>
+        <activity android:name=".second.ArtistMoreInfoView"/>
+        <activity android:name=".second.view.favorite.MintySecFavPage"/>
+        <activity android:name=".second.view.history.HistoryView"/>
+        <activity android:name=".second.SecPlayDlView"/>
+        <activity android:name=".second.MintySecMdDetailPage"/>
+        <activity android:name=".second.MintyReDetailPage"/>
+        <activity android:name=".second.MintySecPyDetailView"/>
+        <activity android:name=".second.search.MusicSearchActivity"/>
+        <activity android:name=".second.search.MusicSearchHistoryActivity"/>
+
+        <activity android:name=".ei.pages.EiMintyQueue"
+            />
+
+        <activity android:name=".ei.pages.EiAlbumDetail"
+            />
+        <activity android:name=".ei.EiPlayer"
+
+            android:launchMode="singleTask"
+
+            />
+        <activity android:name=".second.SecPlayer"
+
+            android:launchMode="singleTask"
+
+            />
+        <activity android:name=".second.view.MintySecMainPage"
+            android:launchMode="singleTask"
+            />
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.FileProvider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/provider_paths" />
+        </provider>
+
+        <service
+            android:name=".service.MusicService"
+            android:exported="true"
+            android:foregroundServiceType="mediaPlayback"
+            tools:ignore="ExportedService">
+            <intent-filter>
+                <action android:name="androidx.media3.session.MediaSessionService" />
+                <action android:name="androidx.media3.session.MediaLibraryService" />
+                <action android:name="android.media.browse.MediaBrowserService" />
+            </intent-filter>
+        </service>
+    </application>
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32"
+        />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
+    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO"/>
+</manifest>
