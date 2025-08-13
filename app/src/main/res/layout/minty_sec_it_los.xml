@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    >
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_height="wrap_content">
+        <io.supercharge.shimmerlayout.ShimmerLayout
+            app:layout_constraintTop_toTopOf="parent"
+            android:id="@+id/spec_anm"
+            app:shimmer_animation_duration="1000"
+            app:layout_constraintStart_toStartOf="parent"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:padding="4dp"
+                android:layout_width="match_parent"
+                android:layout_marginBottom="15dp"
+                android:layout_height="wrap_content"
+                >
+
+
+                <ImageView
+                    android:background="@drawable/loading_shape"
+
+                    android:id="@+id/thumbnail"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"/>
+                <!--            android:contentDescription="@string/close"-->
+                <!--            android:src="@drawable/ic_arrow_down"-->
+                <!--            />-->
+
+                <TextView
+                    android:background="@drawable/loading_shape"
+
+                    android:layout_marginEnd="10dp"
+                    android:layout_marginTop="6dp"
+                    android:layout_marginStart="8dp"
+                    app:layout_constraintStart_toEndOf="@id/thumbnail"
+                    android:id="@+id/title"
+                    android:layout_width="0dp"
+                    android:lines="1"
+                    android:textSize="16sp"
+                    app:layout_constraintEnd_toStartOf="@id/ivgs"
+                    android:textColor="#000000"
+                    android:ellipsize="end"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+
+                    />
+
+                <TextView
+                    android:background="@drawable/loading_shape"
+
+                    android:layout_marginEnd="10dp"
+
+                    android:textSize="12sp"
+                    android:textColor="#A0A0A0"
+                    android:id="@+id/title2"
+                    android:layout_width="0dp"
+                    android:layout_marginTop="4dp"
+                    android:layout_marginStart="8dp"
+                    app:layout_constraintEnd_toStartOf="@id/ivgs"
+
+                    app:layout_constraintTop_toBottomOf="@id/title"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintStart_toEndOf="@id/thumbnail"
+                    app:layout_constraintEnd_toEndOf="parent"
+
+                    />
+
+
+                <ImageView
+                    android:visibility="gone"
+                    android:id="@+id/ivgs"
+                    android:background="@mipmap/item_menu"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"/>
+
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+        </io.supercharge.shimmerlayout.ShimmerLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
