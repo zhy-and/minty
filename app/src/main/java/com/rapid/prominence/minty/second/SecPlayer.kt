@@ -131,7 +131,7 @@ class SecPlayer : MintyBaseActivity() {
             binding.bannerView?.apply {
                 setOffScreenPageLimit(3)
                 registerLifecycleObserver(lifecycle)
-                setAdapter(BindingAdapter(SizeUtils.dp2px(10f)))
+                setAdapter(BindingAdapter(SizeUtils.dp2px(20f)))
                 setIndicatorVisibility(View.GONE)
                 setAutoPlay(false)
                 setOnPageClickListener({ _: View, position: Int -> itemClick(position) }, true)

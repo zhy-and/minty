@@ -121,7 +121,7 @@ class App : Application(), ImageLoaderFactory {
                 .map { it[VisitorDataKey] }
                 .distinctUntilChanged()
                 .collect { visitorData ->
-                    MainBe.visitorData = visitorData
+                   MainBe.visitorData = visitorData
                         ?.takeIf { it != "null" } // Previously visitorData was sometimes saved as "null" due to a bug
                         ?: MainBe.visitorData().getOrNull()?.also { newVisitorData ->
                             dataStore.edit { settings ->

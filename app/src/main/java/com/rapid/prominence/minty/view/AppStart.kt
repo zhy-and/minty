@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.os.Handler
 import com.rapid.prominence.minty.base.MintyBaseActivity
 import com.rapid.prominence.minty.databinding.ActivityMainBinding
+import com.rapid.prominence.minty.ei.main.EiMainPage
 import com.rapid.prominence.minty.second.view.MintySecMainPage
 
 

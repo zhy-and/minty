@@ -68,6 +68,7 @@ class EiMintyQueue : MintyBaseActivity() {
         binding = MintyQueueBinding.inflate(layoutInflater)
         setContentView(binding.root)
         binding.titles.apply {
+            inputSearch.visibility = View.GONE
             nowPlayingText.text = "Queue"
             lists.visibility = View.GONE
             closeButton.setOnClickListener {

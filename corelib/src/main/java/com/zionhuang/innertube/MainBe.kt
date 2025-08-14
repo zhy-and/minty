@@ -12,9 +12,7 @@ import com.zionhuang.innertube.models.SearchSuggestions
 import com.zionhuang.innertube.models.SongItem
 import com.zionhuang.innertube.models.WatchEndpoint
 import com.zionhuang.innertube.models.WatchEndpoint.WatchEndpointMusicSupportedConfigs.WatchEndpointMusicConfig.Companion.MUSIC_VIDEO_TYPE_ATV
-import com.zionhuang.innertube.models.YouTubeClient.Companion.ANDROID_MUSIC
-import com.zionhuang.innertube.models.YouTubeClient.Companion.IOS
-import com.zionhuang.innertube.models.YouTubeClient.Companion.TVHTML5
+import com.zionhuang.innertube.models.YouTubeClient
 import com.zionhuang.innertube.models.YouTubeClient.Companion.WEB
 import com.zionhuang.innertube.models.YouTubeClient.Companion.WEB_REMIX
 import com.zionhuang.innertube.models.YouTubeLocale
@@ -26,7 +24,6 @@ import com.zionhuang.innertube.models.response.GetQueueResponse
 import com.zionhuang.innertube.models.response.GetSearchSuggestionsResponse
 import com.zionhuang.innertube.models.response.GetTranscriptResponse
 import com.zionhuang.innertube.models.response.NextResponse
-import com.zionhuang.innertube.models.response.PipedResponse
 import com.zionhuang.innertube.models.response.PlayerResponse
 import com.zionhuang.innertube.models.response.SearchResponse
 import com.zionhuang.innertube.pages.AlbumPage
@@ -57,26 +54,47 @@ import kotlinx.serialization.json.jsonPrimitive
 import java.net.Proxy
 
 /**
- * Parse useful data with [EasyStudio] sending requests.
+ * Parse useful data with [InStudio] sending requests.
  * Modified from [ViMusic](https://github.com/vfsfitvnm/ViMusic)
  */
 object MainBe {
-    private val easyStudio = EasyStudio()
+    private val inStudio = InStudio()
 
-
-    var cookie: String?
-        get() = easyStudio.cookie
+    var locale: YouTubeLocale
+        get() = inStudio.locale
         set(value) {
-            easyStudio.cookie = value
+            inStudio.locale = value
+        }
+    var visitorData: String?
+        get() = inStudio.visitorData
+        set(value) {
+            inStudio.visitorData = value
+        }
+    var dataSyncId: String?
+        get() = inStudio.dataSyncId
+        set(value) {
+            inStudio.dataSyncId = value
+        }
+    var cookie: String?
+        get() = inStudio.cookie
+        set(value) {
+            inStudio.cookie = value
         }
     var proxy: Proxy?
-        get() = easyStudio.proxy
+        get() = inStudio.proxy
         set(value) {
-            easyStudio.proxy = value
+            inStudio.proxy = value
+        }
+    var useLoginForBrowse: Boolean
+        get() = inStudio.useLoginForBrowse
+        set(value) {
+            inStudio.useLoginForBrowse = value
         }
 
+
+
     suspend fun searchSuggestions(query: String): Result<SearchSuggestions> = runCatching {
-        val response = easyStudio.getSearchSuggestions(WEB_REMIX, query).body<GetSearchSuggestionsResponse>()
+        val response = inStudio.getSearchSuggestions(WEB_REMIX, query).body<GetSearchSuggestionsResponse>()
         SearchSuggestions(
             queries = response.contents?.getOrNull(0)?.searchSuggestionsSectionRenderer?.contents?.mapNotNull { content ->
                 content.searchSuggestionRenderer?.suggestion?.runs?.joinToString(separator = "") { it.text }
@@ -90,7 +108,7 @@ object MainBe {
     }
 
     suspend fun searchSummary(query: String): Result<SearchSummaryPage> = runCatching {
-        val response = easyStudio.search(WEB_REMIX, query).body<SearchResponse>()
+        val response = inStudio.search(WEB_REMIX, query).body<SearchResponse>()
         SearchSummaryPage(
             summaries = response.contents?.tabbedSearchResultsRenderer?.tabs?.firstOrNull()?.tabRenderer?.content?.sectionListRenderer?.contents?.mapNotNull { it ->
                 if (it.musicCardShelfRenderer != null)
@@ -121,7 +139,7 @@ object MainBe {
     }
 
     suspend fun search(query: String, filter: SearchFilter): Result<SearchResult> = runCatching {
-        val response = easyStudio.search(WEB_REMIX, query, filter.value).body<SearchResponse>()
+        val response = inStudio.search(WEB_REMIX, query, filter.value).body<SearchResponse>()
         SearchResult(
             items = response.contents?.tabbedSearchResultsRenderer?.tabs?.firstOrNull()
                 ?.tabRenderer?.content?.sectionListRenderer?.contents?.lastOrNull()
@@ -135,7 +153,7 @@ object MainBe {
     }
 
     suspend fun searchContinuation(continuation: String): Result<SearchResult> = runCatching {
-        val response = easyStudio.search(WEB_REMIX, continuation = continuation).body<SearchResponse>()
+        val response = inStudio.search(WEB_REMIX, continuation = continuation).body<SearchResponse>()
         SearchResult(
             items = response.continuationContents?.musicShelfContinuation?.contents
                 ?.mapNotNull {
@@ -146,7 +164,7 @@ object MainBe {
     }
 
     suspend fun album(browseId: String, withSongs: Boolean = true): Result<AlbumPage> = runCatching {
-        val response = easyStudio.browse(WEB_REMIX, browseId).body<BrowseResponse>()
+        val response = inStudio.browse(WEB_REMIX, browseId).body<BrowseResponse>()
         val playlistId = response.microformat?.microformatDataRenderer?.urlCanonical?.substringAfterLast('=')!!
         AlbumPage(
             album = AlbumItem(
@@ -171,7 +189,7 @@ object MainBe {
     }
 
     suspend fun albumSongs(playlistId: String): Result<List<SongItem>> = runCatching {
-        var response = easyStudio.browse(WEB_REMIX, "VL$playlistId").body<BrowseResponse>()
+        var response = inStudio.browse(WEB_REMIX, "VL$playlistId").body<BrowseResponse>()
         val songs = response.contents?.twoColumnBrowseResultsRenderer
             ?.secondaryContents?.sectionListRenderer
             ?.contents?.firstOrNull()
@@ -183,7 +201,7 @@ object MainBe {
         var continuation = response.contents?.twoColumnBrowseResultsRenderer?.secondaryContents?.sectionListRenderer
             ?.contents?.firstOrNull()?.musicPlaylistShelfRenderer?.continuations?.getContinuation()
         while (continuation != null) {
-            response = easyStudio.browse(
+            response = inStudio.browse(
                 client = WEB_REMIX,
                 continuation = continuation,
             ).body<BrowseResponse>()
@@ -196,7 +214,7 @@ object MainBe {
     }
 
     suspend fun artist(browseId: String): Result<ArtistPage> = runCatching {
-        val response = easyStudio.browse(WEB_REMIX, browseId).body<BrowseResponse>()
+        val response = inStudio.browse(WEB_REMIX, browseId).body<BrowseResponse>()
         ArtistPage(
             artist = ArtistItem(
                 id = browseId,
@@ -215,7 +233,7 @@ object MainBe {
     }
 
     suspend fun artistItems(endpoint: BrowseEndpoint): Result<ArtistItemsPage> = runCatching {
-        val response = easyStudio.browse(WEB_REMIX, endpoint.browseId, endpoint.params).body<BrowseResponse>()
+        val response = inStudio.browse(WEB_REMIX, endpoint.browseId, endpoint.params).body<BrowseResponse>()
         val gridRenderer = response.contents?.singleColumnBrowseResultsRenderer?.tabs?.firstOrNull()
             ?.tabRenderer?.content?.sectionListRenderer?.contents?.firstOrNull()
             ?.gridRenderer
@@ -245,7 +263,7 @@ object MainBe {
     }
 
     suspend fun artistItemsContinuation(continuation: String): Result<ArtistItemsContinuationPage> = runCatching {
-        val response = easyStudio.browse(WEB_REMIX, continuation = continuation).body<BrowseResponse>()
+        val response = inStudio.browse(WEB_REMIX, continuation = continuation).body<BrowseResponse>()
         val gridContinuation = response.continuationContents?.gridContinuation
         if (gridContinuation != null) {
             ArtistItemsContinuationPage(
@@ -267,7 +285,7 @@ object MainBe {
     }
 
     suspend fun playlist(playlistId: String): Result<PlaylistPage> = runCatching {
-        val response = easyStudio.browse(
+        val response = inStudio.browse(
             client = WEB_REMIX,
             browseId = "VL$playlistId",
             setLogin = true
@@ -305,7 +323,7 @@ object MainBe {
     }
 
     suspend fun playlistContinuation(continuation: String) = runCatching {
-        val response = easyStudio.browse(
+        val response = inStudio.browse(
             client = WEB_REMIX,
             continuation = continuation,
             setLogin = true
@@ -319,7 +337,7 @@ object MainBe {
     }
 
     suspend fun home(): Result<HomePage> = runCatching {
-        var response = easyStudio.browse(WEB_REMIX, browseId = "FEmusic_home").body<BrowseResponse>()
+        var response = inStudio.browse(WEB_REMIX, browseId = "FEmusic_home").body<BrowseResponse>()
         var continuation = response.contents?.singleColumnBrowseResultsRenderer?.tabs?.firstOrNull()
             ?.tabRenderer?.content?.sectionListRenderer?.continuations?.getContinuation()
         val sections = response.contents?.singleColumnBrowseResultsRenderer?.tabs?.firstOrNull()
@@ -329,7 +347,7 @@ object MainBe {
                 HomePage.Section.fromMusicCarouselShelfRenderer(it)
             }.toMutableList()
         while (continuation != null) {
-            response = easyStudio.browse(WEB_REMIX, continuation = continuation).body<BrowseResponse>()
+            response = inStudio.browse(WEB_REMIX, continuation = continuation).body<BrowseResponse>()
             continuation = response.continuationContents?.sectionListContinuation?.continuations?.getContinuation()
             sections += response.continuationContents?.sectionListContinuation?.contents
                 ?.mapNotNull { it.musicCarouselShelfRenderer }
@@ -341,7 +359,7 @@ object MainBe {
     }
 
     suspend fun explore(): Result<ExplorePage> = runCatching {
-        val response = easyStudio.browse(WEB_REMIX, browseId = "FEmusic_explore").body<BrowseResponse>()
+        val response = inStudio.browse(WEB_REMIX, browseId = "FEmusic_explore").body<BrowseResponse>()
         ExplorePage(
             newReleaseAlbums = response.contents?.singleColumnBrowseResultsRenderer?.tabs?.firstOrNull()?.tabRenderer?.content?.sectionListRenderer?.contents?.find {
                 it.musicCarouselShelfRenderer?.header?.musicCarouselShelfBasicHeaderRenderer?.moreContentButton?.buttonRenderer?.navigationEndpoint?.browseEndpoint?.browseId == "FEmusic_new_releases_albums"
@@ -358,7 +376,7 @@ object MainBe {
     }
 
     suspend fun newReleaseAlbums(): Result<List<AlbumItem>> = runCatching {
-        val response = easyStudio.browse(WEB_REMIX, browseId = "FEmusic_new_releases_albums").body<BrowseResponse>()
+        val response = inStudio.browse(WEB_REMIX, browseId = "FEmusic_new_releases_albums").body<BrowseResponse>()
         response.contents?.singleColumnBrowseResultsRenderer?.tabs?.firstOrNull()?.tabRenderer?.content?.sectionListRenderer?.contents?.firstOrNull()?.gridRenderer?.items
             ?.mapNotNull { it.musicTwoRowItemRenderer }
             ?.mapNotNull(NewReleaseAlbumPage::fromMusicTwoRowItemRenderer)
@@ -366,13 +384,13 @@ object MainBe {
     }
 
     suspend fun moodAndGenres(): Result<List<MoodAndGenres>> = runCatching {
-        val response = easyStudio.browse(WEB_REMIX, browseId = "FEmusic_moods_and_genres").body<BrowseResponse>()
+        val response = inStudio.browse(WEB_REMIX, browseId = "FEmusic_moods_and_genres").body<BrowseResponse>()
         response.contents?.singleColumnBrowseResultsRenderer?.tabs?.firstOrNull()?.tabRenderer?.content?.sectionListRenderer?.contents!!
             .mapNotNull(MoodAndGenres.Companion::fromSectionListRendererContent)
     }
 
     suspend fun browse(browseId: String, params: String?): Result<BrowseResult> = runCatching {
-        val response = easyStudio.browse(WEB_REMIX, browseId = browseId, params = params).body<BrowseResponse>()
+        val response = inStudio.browse(WEB_REMIX, browseId = browseId, params = params).body<BrowseResponse>()
         BrowseResult(
             title = response.header?.musicHeaderRenderer?.title?.runs?.firstOrNull()?.text,
             items = response.contents?.singleColumnBrowseResultsRenderer?.tabs?.firstOrNull()?.tabRenderer?.content?.sectionListRenderer?.contents?.mapNotNull { content ->
@@ -402,7 +420,7 @@ object MainBe {
     }
 
     suspend fun likedPlaylists(): Result<List<PlaylistItem>> = runCatching {
-        val response = easyStudio.browse(
+        val response = inStudio.browse(
             client = WEB_REMIX,
             browseId = "FEmusic_liked_playlists",
             setLogin = true
@@ -414,39 +432,12 @@ object MainBe {
                 ArtistItemsPage.fromMusicTwoRowItemRenderer(it) as? PlaylistItem
             }
     }
-
-    suspend fun player(videoId: String, playlistId: String? = null): Result<PlayerResponse> = runCatching {
-        var playerResponse: PlayerResponse
-        if (this.cookie != null) { // if logged in: try ANDROID_MUSIC client first because IOS client does not play age restricted songs
-            playerResponse = easyStudio.player(ANDROID_MUSIC, videoId, playlistId).body<PlayerResponse>()
-            if (playerResponse.playabilityStatus.status == "OK") {
-                return@runCatching playerResponse
-            }
-        }
-        playerResponse = easyStudio.player(IOS, videoId, playlistId).body<PlayerResponse>()
-        if (playerResponse.playabilityStatus.status == "OK") {
-            return@runCatching playerResponse
-        }
-        val safePlayerResponse = easyStudio.player(TVHTML5, videoId, playlistId).body<PlayerResponse>()
-        if (safePlayerResponse.playabilityStatus.status != "OK") {
-            return@runCatching playerResponse
-        }
-        val audioStreams = easyStudio.pipedStreams(videoId).body<PipedResponse>().audioStreams
-        safePlayerResponse.copy(
-            streamingData = safePlayerResponse.streamingData?.copy(
-                adaptiveFormats = safePlayerResponse.streamingData.adaptiveFormats.mapNotNull { adaptiveFormat ->
-                    audioStreams.find { it.bitrate == adaptiveFormat.bitrate }?.let {
-                        adaptiveFormat.copy(
-                            url = it.url
-                        )
-                    }
-                }
-            )
-        )
+    suspend fun player(videoId: String, playlistId: String? = null, client: YouTubeClient, signatureTimestamp: Int? = null, webPlayerPot: String? = null): Result<PlayerResponse> = runCatching {
+        inStudio.player(client, videoId, playlistId, signatureTimestamp, webPlayerPot).body<PlayerResponse>()
     }
 
     suspend fun next(endpoint: WatchEndpoint, continuation: String? = null): Result<NextResult> = runCatching {
-        val response = easyStudio.next(WEB_REMIX, endpoint.videoId, endpoint.playlistId, endpoint.playlistSetVideoId, endpoint.index, endpoint.params, continuation).body<NextResponse>()
+        val response = inStudio.next(WEB_REMIX, endpoint.videoId, endpoint.playlistId, endpoint.playlistSetVideoId, endpoint.index, endpoint.params, continuation).body<NextResponse>()
         val title = response.contents.singleColumnMusicWatchNextResultsRenderer.tabbedRenderer.watchNextTabbedResultsRenderer.tabs[0].tabRenderer.content?.musicQueueRenderer?.header?.musicQueueHeaderRenderer?.subtitle?.runs?.firstOrNull()?.text
         val playlistPanelRenderer = response.continuationContents?.playlistPanelContinuation
             ?: response.contents.singleColumnMusicWatchNextResultsRenderer.tabbedRenderer.watchNextTabbedResultsRenderer.tabs[0].tabRenderer.content?.musicQueueRenderer?.content?.playlistPanelRenderer!!
@@ -484,12 +475,12 @@ object MainBe {
     }
 
     suspend fun lyrics(endpoint: BrowseEndpoint): Result<String?> = runCatching {
-        val response = easyStudio.browse(WEB_REMIX, endpoint.browseId, endpoint.params).body<BrowseResponse>()
+        val response = inStudio.browse(WEB_REMIX, endpoint.browseId, endpoint.params).body<BrowseResponse>()
         response.contents?.sectionListRenderer?.contents?.firstOrNull()?.musicDescriptionShelfRenderer?.description?.runs?.firstOrNull()?.text
     }
 
     suspend fun related(endpoint: BrowseEndpoint): Result<RelatedPage> = runCatching {
-        val response = easyStudio.browse(WEB_REMIX, endpoint.browseId).body<BrowseResponse>()
+        val response = inStudio.browse(WEB_REMIX, endpoint.browseId).body<BrowseResponse>()
         val songs = mutableListOf<SongItem>()
         val albums = mutableListOf<AlbumItem>()
         val artists = mutableListOf<ArtistItem>()
@@ -519,7 +510,7 @@ object MainBe {
         if (videoIds != null) {
             assert(videoIds.size <= MAX_GET_QUEUE_SIZE) // Max video limit
         }
-        easyStudio.getQueue(WEB_REMIX, videoIds, playlistId).body<GetQueueResponse>().queueDatas
+        inStudio.getQueue(WEB_REMIX, videoIds, playlistId).body<GetQueueResponse>().queueDatas
             .mapNotNull {
                 it.content.playlistPanelVideoRenderer?.let { renderer ->
                     NextPage.fromPlaylistPanelVideoRenderer(renderer)
@@ -528,7 +519,7 @@ object MainBe {
     }
 
     suspend fun transcript(videoId: String): Result<String> = runCatching {
-        val response = easyStudio.getTranscript(WEB, videoId).body<GetTranscriptResponse>()
+        val response = inStudio.getTranscript(WEB, videoId).body<GetTranscriptResponse>()
         response.actions?.firstOrNull()?.updateEngagementPanelAction?.content?.transcriptRenderer?.body?.transcriptBodyRenderer?.cueGroups?.joinToString(separator = "\n") { group ->
             val time = group.transcriptCueGroupRenderer.cues[0].transcriptCueRenderer.startOffsetMs
             val text = group.transcriptCueGroupRenderer.cues[0].transcriptCueRenderer.cue.simpleText
@@ -539,7 +530,7 @@ object MainBe {
     }
 
     suspend fun visitorData(): Result<String> = runCatching {
-        Json.parseToJsonElement(easyStudio.getSwJsData().bodyAsText().substring(5))
+        Json.parseToJsonElement(inStudio.getSwJsData().bodyAsText().substring(5))
             .jsonArray[0]
             .jsonArray[2]
             .jsonArray.first { (it as? JsonPrimitive)?.content?.startsWith(VISITOR_DATA_PREFIX) == true }
@@ -547,7 +538,7 @@ object MainBe {
     }
 
     suspend fun accountInfo(): Result<AccountInfo> = runCatching {
-        easyStudio.accountMenu(WEB_REMIX).body<AccountMenuResponse>()
+        inStudio.accountMenu(WEB_REMIX).body<AccountMenuResponse>()
             .actions[0].openPopupAction.popup.multiPageMenuRenderer
             .header?.activeAccountHeaderRenderer
             ?.toAccountInfo()!!
