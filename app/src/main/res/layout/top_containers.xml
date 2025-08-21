@@ -61,7 +61,7 @@
             android:layout_marginStart="8dp"
             android:layout_marginEnd="8dp"
             app:layout_constraintEnd_toEndOf="parent"
-            android:hint="Search for a song or artist"
+            android:hint="@string/search_hint"
             android:textColorHint="#9E9E9E"
             android:imeOptions="actionSearch"
             android:inputType="text"

@@ -10,6 +10,7 @@ import android.widget.TextView
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.RecyclerView
 import com.blankj.utilcode.util.ActivityUtils
+import com.blankj.utilcode.util.StringUtils.getString
 import com.blankj.utilcode.util.ToastUtils
 import com.bumptech.glide.Glide
 import com.rapid.prominence.minty.application.App
@@ -83,7 +84,7 @@ class SearchVideoSongAdapter(var songs: ArrayList<SongItem> = arrayListOf(), pri
                                     }
                                     its?.apply {
                                         if (song.liked){
-                                            text?.text = "Remove from favourite"
+                                            text?.text = getString(R.string.dialog_remove_fav)
                                         }
                                     }
                                 }

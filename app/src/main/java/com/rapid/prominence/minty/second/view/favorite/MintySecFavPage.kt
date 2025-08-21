@@ -65,7 +65,7 @@ class MintySecFavPage : MintyBaseActivity() {
 
         }
         binding.ivs.setImageResource(R.mipmap.empty_sec)
-        binding.tvs.text = "No songs in favourite."
+        binding.tvs.text = getString(R.string.no_song_fav)
 
 
         lifecycleScope.launch {

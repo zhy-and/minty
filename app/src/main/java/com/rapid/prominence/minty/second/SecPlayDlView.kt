@@ -227,7 +227,7 @@ class SecPlayDlView : MintyBaseActivity() {
                                 dismiss()
                             }
                         }
-                        findViewById<TextView>(R.id.titles)?.text = "Are you sure you want to delete this song from queue?"
+                        findViewById<TextView>(R.id.titles)?.text = getString(R.string.is_delete_queue)
                         findViewById<View>(R.id.ok_btn)?.setOnClickListener {
                             if (isShowing && !isDestroyed && !isFinishing){
                                 dismiss()

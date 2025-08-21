@@ -183,21 +183,18 @@ class MintySecMainPage : MintyBaseActivity() {
                 state ?: return
                 when (state) {
                     State.COLLAPSED -> {
-//                        binding.collapsing.setBackgroundResource(R.mipmap.bg3)
+
                         binding.searchEditText.visibility = View.VISIBLE
                         binding.a.visibility = View.GONE
                         binding.searchEditText2.visibility = View.GONE
-//                        binding.tools.fitsSystemWindows = true
 
-//                        binding.searchEditText2.visibility = View.VISIBLE
                     }
                     State.EXPANDED -> {
-//                        binding.appbar.setBackgroundResource(R.mipmap.bg2)
+
                         binding.searchEditText.visibility = View.GONE
                         binding.a.visibility = View.VISIBLE
                         binding.searchEditText2.visibility = View.VISIBLE
-//                        binding.tools.fitsSystemWindows = false
-//                        binding.searchEditText2.visibility = View.VISIBLE
+
                     }
 
                     State.IDLE -> {}
@@ -225,12 +222,10 @@ class MintySecMainPage : MintyBaseActivity() {
         binding.newReleaseAlbumsRecyclerView.adapter = secReleaseAlbumAdapter
 
         binding.listRecycleview.layoutManager = GridLayoutManager(this, 2)
-//        binding.listRecycleview?.addItemDecoration(SpaceItemDecoration( SizeUtils.dp2px( 10f)))
+
         binding.listRecycleview?.addItemDecoration(SecGridItemDecoration(SizeUtils.dp2px( 10f),2))
         binding.listRecycleview.adapter = homeStyleAdapter
-//        binding.listRecycleview.isNestedScrollingEnabled = false
-//        binding.newReleaseAlbumsRecyclerView.isNestedScrollingEnabled = false
-//        binding.homePageSectionsRecyclerView.isNestedScrollingEnabled = false
+
         binding.searchEditText.setOnClickListener {
             startSearchPage()
             logClickEvents("home_to_search")
@@ -259,10 +254,7 @@ class MintySecMainPage : MintyBaseActivity() {
             logClickEvents("home_to_player")
             startInterActivity(Intent(this, SecPlayer::class.java), playViewsInter(),false)
         }
-//        binding.mintyIncContainerPlay.nextButton.setOnClickListener {
-//            playerConnection?.player?.seekToNext()
-//
-//        }
+
         binding.emoScan.setOnClickListener {
             logClickEvents("home_refresh_btn")
             binding.specAnm.post {
@@ -277,12 +269,8 @@ class MintySecMainPage : MintyBaseActivity() {
             startInterActivity(Intent(this, MintyReDetailPage::class.java), releaseDetailInter(),false)
         }
 
-//        binding.scroll.post {
-//            binding.listRecycleview?.parent?.apply {
-//
-//            }
-//        }
-        binding.endBtn.setOnClickListener {
+
+        binding.aboutBtn.setOnClickListener {
             logClickEvents("home_to_about")
 
             startInterActivity(Intent(this, SpecialAbout::class.java), 0,false)

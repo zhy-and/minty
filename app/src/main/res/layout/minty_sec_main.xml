@@ -67,7 +67,7 @@
                         app:layout_constraintBottom_toBottomOf="parent"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Search for a song or artist"
+                        android:text="@string/search_hint"
                         android:textColor="#FFB0B0B0"
                         android:textSize="16sp"
                         />
@@ -92,7 +92,7 @@
                     app:layout_constraintStart_toStartOf="parent">
                     <!---->
                     <ImageView
-                        android:id="@+id/end_btn"
+                        android:id="@+id/about_btn"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:src="@mipmap/about"
@@ -111,7 +111,7 @@
                         android:layout_marginStart="11dp"
                         android:layout_marginEnd="11dp"
                         app:layout_constraintEnd_toStartOf="@id/list_button"
-                        app:layout_constraintStart_toEndOf="@id/end_btn"
+                        app:layout_constraintStart_toEndOf="@id/about_btn"
                         >
 
                         <TextView
@@ -225,7 +225,7 @@
                 android:textStyle="bold"
                 android:id="@+id/guess"
                 app:layout_constraintTop_toBottomOf="@id/topos"
-                android:text="Guess you like it"
+                android:text="@string/home_guess"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"/>
             <androidx.recyclerview.widget.RecyclerView

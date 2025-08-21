@@ -69,7 +69,7 @@ class HistoryView : MintyBaseActivity() {
         binding.mintyIncContainerPlay.container.setOnClickListener {
             startPlayerPage(true)
         }
-        binding.tvs.text = "No songs in the history."
+        binding.tvs.text = getString(R.string.no_song_history)
         lifecycleScope.launch {
             val viewModel =
                 HistoryViewModel(data!!
@@ -218,7 +218,7 @@ class HistoryView : MintyBaseActivity() {
                                 dismiss()
                             }
                         }
-                        findViewById<TextView>(R.id.titles)?.text = "Are you sure you want to delete this song from history?"
+                        findViewById<TextView>(R.id.titles)?.text = getString(R.string.is_delete_history)
                         findViewById<View>(R.id.ok_btn)?.setOnClickListener {
                             try {
                                 if (isShowing && !isDestroyed && !isFinishing){

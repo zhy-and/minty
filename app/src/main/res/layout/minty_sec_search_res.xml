@@ -28,7 +28,7 @@
             <TextView
                 android:gravity="center"
                 android:background="@drawable/tag_se_search"
-                android:text="ALL"
+                android:text="@string/search_all"
                 android:id="@+id/all"
                 android:textColor="#000000"
                 android:layout_width="70dp"
@@ -38,7 +38,7 @@
                 android:gravity="center"
                 android:background="@drawable/tag_un_search"
                 android:textColor="#829D77"
-                android:text="Track"
+                android:text="@string/search_track"
                 android:id="@+id/song"
                 android:layout_width="70dp"
                 android:layout_height="28dp"/>
@@ -48,7 +48,7 @@
                 android:background="@drawable/tag_un_search"
                 android:textColor="#829D77"
 
-                android:text="Album"
+                android:text="@string/search_album"
                 android:id="@+id/albums"
                 android:layout_width="70dp"
                 android:layout_height="28dp"/>
@@ -59,7 +59,7 @@
                 android:background="@drawable/tag_un_search"
                 android:textColor="#829D77"
 
-                android:text="Artist"
+                android:text="@string/search_artist"
                 android:id="@+id/artist"
                 android:layout_width="70dp"
                 android:layout_height="28dp"/>
@@ -68,7 +68,7 @@
                 android:textColor="#829D77"
                 android:gravity="center"
                 android:background="@drawable/tag_un_search"
-                android:text="Video"
+                android:text="@string/search_video"
                 android:id="@+id/video"
                 android:layout_width="70dp"
                 android:layout_height="28dp"/>
@@ -108,7 +108,7 @@
                     android:layout_marginTop="6dp"
                     android:visibility="gone"
                     android:id="@+id/song_title"
-                    android:text="Track"
+                    android:text="@string/search_track"
                     android:textColor="#ffffff"
                     android:layout_marginStart="14dp"
                     android:textSize="18sp"
@@ -146,7 +146,7 @@
                     app:layout_constraintTop_toBottomOf="@id/list"
                     app:layout_constraintStart_toStartOf="parent"
                     android:id="@+id/album_title"
-                    android:text="Album"
+                    android:text="@string/search_album"
                     android:textColor="#ffffff"
 
                     android:layout_marginStart="14dp"
@@ -179,7 +179,7 @@
                 <TextView
                     android:id="@+id/artist_title"
                     app:layout_constraintTop_toBottomOf="@id/album_list"
-                    android:text="Artist"
+                    android:text="@string/search_artist"
                     app:layout_constraintStart_toStartOf="parent"
                     android:textColor="#ffffff"
                     android:visibility="gone"
@@ -221,7 +221,7 @@
                     android:textSize="18sp"
                     android:textStyle="bold"
                     android:id="@+id/playlist_title"
-                    android:text="Video"
+                    android:text="@string/search_video"
                     app:layout_constraintStart_toStartOf="parent"
 
                     app:layout_constraintTop_toBottomOf="@id/artist_list"
@@ -365,7 +365,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
 
-                    android:text="No result"
+                    android:text="@string/search_no_result"
                     android:textColor="#829D77"
                     android:textSize="14sp"
                     />

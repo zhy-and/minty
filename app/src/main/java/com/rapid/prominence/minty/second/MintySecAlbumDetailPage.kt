@@ -42,6 +42,9 @@ class MintySecAlbumDetailPage : MintyBaseActivity() {
     private fun bottomSettingChange(metadata: MediaMetadata?) {
         addUIPlayer(binding.mintyIncContainerPlay.artist,binding.mintyIncContainerPlay.title,binding.mintyIncContainerPlay.thumbnail,metadata)
     }
+
+    private  var secReleaseAlbumAdapter: SecReleaseAlbumAdapter?= null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -60,13 +63,19 @@ class MintySecAlbumDetailPage : MintyBaseActivity() {
             lists.setOnClickListener {
                 startQueuePage()
             }
+
             inputSearch.setOnClickListener {
+                startSearchPage()
+            }
+            searchEditText.setOnClickListener {
                 startSearchPage()
             }
             closeButton.setOnClickListener {
                 finishCurrent()
             }
         }
+        secReleaseAlbumAdapter = SecReleaseAlbumAdapter(this@MintySecAlbumDetailPage)
+
         binding.playBtns.setOnClickListener {
             logClickEvents("album_det_play_btn")
             albumSongs?.let {
@@ -74,7 +83,8 @@ class MintySecAlbumDetailPage : MintyBaseActivity() {
                startPlayerPage()
             }
         }
-
+        binding.recRecycleview.layoutManager = LinearLayoutManager(this,LinearLayoutManager.HORIZONTAL, false)
+        binding.recRecycleview.adapter = secReleaseAlbumAdapter
         binding.container.setOnClickListener {
             logClickEvents("album_det_play_btn")
             albumSongs?.let {
@@ -143,6 +153,22 @@ class MintySecAlbumDetailPage : MintyBaseActivity() {
                 }
                 albumSongs = it
             }
+        }
+        lifecycleScope.launch {
+            try {
+                albumViewModel?.otherVersions?.collect{
+                    if (it.isNullOrEmpty() || isDestroyed || isFinishing){
+                        return@collect
+                    }
+                    binding.newReleaseTitle.visibility = View.VISIBLE
+                    it?.apply {
+                        secReleaseAlbumAdapter?.submitList(this)
+                    }
+                }
+            }catch (e : Exception){
+                e.printStackTrace()
+            }
+
         }
         lifecycleScope.launch {
 

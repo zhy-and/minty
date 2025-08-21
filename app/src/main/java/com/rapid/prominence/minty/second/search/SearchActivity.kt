@@ -204,13 +204,25 @@ class MusicSearchActivity : MintyBaseActivity() {
         binding.songMore.setOnClickListener {
             binding.song.performClick()
         }
+        binding.songTitle.setOnClickListener {
+            binding.song.performClick()
+        }
         binding.artistMore.setOnClickListener {
+            binding.artist.performClick()
+        }
+        binding.artistTitle.setOnClickListener {
             binding.artist.performClick()
         }
         binding.albumMore.setOnClickListener {
             binding.albums.performClick()
         }
+        binding.albumTitle.setOnClickListener {
+            binding.albums.performClick()
+        }
         binding.playListMore.setOnClickListener {
+            binding.video.performClick()
+        }
+        binding.playlistTitle.setOnClickListener {
             binding.video.performClick()
         }
         binding.tops.searchEditText.setOnEditorActionListener { v, actionId, event ->
@@ -344,9 +356,9 @@ class MusicSearchActivity : MintyBaseActivity() {
 
         binding.uniqueAlbumList.apply {
             albumUniqueAdapter = SearchViewAlbumAdapter(emptyList()) { songItem ->
-                startInterActivity(Intent(this@MusicSearchActivity, MintySecArtistDetailPage::class.java).apply {
-                    putExtra("artistId",songItem.id)
-                }, artistDetInter(),false)
+                startInterActivity(Intent(this@MusicSearchActivity, MintySecAlbumDetailPage::class.java).apply {
+                    putExtra("albumId",songItem.id)
+                }, albumDetInter(),false)
             }
 
             layoutManager = LinearLayoutManager(this@MusicSearchActivity)

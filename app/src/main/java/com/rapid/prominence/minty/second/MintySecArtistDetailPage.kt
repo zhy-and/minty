@@ -395,7 +395,7 @@ class MintySecArtistDetailPage : MintyBaseActivity() {
                                             }
                                             its?.apply {
                                                 if (song.liked){
-                                                    text?.text = "Remove from favourite"
+                                                    text?.text = getString(R.string.dialog_remove_fav)
                                                 }
                                             }
                                         }

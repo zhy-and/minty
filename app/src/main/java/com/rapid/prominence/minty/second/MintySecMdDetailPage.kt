@@ -74,7 +74,9 @@ class MintySecMdDetailPage : MintyBaseActivity() {
             binding.listRecycleview.adapter = newReleaseAlbumsAdapter
             binding.tops.apply {
                 lists.visibility = View.VISIBLE
-
+                searchEditText.setOnClickListener {
+                    startSearchPage()
+                }
                 lists.setOnClickListener {
                     startQueuePage()
                 }
@@ -248,7 +250,7 @@ class MintySecMdDetailPage : MintyBaseActivity() {
                                         }
                                         its?.apply {
                                             if (song.liked){
-                                                text?.text = "Remove from favourite"
+                                                text?.text = getString(R.string.dialog_remove_fav)
                                             }
                                         }
                                     }

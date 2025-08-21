@@ -56,7 +56,9 @@ class MintyReDetailPage : MintyBaseActivity() {
             )
         binding.tops.apply {
             lists.visibility = View.VISIBLE
-
+            searchEditText.setOnClickListener {
+                startSearchPage()
+            }
             lists.setOnClickListener {
                 startQueuePage()
             }

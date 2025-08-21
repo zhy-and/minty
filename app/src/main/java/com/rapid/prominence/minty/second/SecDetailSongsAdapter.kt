@@ -11,6 +11,7 @@ import com.bumptech.glide.Glide
 import com.zionhuang.innertube.models.SongItem
 import androidx.core.view.isGone
 import androidx.lifecycle.lifecycleScope
+import com.blankj.utilcode.util.StringUtils.getString
 import com.blankj.utilcode.util.ToastUtils
 import com.rapid.prominence.minty.application.App
 import com.rapid.prominence.minty.R
@@ -100,7 +101,7 @@ class SecDetailSongsAdapter(
                                         }
                                         its?.apply {
                                             if (song.liked){
-                                                text?.text = "Remove from favourite"
+                                                text?.text = getString(R.string.dialog_remove_fav)
                                             }
                                         }
                                     }

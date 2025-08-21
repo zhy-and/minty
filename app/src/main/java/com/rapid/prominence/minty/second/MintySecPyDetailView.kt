@@ -56,7 +56,9 @@ class MintySecPyDetailView : MintyBaseActivity() {
         }
         binding.topCon.apply {
             lists.visibility = View.VISIBLE
-
+            searchEditText.setOnClickListener {
+                startSearchPage()
+            }
             lists.setOnClickListener {
                 startQueuePage()
             }
