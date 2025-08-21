@@ -13,7 +13,7 @@ import com.rapid.prominence.minty.cons.playlistDetInter
 import com.rapid.prominence.minty.databinding.MintyItemSecHomeSecBinding
 import com.rapid.prominence.minty.extensions.logClickEvents
 import com.rapid.prominence.minty.second.view.MintySecMainPage
-import com.rapid.prominence.minty.second.view.MintySecMainPage.Companion.playerConnection
+import com.rapid.prominence.minty.second.view.MintySecMainPage.Companion.secPlayConnect
 import com.rapid.prominence.minty.service.queues.YouTubeQueue
 import com.zionhuang.innertube.models.AlbumItem
 import com.zionhuang.innertube.models.ArtistItem
@@ -56,7 +56,7 @@ class SecMainLayoutAdapter(var mintySecMainPage: MintySecMainPage) : RecyclerVie
                     when (item) {
                         is SongItem -> {
 //                            Log.e("-------type","song")
-                            playerConnection?.playQueue(YouTubeQueue.radio(item.toMediaMetadata()))
+                            secPlayConnect?.playQueue(YouTubeQueue.radio(item.toMediaMetadata()))
                             if (mintySecMainPage?.isFinishing == true || mintySecMainPage?.isDestroyed == true){
                                 return@SecHomeDetailAdapter
                             }

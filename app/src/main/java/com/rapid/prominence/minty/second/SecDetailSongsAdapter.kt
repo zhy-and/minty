@@ -27,7 +27,7 @@ import com.rapid.prominence.minty.extensions.toMediaItem
 import com.rapid.prominence.minty.extensions.togglePlayPause
 import com.rapid.prominence.minty.options
 import com.rapid.prominence.minty.randomBitmap
-import com.rapid.prominence.minty.second.view.MintySecMainPage.Companion.playerConnection
+import com.rapid.prominence.minty.second.view.MintySecMainPage.Companion.secPlayConnect
 import com.rapid.prominence.minty.service.queues.LocalAlbumRadio
 import com.rapid.prominence.minty.service.queues.YouTubeQueue
 import com.rapid.prominence.minty.service.queues.YouTubeQueue.Companion.radio
@@ -113,7 +113,7 @@ class SecDetailSongsAdapter(
                             if (isShowing){
                                 dismiss()
                             }
-                            playerConnection?.playQueue(radio(album.toMediaMetadata()))
+                            secPlayConnect?.playQueue(radio(album.toMediaMetadata()))
                             if (homeActivity?.isFinishing == true || homeActivity?.isDestroyed == true){
                                 return@setOnClickListener
                             }
@@ -123,13 +123,13 @@ class SecDetailSongsAdapter(
                             if (isShowing){
                                 dismiss()
                             }
-                            playerConnection?.playNext(album.toMediaItem())
+                            secPlayConnect?.playNext(album.toMediaItem())
                         }
                         findViewById<View>(R.id.add_queue)?.setOnClickListener {
                             if (isShowing){
                                 dismiss()
                             }
-                            playerConnection?.addToQueue(album.toMediaItem())
+                            secPlayConnect?.addToQueue(album.toMediaItem())
                         }
                         findViewById<View>(R.id.add_fav)?.setOnClickListener {
                             if (isShowing){
@@ -168,15 +168,15 @@ class SecDetailSongsAdapter(
                 }
             }
             binding?.all?.setOnClickListener {
-                if (album.id == playerConnection?.mediaMetadata?.value?.id) {
-                    playerConnection?.player?.togglePlayPause()
+                if (album.id == secPlayConnect?.mediaMetadata?.value?.id) {
+                    secPlayConnect?.player?.togglePlayPause()
                 } else {
                     if (index == null){
-                        playerConnection?.playQueue(
+                        secPlayConnect?.playQueue(
                             YouTubeQueue(album.endpoint?: WatchEndpoint(videoId = album.id),album.toMediaMetadata())
                         )
                     }else{
-                        playerConnection?.playQueue(
+                        secPlayConnect?.playQueue(
                             LocalAlbumRadio(index!!,position)
                         )
                     }

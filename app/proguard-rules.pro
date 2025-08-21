@@ -4,9 +4,9 @@
 #---------------------------------基本指令区----------------------------------
 -optimizationpasses 5
 #字典
--obfuscationdictionary mus_dic.txt
--classobfuscationdictionary mus_dic.txt
--packageobfuscationdictionary mus_dic.txt
+-obfuscationdictionary minty.txt
+-classobfuscationdictionary minty.txt
+-packageobfuscationdictionary minty.txt
 -dontskipnonpubliclibraryclassmembers
 #-printmapping proguardMapping.txt
 -optimizations !code/simplification/cast,!field/*,!class/merging/*
@@ -112,7 +112,7 @@
 }
 #----------------------------------------------------------------------------------------------------------
 
--keep class com.snap.intelligence.musics.beans.** { *; }
+-keep class com.rapid.prominence.minty.bean.** { *; }
 
 #-------------------------------------------------------------------------
 

@@ -3,7 +3,7 @@ package com.rapid.prominence.minty
 import android.net.Uri
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata.MEDIA_TYPE_MUSIC
-import com.rapid.prominence.minty.ei.main.EiMainPage.Companion.playerConnection
+import com.rapid.prominence.minty.ei.main.EiMainPage.Companion.eiPlays
 import com.rapid.prominence.minty.bean.Song
 import com.rapid.prominence.minty.ei.kts.toMediaMetadata
 import com.rapid.prominence.minty.service.queues.ListQueue
@@ -55,7 +55,7 @@ fun playLocalMusic(localMusic: ArrayList<Song>, position: Int) {
 
         }
         val queue = ListQueue(title = "Local Music",mediaItems,  startIndex = position)
-        playerConnection?.playQueue(queue)
+        eiPlays?.playQueue(queue)
     }catch (e : Exception){
         e.printStackTrace()
     }

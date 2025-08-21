@@ -57,7 +57,7 @@ class EiMainPage : MintyBaseActivity() {
         bindService(Intent(this@EiMainPage, MusicService::class.java), serviceConnection, BIND_AUTO_CREATE)
     }
     companion object {
-        var playerConnection by mutableStateOf<PlayerConnection?>(null)
+        var eiPlays by mutableStateOf<PlayerConnection?>(null)
     }
     private fun authGetLocalData(localMusic: ArrayList<Song>) {
         val mediaItems = localMusic.map { music ->
@@ -79,8 +79,8 @@ class EiMainPage : MintyBaseActivity() {
                 .build()
 
         }
-        if (playerConnection?.queueWindows != null && playerConnection?.queueWindows?.value?.isEmpty() == true){
-            playerConnection?.addToQueue(mediaItems)
+        if (eiPlays?.queueWindows != null && eiPlays?.queueWindows?.value?.isEmpty() == true){
+            eiPlays?.addToQueue(mediaItems)
         }
 
     }
@@ -139,20 +139,20 @@ class EiMainPage : MintyBaseActivity() {
     private val serviceConnection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
             if (service is MusicService.MusicBinder) {
-                playerConnection = PlayerConnection(this@EiMainPage, service, database, lifecycleScope)
+                eiPlays = PlayerConnection(this@EiMainPage, service, database, lifecycleScope)
                 lifecycleScope.launch {
-                    playerConnection?.mediaMetadata?.collect{
+                    eiPlays?.mediaMetadata?.collect{
                         if (MMKV.defaultMMKV().getBoolean("isAuth",false)){
-                            updatePlayerUI(it)
+                            bottomSettingChange(it)
                         }
                     }
                 }
                 lifecycleScope.launch {
-                    playerConnection?.isPlaying?.collect{
+                    eiPlays?.isPlaying?.collect{
                         if (it){
-                            binding.bottomPlayer.playPauseButton.setImageResource(R.mipmap.pause)
+                            binding.mintyIncContainerPlay.playPauseButton.setImageResource(R.mipmap.pause)
                         }else{
-                            binding.bottomPlayer.playPauseButton.setImageResource(R.mipmap.home_plays)
+                            binding.mintyIncContainerPlay.playPauseButton.setImageResource(R.mipmap.home_plays)
                         }
                     }
                 }
@@ -163,8 +163,8 @@ class EiMainPage : MintyBaseActivity() {
         }
 
         override fun onServiceDisconnected(name: ComponentName?) {
-            playerConnection?.dispose()
-            playerConnection = null
+            eiPlays?.dispose()
+            eiPlays = null
         }
     }
 
@@ -179,10 +179,10 @@ class EiMainPage : MintyBaseActivity() {
     private lateinit var binding: MintyEiHomeBinding
     override fun onDestroy() {
         super.onDestroy()
-        if (dataStore.get(StopMusicOnTaskClearKey, false) && playerConnection?.isPlaying?.value == true && isFinishing) {
+        if (dataStore.get(StopMusicOnTaskClearKey, false) && eiPlays?.isPlaying?.value == true && isFinishing) {
             stopService(Intent(this, MusicService::class.java))
             unbindService(serviceConnection)
-            playerConnection = null
+            eiPlays = null
         }
     }
     override fun onStop() {
@@ -192,11 +192,11 @@ class EiMainPage : MintyBaseActivity() {
     override fun onResume() {
         super.onResume()
         try {
-            if (playerConnection != null && playerConnection?.player?.currentMetadata != null && MMKV.defaultMMKV().getBoolean("isAuth",false)){
-                playerConnection?.mediaMetadata?.let {
-                    updatePlayerUI(it.value)
+            if (eiPlays != null && eiPlays?.player?.currentMetadata != null && MMKV.defaultMMKV().getBoolean("isAuth",false)){
+                eiPlays?.mediaMetadata?.let {
+                    bottomSettingChange(it.value)
                 }
-                if (playerConnection?.mediaMetadata == null){
+                if (eiPlays?.mediaMetadata == null){
                     //todo
                 }
             }
@@ -221,12 +221,12 @@ class EiMainPage : MintyBaseActivity() {
 
     }
 
-    private fun updatePlayerUI(metadata: MediaMetadata?) {
+    private fun bottomSettingChange(metadata: MediaMetadata?) {
         if (!TextUtils.isEmpty(metadata?.title)){
-            binding.bottomPlayer.title.text = metadata?.title
+            binding.mintyIncContainerPlay.title.text = metadata?.title
         }
         if (!TextUtils.isEmpty(metadata?.artists?.joinToString(", ") { it.name })){
-            binding.bottomPlayer.artist.text = metadata?.artists?.joinToString(", ") { it.name }
+            binding.mintyIncContainerPlay.artist.text = metadata?.artists?.joinToString(", ") { it.name }
         }
         Glide.with(this@EiMainPage)
             .load(metadata?.thumbnailUrl)
@@ -236,7 +236,7 @@ class EiMainPage : MintyBaseActivity() {
                     .load(posBitmap(0))
                     .apply(roundOptions)
             )
-            .into(binding.bottomPlayer.thumbnail)
+            .into(binding.mintyIncContainerPlay.thumbnail)
     }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -261,21 +261,21 @@ class EiMainPage : MintyBaseActivity() {
         setupTabLayout()
         // Initialize adapters
         // Set up RecyclerViews
-        binding.bottomPlayer.container.setOnClickListener {
+        binding.mintyIncContainerPlay.container.setOnClickListener {
             if (!MMKV.defaultMMKV().getBoolean("isAuth",false)){
                 home?.outClick()
                 return@setOnClickListener
             }
             startActivity(Intent(this, EiPlayer::class.java))
         }
-//        binding.bottomPlayer.nextButton.setOnClickListener {
+//        binding.mintyIncContainerPlay.nextButton.setOnClickListener {
 //            playerConnection?.player?.seekToNext()
 //        }
-//        binding.bottomPlayer.playPauseButton.setOnClickListener {
+//        binding.mintyIncContainerPlay.playPauseButton.setOnClickListener {
 //            if (playerConnection?.isPlaying?.value == true){
-//                    binding.bottomPlayer.playPauseButton.setImageResource(R.drawable.play)
+//                    binding.mintyIncContainerPlay.playPauseButton.setImageResource(R.drawable.play)
 //            }else{
-//                binding.bottomPlayer.playPauseButton.setImageResource(R.drawable.pause)
+//                binding.mintyIncContainerPlay.playPauseButton.setImageResource(R.drawable.pause)
 //            }
 //            if (playerConnection?.player?.playbackState == Player.STATE_ENDED) {
 //                playerConnection?.player?.seekTo(0, 0)
@@ -333,7 +333,7 @@ class EiMainPage : MintyBaseActivity() {
     var isReload = false
     fun updateUI() {
         try {
-            if (playerConnection == null){
+            if (eiPlays == null){
                 isReload = true
                 return
             }
@@ -341,8 +341,8 @@ class EiMainPage : MintyBaseActivity() {
             if (data.isNotEmpty()){
                 authGetLocalData(data)
             }
-            playerConnection?.mediaMetadata?.let {
-                updatePlayerUI(it.value)
+            eiPlays?.mediaMetadata?.let {
+                bottomSettingChange(it.value)
             }
         }catch (e : Exception){
             e.printStackTrace()

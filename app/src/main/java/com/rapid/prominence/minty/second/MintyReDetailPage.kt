@@ -22,7 +22,7 @@ import com.rapid.prominence.minty.databinding.MintySecReleaseDetailBinding
 import com.rapid.prominence.minty.extensions.currentMetadata
 import com.rapid.prominence.minty.options
 import com.rapid.prominence.minty.randomBitmap
-import com.rapid.prominence.minty.second.view.MintySecMainPage.Companion.playerConnection
+import com.rapid.prominence.minty.second.view.MintySecMainPage.Companion.secPlayConnect
 import com.zionhuang.innertube.models.AlbumItem
 import com.rapid.prominence.minty.second.databean.NewReleaseViewModel
 import com.rapid.prominence.minty.utils.joinByBullet
@@ -35,15 +35,15 @@ class MintyReDetailPage : MintyBaseActivity() {
     private lateinit var newReleaseAlbumsAdapter: ItemsAdapter
     override fun onResume() {
         super.onResume()
-        if (playerConnection != null && playerConnection?.player?.currentMetadata != null){
-            playerConnection?.mediaMetadata?.let {
-                updatePlayerUI(it.value)
+        if (secPlayConnect != null && secPlayConnect?.player?.currentMetadata != null){
+            secPlayConnect?.mediaMetadata?.let {
+                bottomSettingChange(it.value)
             }
         }
     }
 
-    private fun updatePlayerUI(metadata: MediaMetadata?) {
-        addUIPlayer(binding.bottomPlayer.artist,binding.bottomPlayer.title,binding.bottomPlayer.thumbnail,metadata)
+    private fun bottomSettingChange(metadata: MediaMetadata?) {
+        addUIPlayer(binding.mintyIncContainerPlay.artist,binding.mintyIncContainerPlay.title,binding.mintyIncContainerPlay.thumbnail,metadata)
     }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -67,17 +67,17 @@ class MintyReDetailPage : MintyBaseActivity() {
                 finishCurrent()
             }
         }
-        binding.bottomPlayer.container.setOnClickListener {
+        binding.mintyIncContainerPlay.container.setOnClickListener {
             startPlayerPage()
         }
-        binding.specAnm2.post {
-            binding.specAnm2.visibility = View.VISIBLE
-            binding.specAnm2.startShimmerAnimation()
+        binding.loadings.post {
+            binding.loadings.visibility = View.VISIBLE
+            binding.loadings.startShimmerAnimation()
         }
         newReleaseAlbumsAdapter = ItemsAdapter(emptyList())
-        binding.moodAndGenresRecyclerView.layoutManager = GridLayoutManager(this, 2)
-        binding.moodAndGenresRecyclerView?.addItemDecoration(SecGridItemDecoration(SizeUtils.dp2px( 1f),2))
-        binding.moodAndGenresRecyclerView.adapter = newReleaseAlbumsAdapter
+        binding.listRecycleview.layoutManager = GridLayoutManager(this, 2)
+        binding.listRecycleview?.addItemDecoration(SecGridItemDecoration(SizeUtils.dp2px( 1f),2))
+        binding.listRecycleview.adapter = newReleaseAlbumsAdapter
         lifecycleScope.launch {
 
                 albumViewModel?.newReleaseAlbums?.collect {
@@ -85,8 +85,8 @@ class MintyReDetailPage : MintyBaseActivity() {
                     if (isFinishing || isDestroyed){
                         return@collect
                     }
-                    binding.specAnm2.visibility = View.GONE
-                    binding.specAnm2.stopShimmerAnimation()
+                    binding.loadings.visibility = View.GONE
+                    binding.loadings.stopShimmerAnimation()
                     it?.let {
                         its ->
                         newReleaseAlbumsAdapter?.addData(its)
@@ -98,17 +98,17 @@ class MintyReDetailPage : MintyBaseActivity() {
 
         lifecycleScope.launch {
 
-            playerConnection?.mediaMetadata?.collect{
-                updatePlayerUI(it)
+            secPlayConnect?.mediaMetadata?.collect{
+                bottomSettingChange(it)
             }
 
         }
         lifecycleScope.launch {
-            playerConnection?.isPlaying?.collect{
+            secPlayConnect?.isPlaying?.collect{
                 if (it){
-                    binding.bottomPlayer.playPauseButton.setImageResource(R.mipmap.pause)
+                    binding.mintyIncContainerPlay.playPauseButton.setImageResource(R.mipmap.pause)
                 }else{
-                    binding.bottomPlayer.playPauseButton.setImageResource(R.mipmap.home_plays)
+                    binding.mintyIncContainerPlay.playPauseButton.setImageResource(R.mipmap.home_plays)
                 }
             }
         }

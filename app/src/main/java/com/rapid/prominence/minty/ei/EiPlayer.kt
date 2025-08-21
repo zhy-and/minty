@@ -21,7 +21,7 @@ import com.hjq.permissions.Permission
 import com.hjq.permissions.XXPermissions
 import com.rapid.prominence.minty.base.MintyBaseActivity
 import com.rapid.prominence.minty.CustomViewsInfo
-import com.rapid.prominence.minty.ei.main.EiMainPage.Companion.playerConnection
+import com.rapid.prominence.minty.ei.main.EiMainPage.Companion.eiPlays
 import com.rapid.prominence.minty.ei.scan.EiScanTools
 import com.rapid.prominence.minty.R
 import com.rapid.prominence.minty.bean.Song
@@ -132,8 +132,8 @@ class EiPlayer : MintyBaseActivity() {
                 .build()
 
         }
-        if (playerConnection?.queueWindows != null && playerConnection?.queueWindows?.value?.isEmpty() == true){
-            playerConnection?.addToQueue(mediaItems)
+        if (eiPlays?.queueWindows != null && eiPlays?.queueWindows?.value?.isEmpty() == true){
+            eiPlays?.addToQueue(mediaItems)
         }
 
     }
@@ -153,7 +153,7 @@ class EiPlayer : MintyBaseActivity() {
 
         binding.seekBar?.setOnSeekBarChangeListener(object : OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
-                if (fromUser && playerConnection != null) {
+                if (fromUser && eiPlays != null) {
                     viewStatusPositionText(progress.toLong())
                 }
             }
@@ -165,8 +165,8 @@ class EiPlayer : MintyBaseActivity() {
             }
 
             override fun onStopTrackingTouch(seekBar: SeekBar) {
-                if (playerConnection != null) {
-                    playerConnection?.player?.seekTo(seekBar.progress.toLong())
+                if (eiPlays != null) {
+                    eiPlays?.player?.seekTo(seekBar.progress.toLong())
                     startProgressUpdate()
                 }
             }
@@ -177,13 +177,13 @@ class EiPlayer : MintyBaseActivity() {
                 loadAuth()
                 return@setOnClickListener
             }
-            if (playerConnection != null) {
-                if (playerConnection?.player?.playbackState == Player.STATE_ENDED) {
-                    playerConnection?.player?.seekTo(0)
-                    playerConnection?.player?.playWhenReady = true
+            if (eiPlays != null) {
+                if (eiPlays?.player?.playbackState == Player.STATE_ENDED) {
+                    eiPlays?.player?.seekTo(0)
+                    eiPlays?.player?.playWhenReady = true
                 } else {
-                    playerConnection?.player?.playWhenReady =
-                        !playerConnection?.player?.playWhenReady!!
+                    eiPlays?.player?.playWhenReady =
+                        !eiPlays?.player?.playWhenReady!!
                 }
             }
         }
@@ -194,11 +194,11 @@ class EiPlayer : MintyBaseActivity() {
                 return@setOnClickListener
             }
             try {
-                if (playerConnection?.player?.repeatMode == REPEAT_MODE_OFF){
+                if (eiPlays?.player?.repeatMode == REPEAT_MODE_OFF){
                     var flag = 0
-                    playerConnection?.player?.mediaItems?.apply {
+                    eiPlays?.player?.mediaItems?.apply {
                         forEachIndexed() {  index,its ->
-                            if (its?.mediaMetadata?.title == playerConnection?.player?.currentMediaItem?.mediaMetadata?.title){
+                            if (its?.mediaMetadata?.title == eiPlays?.player?.currentMediaItem?.mediaMetadata?.title){
                                 flag = index
                             }
                         }
@@ -206,8 +206,8 @@ class EiPlayer : MintyBaseActivity() {
                         if (index == flag){
                             index =  Random.nextInt(this.size)
                         }
-                        playerConnection?.player?.seekToDefaultPosition(index)
-                        playerConnection?.player?.playWhenReady = true
+                        eiPlays?.player?.seekToDefaultPosition(index)
+                        eiPlays?.player?.playWhenReady = true
 //                        val currentIndex = playerConnection?.currentWindowIndex?.value ?: 0
 //                        viewStatusBannerToCurrentSong(currentIndex)
 
@@ -218,8 +218,8 @@ class EiPlayer : MintyBaseActivity() {
                 e.printStackTrace()
             }
 
-            if (playerConnection != null) {
-                playerConnection?.seekToPrevious()
+            if (eiPlays != null) {
+                eiPlays?.seekToPrevious()
 //                val currentIndex = playerConnection?.currentWindowIndex?.value ?: 0
 //                viewStatusBannerToCurrentSong(currentIndex)
             }
@@ -233,11 +233,11 @@ class EiPlayer : MintyBaseActivity() {
                 return@setOnClickListener
             }
             try {
-                if (playerConnection?.player?.repeatMode == REPEAT_MODE_OFF){
+                if (eiPlays?.player?.repeatMode == REPEAT_MODE_OFF){
                     var flag = 0
-                    playerConnection?.player?.mediaItems?.apply {
+                    eiPlays?.player?.mediaItems?.apply {
                         forEachIndexed() {  index,its ->
-                            if (its?.mediaMetadata?.title == playerConnection?.player?.currentMediaItem?.mediaMetadata?.title){
+                            if (its?.mediaMetadata?.title == eiPlays?.player?.currentMediaItem?.mediaMetadata?.title){
                                 flag = index
                             }
                         }
@@ -245,8 +245,8 @@ class EiPlayer : MintyBaseActivity() {
                         if (index == flag){
                             index =  Random.nextInt(this.size)
                         }
-                        playerConnection?.player?.seekToDefaultPosition(index)
-                        playerConnection?.player?.playWhenReady = true
+                        eiPlays?.player?.seekToDefaultPosition(index)
+                        eiPlays?.player?.playWhenReady = true
 //                        val currentIndex = playerConnection?.currentWindowIndex?.value ?: 0
 //                        viewStatusBannerToCurrentSong(currentIndex)
                     }
@@ -257,8 +257,8 @@ class EiPlayer : MintyBaseActivity() {
             }
 
 
-            if (playerConnection != null) {
-                playerConnection?.seekToNext()
+            if (eiPlays != null) {
+                eiPlays?.seekToNext()
 //                val currentIndex = playerConnection?.currentWindowIndex?.value ?: 0
 //                viewStatusBannerToCurrentSong(currentIndex)
             }
@@ -269,8 +269,8 @@ class EiPlayer : MintyBaseActivity() {
                 loadAuth()
                 return@setOnClickListener
             }
-            if (playerConnection != null) {
-                playerConnection?.player?.toggleRepeatMode()
+            if (eiPlays != null) {
+                eiPlays?.player?.toggleRepeatMode()
             }
         }
 
@@ -322,9 +322,9 @@ class EiPlayer : MintyBaseActivity() {
                     }
                 })
             }
-            if (playerConnection == null ||  isFinishing || isDestroyed) return
+            if (eiPlays == null ||  isFinishing || isDestroyed) return
             lifecycleScope.launch {
-                playerConnection?.queueWindows?.collect {
+                eiPlays?.queueWindows?.collect {
                     if (it.isNullOrEmpty()){
                         return@collect
                     }
@@ -341,7 +341,7 @@ class EiPlayer : MintyBaseActivity() {
 
                     binding.bannerView.refreshData(musicPicts) // 设置图片源
                     // 修复：在BannerView数据加载完成后，定位到当前正在播放的歌曲位置
-                    val currentIndex = playerConnection?.currentWindowIndex?.value ?: 0
+                    val currentIndex = eiPlays?.currentWindowIndex?.value ?: 0
                     if (currentIndex in 0 until musicPicts.size) {
                         binding.bannerView.post {
                             binding.bannerView.setCurrentItem(currentIndex, false)
@@ -372,7 +372,7 @@ class EiPlayer : MintyBaseActivity() {
             }
             checkCollect()
             // 监听播放状态变化
-            playerConnection?.player?.addListener(object : Player.Listener {
+            eiPlays?.player?.addListener(object : Player.Listener {
                 override fun onPlaybackStateChanged(playbackState: Int) {
                     viewStatusProgress()
                 }
@@ -393,7 +393,7 @@ class EiPlayer : MintyBaseActivity() {
                 override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
                     super.onMediaItemTransition(mediaItem, reason)
                     LogUtils.e(" -------- change ------")
-                   val currentIndex =  playerConnection?.currentWindowIndex?.value ?: -1
+                   val currentIndex =  eiPlays?.currentWindowIndex?.value ?: -1
                     if (currentIndex >= 0 && currentIndex < musicPicts.size){
                         viewStatusBannerToCurrentSong(currentIndex)
                     }
@@ -416,7 +416,7 @@ class EiPlayer : MintyBaseActivity() {
 
             // 初始化UI状态
             viewStatusPlayPauseButton()
-            viewStatusRepeatButton(playerConnection?.player?.repeatMode!!)
+            viewStatusRepeatButton(eiPlays?.player?.repeatMode!!)
             viewStatusMediaInfo()
             viewStatusProgress()
             startProgressUpdate()
@@ -430,15 +430,15 @@ class EiPlayer : MintyBaseActivity() {
     private fun viewStatusCurrentSongPosition(position: Int) {
         LogUtils.e(""+position+"viewStatusCurrentSongPosition")
 //        binding.xbanner.setBannerCurrentItem(currentSongPosition, false)
-        val currentIndex = playerConnection?.currentWindowIndex?.value ?: -1
+        val currentIndex = eiPlays?.currentWindowIndex?.value ?: -1
         if (position == currentIndex) {
             // 位置未改变，不需要操作
             return
         }
 
         // 只有当位置真正改变时才切换歌曲
-        playerConnection?.player?.seekToDefaultPosition(position)
-        playerConnection?.player?.playWhenReady = true
+        eiPlays?.player?.seekToDefaultPosition(position)
+        eiPlays?.player?.playWhenReady = true
 //        if (position == playerConnection?.currentWindowIndex?.value) {
 //            if (playerConnection?.isPlaying?.value == false){
 //                playerConnection?.player?.play()
@@ -479,7 +479,7 @@ class EiPlayer : MintyBaseActivity() {
             }
             var isCan = false
             loadSongs(Song()).forEach {
-                if (it.isCollect && it.title == playerConnection?.player?.currentMediaItem?.mediaMetadata?.title){
+                if (it.isCollect && it.title == eiPlays?.player?.currentMediaItem?.mediaMetadata?.title){
                     isCan = true
                     return@forEach
                 }
@@ -502,7 +502,7 @@ class EiPlayer : MintyBaseActivity() {
         viewStatusLikeButton(currentCollect)
         val data =  loadSongs(Song())
         data.forEach {
-            if (it.title == playerConnection?.player?.currentMediaItem?.mediaMetadata?.title){
+            if (it.title == eiPlays?.player?.currentMediaItem?.mediaMetadata?.title){
                 it.isCollect = currentCollect
                 return@forEach
             }
@@ -511,8 +511,8 @@ class EiPlayer : MintyBaseActivity() {
     }
 
     private fun viewStatusPlayPauseButton() {
-        if (playerConnection == null   || isFinishing || isDestroyed) return
-        val isPlaying = playerConnection?.player?.isPlaying ?: return
+        if (eiPlays == null   || isFinishing || isDestroyed) return
+        val isPlaying = eiPlays?.player?.isPlaying ?: return
         //        playPauseButton.setIma😎geResource(isPlaying ? R.drawable.ic_pause : R.drawable.ic_play);
         binding.playPauseButton?.setImageResource(if (isPlaying) R.mipmap.local_pause else R.mipmap.lo_play)
     }
@@ -538,9 +538,9 @@ class EiPlayer : MintyBaseActivity() {
 
     private fun viewStatusMediaInfo() {
         try {
-            if (playerConnection == null || isFinishing || isDestroyed) return
+            if (eiPlays == null || isFinishing || isDestroyed) return
 
-            playerConnection?.mediaMetadata?.value?.let {
+            eiPlays?.mediaMetadata?.value?.let {
                 binding. title?.text = it.title
                 binding.titles.nowPlayingText?.text = it.title
                 binding.artist?.text = it?.artists?.joinToString(", ") { it.name }
@@ -553,16 +553,16 @@ class EiPlayer : MintyBaseActivity() {
     }
 
     private fun viewStatusLikeButton(isLiked: Boolean) {
-        if (playerConnection == null   || isFinishing || isDestroyed) return
+        if (eiPlays == null   || isFinishing || isDestroyed) return
         binding.addFav?.setImageResource(if (isLiked) R.mipmap.py_collect else R.mipmap.uncollect)
     }
 
     private fun viewStatusProgress() {
         try {
-            if (playerConnection == null || isFinishing || isDestroyed) return
+            if (eiPlays == null || isFinishing || isDestroyed) return
 
-            val duration = playerConnection?.player?.duration ?: return
-            val position = playerConnection?.player?.currentPosition ?: return
+            val duration = eiPlays?.player?.duration ?: return
+            val position = eiPlays?.player?.currentPosition ?: return
             if (duration > 0) {
                 binding. seekBar?.max = duration.toInt()
                 binding.seekBar?.progress = position.toInt()
@@ -577,7 +577,7 @@ class EiPlayer : MintyBaseActivity() {
 
     private fun startProgressUpdate() {
         try {
-            if (playerConnection == null   || isFinishing || isDestroyed) return
+            if (eiPlays == null   || isFinishing || isDestroyed) return
             viewStatusProgressRunnable?.let {
                 handler.removeCallbacks(it)
             }
@@ -597,12 +597,12 @@ class EiPlayer : MintyBaseActivity() {
     }
 
     private fun viewStatusPositionText(position: Long) {
-        if (playerConnection == null   || isFinishing || isDestroyed) return
+        if (eiPlays == null   || isFinishing || isDestroyed) return
         binding.positionText?.text = formatDuration(position)
     }
 
     private fun viewStatusDurationText(duration: Long) {
-        if (playerConnection == null   || isFinishing || isDestroyed) return
+        if (eiPlays == null   || isFinishing || isDestroyed) return
         binding.durationText?.text = formatDuration(duration)
     }
 
@@ -623,7 +623,7 @@ class EiPlayer : MintyBaseActivity() {
 
     override fun onResume() {
         super.onResume()
-        if (playerConnection != null && playerConnection?.player?.isPlaying == true) {
+        if (eiPlays != null && eiPlays?.player?.isPlaying == true) {
             startProgressUpdate()
 
         }

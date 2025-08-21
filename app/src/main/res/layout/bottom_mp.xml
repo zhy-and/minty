@@ -23,7 +23,7 @@
         android:layout_height="52dp">
 
     <ImageView
-
+        android:src="@mipmap/st"
         android:id="@+id/thumbnail"
         android:layout_width="match_parent"
         android:layout_height="match_parent"

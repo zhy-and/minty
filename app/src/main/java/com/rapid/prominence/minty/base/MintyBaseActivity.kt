@@ -64,7 +64,7 @@ open class MintyBaseActivity : AppCompatActivity() {
         }
         else if (localClassName.contains("AlbumDetActivity") || localClassName.contains("PlayListDetActivity") || localClassName.contains("MoodDetailsActivity") || localClassName.contains("ArtistDetActivity") || localClassName.contains("NewReleaseDetailsActivity")){
         }
-        else if (localClassName.contains("EiPlayer") ||  localClassName.contains("MainPlayer")){
+        else if (localClassName.contains("EiPlayer") ||  localClassName.contains("SecPlayer")){
             ImmersionBar.with(this).navigationBarColor(R.color.new_color).init()
 
         }

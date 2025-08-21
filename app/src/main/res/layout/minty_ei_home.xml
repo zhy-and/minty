@@ -8,7 +8,7 @@
     android:background="@mipmap/home_bg"
     android:orientation="vertical">
     <include
-        android:id="@+id/bottom_player"
+        android:id="@+id/minty_inc_container_play"
         layout="@layout/bottom_mp"
         app:layout_constraintBottom_toBottomOf="parent"
         />
@@ -106,7 +106,7 @@
 
     <androidx.viewpager2.widget.ViewPager2
         app:layout_constraintTop_toBottomOf="@id/indexs"
-        app:layout_constraintBottom_toTopOf="@id/bottom_player"
+        app:layout_constraintBottom_toTopOf="@id/minty_inc_container_play"
         app:layout_constraintStart_toStartOf="parent"
         android:id="@+id/view_pager"
         android:layout_width="match_parent"

@@ -32,7 +32,7 @@ import com.rapid.prominence.minty.extensions.logClickEvents
 import com.rapid.prominence.minty.extensions.mediaItems
 import com.rapid.prominence.minty.extensions.metadata
 import com.rapid.prominence.minty.extensions.toggleRepeatMode
-import com.rapid.prominence.minty.second.view.MintySecMainPage.Companion.playerConnection
+import com.rapid.prominence.minty.second.view.MintySecMainPage.Companion.secPlayConnect
 import com.rapid.prominence.minty.second.view.favorite.MintySecFavPage
 import com.zhpan.bannerview.annotation.APageStyle
 import com.zhpan.bannerview.constants.PageStyle
@@ -48,59 +48,24 @@ import kotlin.random.Random
 
 
 class SecPlayer : MintyBaseActivity() {
-    override fun onDestroy() {
-        super.onDestroy()
-        updateProgressRunnable?.let {
-            handler.removeCallbacks(it)
-        }
-    }
-    private lateinit var binding: MintyEiPlaysBinding
 
-    override fun onResume() {
-        super.onResume()
-        if (playerConnection != null && playerConnection?.player?.isPlaying == true) {
-            startProgressUpdate()
-        }
-    }
-    private fun randomPlay(){
-        try {
-
-            var flag = 0
-            playerConnection?.player?.mediaItems?.apply {
-                forEachIndexed() {  index,its ->
-                    if (its?.mediaMetadata?.title == playerConnection?.player?.currentMediaItem?.mediaMetadata?.title){
-                        flag = index
-                    }
-                }
-                var index =  Random.nextInt(this.size)
-                if (index == flag){
-                    index =  Random.nextInt(this.size)
-                }
-                playerConnection?.player?.seekToDefaultPosition(index)
-                playerConnection?.player?.playWhenReady = true
-
-            }
-        }catch (e : Exception){
-            e.printStackTrace()
-        }
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = MintyEiPlaysBinding.inflate(layoutInflater)
         setContentView(binding.root)
         try {
-            if (playerConnection == null || playerConnection?.mediaMetadata == null || playerConnection?.mediaMetadata?.value == null){
+            if (secPlayConnect == null || secPlayConnect?.mediaMetadata == null || secPlayConnect?.mediaMetadata?.value == null){
                 binding.allImg.visibility = View.VISIBLE
             }else{
                 binding.bannerView.visibility = View.VISIBLE
             }
             lifecycleScope.launch {
                 // 更新收藏状态
-                playerConnection?.currentSong?.collectLatest(scope){
+                secPlayConnect?.currentSong?.collectLatest(scope){
                     isCollect = it?.song?.liked ?: false
 //                    Log.e("status ----",""+it?.song?.liked)
-                    updateLikeButton(isCollect)
+                    refreshLikeButton(isCollect)
                 }
             }
 
@@ -160,9 +125,9 @@ class SecPlayer : MintyBaseActivity() {
                     }
                 })
             }
-            if (playerConnection == null ||  isFinishing || isDestroyed) return
+            if (secPlayConnect == null ||  isFinishing || isDestroyed) return
             lifecycleScope.launch {
-                playerConnection?.queueWindows?.collect {
+                secPlayConnect?.queueWindows?.collect {
                     if (it.isNullOrEmpty()){
                         return@collect
                     }
@@ -179,7 +144,7 @@ class SecPlayer : MintyBaseActivity() {
 
                     binding.bannerView.refreshData(musicPicts) // 设置图片源
                     // 修复：在BannerView数据加载完成后，定位到当前正在播放的歌曲位置
-                    val currentIndex = playerConnection?.currentWindowIndex?.value ?: 0
+                    val currentIndex = secPlayConnect?.currentWindowIndex?.value ?: 0
                     if (currentIndex in 0 until musicPicts.size) {
                         binding.bannerView.post {
                             binding.bannerView.setCurrentItem(currentIndex, false)
@@ -189,6 +154,7 @@ class SecPlayer : MintyBaseActivity() {
 
                 }
             }
+            refreshLoadingStatus(secPlayConnect?.playbackState?.value ?: Player.STATE_IDLE)
             observePlayerState()
             setupListeners()
         }catch (e : Exception){
@@ -197,6 +163,42 @@ class SecPlayer : MintyBaseActivity() {
 
     }
     private var queueList = mutableListOf<Timeline.Window>()
+    override fun onDestroy() {
+        super.onDestroy()
+        seekMessage?.let {
+            handler.removeCallbacks(it)
+        }
+    }
+    private lateinit var binding: MintyEiPlaysBinding
+
+    override fun onResume() {
+        super.onResume()
+        if (secPlayConnect != null && secPlayConnect?.player?.isPlaying == true) {
+            startProgressUpdate()
+        }
+    }
+    private fun randomPlay(){
+        try {
+
+            var flag = 0
+            secPlayConnect?.player?.mediaItems?.apply {
+                forEachIndexed() {  index,its ->
+                    if (its?.mediaMetadata?.title == secPlayConnect?.player?.currentMediaItem?.mediaMetadata?.title){
+                        flag = index
+                    }
+                }
+                var index =  Random.nextInt(this.size)
+                if (index == flag){
+                    index =  Random.nextInt(this.size)
+                }
+                secPlayConnect?.player?.seekToDefaultPosition(index)
+                secPlayConnect?.player?.playWhenReady = true
+
+            }
+        }catch (e : Exception){
+            e.printStackTrace()
+        }
+    }
     private var musicPicts = mutableListOf<CustomViewsInfo>()
     var isCollect = false
     var data : String?= null
@@ -205,9 +207,9 @@ class SecPlayer : MintyBaseActivity() {
         super.onNewIntent(intent)
         try {
             lifecycleScope.launch {
-                playerConnection?.currentSong?.collectLatest(scope) {
+                secPlayConnect?.currentSong?.collectLatest(scope) {
                         value ->
-                    updateLikeButton(                       value?.song?.liked
+                    refreshLikeButton(                       value?.song?.liked
                             == true)
                 }
             }
@@ -217,7 +219,7 @@ class SecPlayer : MintyBaseActivity() {
 
     }
     private val handler = Handler(Looper.getMainLooper())
-    private var updateProgressRunnable: Runnable? = null
+    private var seekMessage: Runnable? = null
     private fun itemClick(position: Int) {
 
     }
@@ -239,24 +241,16 @@ class SecPlayer : MintyBaseActivity() {
     // 更新当前歌曲位置
     private fun viewStatusCurrentSongPosition(position: Int) {
         LogUtils.e(""+position+"viewStatusCurrentSongPosition")
-//        binding.xbanner.setBannerCurrentItem(currentSongPosition, false)
-        val currentIndex = playerConnection?.currentWindowIndex?.value ?: -1
+        val currentIndex = secPlayConnect?.currentWindowIndex?.value ?: -1
         if (position == currentIndex) {
             // 位置未改变，不需要操作
             return
         }
 
         // 只有当位置真正改变时才切换歌曲
-        playerConnection?.player?.seekToDefaultPosition(position)
-        playerConnection?.player?.playWhenReady = true
-//        if (position == playerConnection?.currentWindowIndex?.value) {
-//            if (playerConnection?.isPlaying?.value == false){
-//                playerConnection?.player?.play()
-//            }
-//        } else {
-//            playerConnection?.player?.seekToDefaultPosition(songs[position].lastPeriodIndex)
-//            playerConnection?.player?.playWhenReady = true
-//        }
+        secPlayConnect?.player?.seekToDefaultPosition(position)
+        secPlayConnect?.player?.playWhenReady = true
+
     }
     private fun setupListeners() {
 
@@ -265,18 +259,18 @@ class SecPlayer : MintyBaseActivity() {
             try {
                 logClickEvents("player_collect_btn")
 
-                if (playerConnection == null || binding.title.text.contains(getString(R.string.app_name))){
+                if (secPlayConnect == null || binding.title.text.contains(getString(R.string.app_name))){
                     startInterActivity(Intent(this, MintySecFavPage::class.java), collectInter(),false)
                     return@setOnClickListener
                 }
                 database.transaction {
                     lifecycleScope.launch {
-                        playerConnection?.currentSong?.first().let {
+                        secPlayConnect?.currentSong?.first().let {
                             it?.song?.apply {
                                 withContext(Dispatchers.IO){
                                     update(toggleLike())
                                 }
-                                updateLikeButton(!it.song.liked)
+                                refreshLikeButton(!it.song.liked)
                             }
                         }
                     }
@@ -293,27 +287,27 @@ class SecPlayer : MintyBaseActivity() {
 
         binding.seekBar?.setOnSeekBarChangeListener(object : OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
-                if (fromUser && playerConnection != null) {
-                    updatePositionText(progress.toLong())
+                if (fromUser && secPlayConnect != null) {
+                    refreshPositionText(progress.toLong())
                 }
             }
 
             override fun onStartTrackingTouch(seekBar: SeekBar) {
-                updateProgressRunnable?.let {
+                seekMessage?.let {
                     handler.removeCallbacks(it)
                 }
             }
 
             override fun onStopTrackingTouch(seekBar: SeekBar) {
-                if (playerConnection != null) {
-                    playerConnection?.player?.seekTo(seekBar.progress.toLong())
+                if (secPlayConnect != null) {
+                    secPlayConnect?.player?.seekTo(seekBar.progress.toLong())
                     startProgressUpdate()
                 }
             }
         })
 
         binding.playPauseButton?.setOnClickListener { v: View? ->
-            if (playerConnection == null || binding.title.text.contains(getString(R.string.app_name))){
+            if (secPlayConnect == null || binding.title.text.contains(getString(R.string.app_name))){
                 startQueuePage()
                 logClickEvents("player_empty_click_play_btn")
 
@@ -321,29 +315,29 @@ class SecPlayer : MintyBaseActivity() {
             }
             logClickEvents("player_play_btn")
 
-            if (playerConnection != null) {
-                if (playerConnection?.player?.playbackState == Player.STATE_ENDED) {
-                    playerConnection?.player?.seekTo(0)
-                    playerConnection?.player?.playWhenReady = true
+            if (secPlayConnect != null) {
+                if (secPlayConnect?.player?.playbackState == Player.STATE_ENDED) {
+                    secPlayConnect?.player?.seekTo(0)
+                    secPlayConnect?.player?.playWhenReady = true
                 } else {
-                    playerConnection?.player?.playWhenReady =
-                        !playerConnection?.player?.playWhenReady!!
+                    secPlayConnect?.player?.playWhenReady =
+                        !secPlayConnect?.player?.playWhenReady!!
                 }
             }
         }
 
         binding.previousButton?.setOnClickListener { v: View? ->
             try {
-                if (playerConnection == null || binding.title.text.contains(getString(R.string.app_name))){
+                if (secPlayConnect == null || binding.title.text.contains(getString(R.string.app_name))){
                     startQueuePage()
                     return@setOnClickListener
                 }
-                if (playerConnection?.player?.repeatMode == REPEAT_MODE_OFF && !isNextPlay){
+                if (secPlayConnect?.player?.repeatMode == REPEAT_MODE_OFF && !isNextPlay){
                     randomPlay()
                     return@setOnClickListener
                 }
-                if (playerConnection != null) {
-                    playerConnection?.seekToPrevious()
+                if (secPlayConnect != null) {
+                    secPlayConnect?.seekToPrevious()
                 }
                 logClickEvents("player_previous_btn")
             }catch (e : Exception){
@@ -355,16 +349,16 @@ class SecPlayer : MintyBaseActivity() {
 
         binding.nextButton?.setOnClickListener { v: View? ->
             try {
-                if (playerConnection == null || binding.title.text.contains(getString(R.string.app_name))){
+                if (secPlayConnect == null || binding.title.text.contains(getString(R.string.app_name))){
                     startQueuePage()
                     return@setOnClickListener
                 }
-                if (playerConnection?.player?.repeatMode == REPEAT_MODE_OFF && !isNextPlay){
+                if (secPlayConnect?.player?.repeatMode == REPEAT_MODE_OFF && !isNextPlay){
                     randomPlay()
                     return@setOnClickListener
                 }
-                if (playerConnection != null) {
-                    playerConnection?.seekToNext()
+                if (secPlayConnect != null) {
+                    secPlayConnect?.seekToNext()
                 }
                 logClickEvents("player_next_btn")
             }catch (e : Exception){
@@ -375,12 +369,12 @@ class SecPlayer : MintyBaseActivity() {
         }
 
         binding.repeatButton?.setOnClickListener { v: View? ->
-            if (playerConnection == null || binding.title.text.contains(getString(R.string.app_name))){
+            if (secPlayConnect == null || binding.title.text.contains(getString(R.string.app_name))){
                 startQueuePage()
                 return@setOnClickListener
             }
-            if (playerConnection != null) {
-                playerConnection?.player?.toggleRepeatMode()
+            if (secPlayConnect != null) {
+                secPlayConnect?.player?.toggleRepeatMode()
             }
             logClickEvents("player_repeat_btn")
 
@@ -391,73 +385,33 @@ class SecPlayer : MintyBaseActivity() {
     private var scope = CoroutineScope(Dispatchers.Main) + Job()
 
     private fun observePlayerState() {
-        if (playerConnection == null) return
+        if (secPlayConnect == null) return
 
         // 监听播放状态变化
-        playerConnection?.player?.addListener(object : Player.Listener {
+        secPlayConnect?.player?.addListener(object : Player.Listener {
             override fun onPlaybackStateChanged(playbackState: Int) {
-//                    Log.e("onPlaybackStateChanged","---"+playbackState)
-                updatePlayPauseButton()
-                updateProgress()
+                refreshPlayPauseButton()
+                refreshProgress()
+                refreshLoadingStatus(playbackState)
             }
 
-            override fun onEvents(player: Player, events: Player.Events) {
-                super.onEvents(player, events)
-                if (events.containsAny(Player.EVENT_PLAYBACK_STATE_CHANGED, Player.EVENT_PLAY_WHEN_READY_CHANGED)) {
-                    val isBufferingOrReady = player.playbackState == Player.STATE_BUFFERING
-                    if (isBufferingOrReady) {
-                        try {
-                            if (binding.anims.isInvisible){
-                                binding.anims.visibility = View.VISIBLE
-                                binding.anims.playAnimation()
-                            }
-
-                        }catch (e : Exception){
-                            e.printStackTrace()
-                        }
-                    }else if(player.playbackState == Player.STATE_READY){
-                        if (binding.anims.isVisible){
-                            binding.anims.visibility = View.INVISIBLE
-                            binding.anims.cancelAnimation()
-                        }
-                    }
-
-//
-                }
-            }
-
+          
             override fun onIsPlayingChanged(isPlaying: Boolean) {
-//                    togglePlayback()
-
-                updatePlayPauseButton()
-                if (isPlaying && playerConnection?.isPlaying?.value == true) {
+                refreshPlayPauseButton()
+                if (isPlaying && secPlayConnect?.isPlaying?.value == true) {
                     startProgressUpdate()
                 } else {
-                    updateProgressRunnable?.let {
+                    seekMessage?.let {
                         handler.removeCallbacks(it)
                     }
                 }
             }
 
             override fun onRepeatModeChanged(repeatMode: Int) {
-                updateRepeatButton(repeatMode)
+                refreshRepeatButton(repeatMode)
             }
 
-            override fun onIsLoadingChanged(isLoading: Boolean) {
-                super.onIsLoadingChanged(isLoading)
-//                    if (isLoading){
-//                        try {
-//                            binding.anims.visibility = View.VISIBLE
-//                            binding.anims.playAnimation()
-//                        }catch (e : Exception){
-//                            e.printStackTrace()
-//                        }
-////
-//                    }else{
-//                        binding.anims.visibility = View.INVISIBLE
-//                        binding.anims.cancelAnimation()
-//                    }
-            }
+
             override fun onShuffleModeEnabledChanged(shuffleModeEnabled: Boolean) {
 
             }
@@ -465,7 +419,7 @@ class SecPlayer : MintyBaseActivity() {
                 super.onMediaItemTransition(mediaItem, reason)
                 try{
                     LogUtils.e(" -------- change ------")
-                    val currentIndex =  playerConnection?.currentWindowIndex?.value ?: -1
+                    val currentIndex =  secPlayConnect?.currentWindowIndex?.value ?: -1
                     if (currentIndex >= 0 && currentIndex < musicPicts.size){
                         viewStatusBannerToCurrentSong(currentIndex)
                     }
@@ -479,25 +433,45 @@ class SecPlayer : MintyBaseActivity() {
                 binding.seekBar.progress = 0
 //                    resetAnimation()
 //                    togglePlayback()
-                updateMediaInfo()
+                refreshMediaInfo()
             }
         })
 
         // 初始化UI状态
-        updatePlayPauseButton()
-        updateRepeatButton(playerConnection?.player?.repeatMode!!)
-        updateMediaInfo()
-        updateProgress()
+        refreshPlayPauseButton()
+        refreshRepeatButton(secPlayConnect?.player?.repeatMode!!)
+        refreshMediaInfo()
+        refreshProgress()
         startProgressUpdate()
     }
 
-    private fun updatePlayPauseButton() {
-        if (playerConnection == null   || isFinishing || isDestroyed) return
-        val isPlaying = playerConnection?.player?.isPlaying ?: return
+    private fun refreshLoadingStatus(playbackState: Int) {
+        val isBufferingOrReady = playbackState == Player.STATE_BUFFERING
+        if (isBufferingOrReady) {
+            try {
+                if (binding.anims.isInvisible) {
+                    binding.anims.visibility = View.VISIBLE
+                    binding.anims.playAnimation()
+                }
+
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        } else if (playbackState == Player.STATE_READY) {
+            if (binding.anims.isVisible) {
+                binding.anims.visibility = View.INVISIBLE
+                binding.anims.cancelAnimation()
+            }
+        }
+    }
+
+    private fun refreshPlayPauseButton() {
+        if (secPlayConnect == null   || isFinishing || isDestroyed) return
+        val isPlaying = secPlayConnect?.player?.isPlaying ?: return
         binding.playPauseButton?.setImageResource(if (isPlaying) R.mipmap.local_pause else R.mipmap.lo_play)
     }
 
-    private fun updateRepeatButton(repeatMode: Int) {
+    private fun refreshRepeatButton(repeatMode: Int) {
         if ( isFinishing || isDestroyed) return
         when (repeatMode) {
             Player.REPEAT_MODE_OFF -> {
@@ -524,11 +498,11 @@ class SecPlayer : MintyBaseActivity() {
         }
         binding.bannerView.setCurrentItem(position, true)
     }
-    private fun updateMediaInfo() {
+    private fun refreshMediaInfo() {
         try {
-            if (playerConnection == null || isFinishing || isDestroyed) return
+            if (secPlayConnect == null || isFinishing || isDestroyed) return
 
-            playerConnection?.mediaMetadata?.value?.let {
+            secPlayConnect?.mediaMetadata?.value?.let {
                 binding.title?.text = it.title
                 binding.artist?.text = it?.artists?.joinToString(", ") { it.name }
 
@@ -541,22 +515,22 @@ class SecPlayer : MintyBaseActivity() {
 
     }
 
-    private fun updateLikeButton(isLiked: Boolean) {
-        if (playerConnection == null   || isFinishing || isDestroyed) return
+    private fun refreshLikeButton(isLiked: Boolean) {
+        if (secPlayConnect == null   || isFinishing || isDestroyed) return
         binding.addFav?.setImageResource(if (isLiked) R.mipmap.py_collect else R.mipmap.uncollect)
     }
 
-    private fun updateProgress() {
+    private fun refreshProgress() {
         try {
-            if (playerConnection == null || isFinishing || isDestroyed) return
+            if (secPlayConnect == null || isFinishing || isDestroyed) return
 
-            val duration = playerConnection?.player?.duration ?: return
-            val position = playerConnection?.player?.currentPosition ?: return
+            val duration = secPlayConnect?.player?.duration ?: return
+            val position = secPlayConnect?.player?.currentPosition ?: return
             if (duration > 0) {
                 binding. seekBar?.max = duration.toInt()
                 binding.seekBar?.progress = position.toInt()
-                updateDurationText(duration)
-                updatePositionText(position)
+                refreshDurationText(duration)
+                refreshPositionText(position)
             }
         }catch (e : Exception){
             e.printStackTrace()
@@ -564,26 +538,26 @@ class SecPlayer : MintyBaseActivity() {
     }
 
     private fun startProgressUpdate() {
-        if (playerConnection == null   || isFinishing || isDestroyed) return
-        updateProgressRunnable?.let {
+        if (secPlayConnect == null   || isFinishing || isDestroyed) return
+        seekMessage?.let {
             handler.removeCallbacks(it)
         }
-        updateProgressRunnable = object : Runnable {
+        seekMessage = object : Runnable {
             override fun run() {
-                updateProgress()
+                refreshProgress()
                 handler.postDelayed(this, 1000)
             }
         }
-        updateProgressRunnable?.let {
+        seekMessage?.let {
             handler.post(it)
         }
     }
 
-    private fun updatePositionText(position: Long) {
+    private fun refreshPositionText(position: Long) {
         binding.positionText?.text = formatDuration(position)
     }
 
-    private fun updateDurationText(duration: Long) {
+    private fun refreshDurationText(duration: Long) {
         binding.durationText?.text = formatDuration(duration)
     }
 
@@ -596,15 +570,11 @@ class SecPlayer : MintyBaseActivity() {
 
     override fun onPause() {
         super.onPause()
-        updateProgressRunnable?.let {
+        seekMessage?.let {
             handler.removeCallbacks(it)
         }
 
     }
-
-
-
-
 
 
 }

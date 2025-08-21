@@ -43,7 +43,7 @@ import com.rapid.prominence.minty.extensions.currentMetadata
 import com.rapid.prominence.minty.extensions.logClickEvents
 import com.rapid.prominence.minty.extensions.toMediaItem
 import com.rapid.prominence.minty.randomBitmap
-import com.rapid.prominence.minty.second.view.MintySecMainPage.Companion.playerConnection
+import com.rapid.prominence.minty.second.view.MintySecMainPage.Companion.secPlayConnect
 import com.rapid.prominence.minty.second.databean.ArtistViewModel
 import com.rapid.prominence.minty.service.queues.YouTubeQueue
 import com.rapid.prominence.minty.service.queues.YouTubeQueue.Companion.radio
@@ -68,7 +68,7 @@ class MintySecArtistDetailPage : MintyBaseActivity() {
         setContentView(binding.root)
         enableEdgeToEdge()
         try{
-            ViewCompat.setOnApplyWindowInsetsListener(binding.bottomPlayer.container){view , insets ->
+            ViewCompat.setOnApplyWindowInsetsListener(binding.mintyIncContainerPlay.container){view , insets ->
                 val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
                 val params = view.layoutParams as ViewGroup.MarginLayoutParams
                 params.setMargins(params.leftMargin,
@@ -76,7 +76,7 @@ class MintySecArtistDetailPage : MintyBaseActivity() {
                     params.rightMargin,
                     systemBars.bottom)
                 view.layoutParams = params
-//            binding.bottomPlayer.container.setPadding(binding.bottomPlayer.container.paddingLeft,binding.bottomPlayer.container.paddingTop,binding.bottomPlayer.container.paddingRight,systemBars.bottom+binding.bottomPlayer.container.paddingBottom)
+//            binding.mintyIncContainerPlay.container.setPadding(binding.mintyIncContainerPlay.container.paddingLeft,binding.mintyIncContainerPlay.container.paddingTop,binding.mintyIncContainerPlay.container.paddingRight,systemBars.bottom+binding.mintyIncContainerPlay.container.paddingBottom)
                 insets
             }
 //        ImmersionBar.with(this).transparentStatusBar().titleBar(binding.tops.root).init()
@@ -90,6 +90,9 @@ class MintySecArtistDetailPage : MintyBaseActivity() {
                 lists.visibility = View.VISIBLE
                 lists.setOnClickListener {
                     startQueuePage()
+                }
+                searchEditText.setOnClickListener {
+                    startSearchPage()
                 }
                 inputSearch.setOnClickListener {
                     startSearchPage()
@@ -108,29 +111,18 @@ class MintySecArtistDetailPage : MintyBaseActivity() {
 
                 queue?.let {
                     startPlayerPage()
-                    playerConnection?.playQueue(YouTubeQueue(it))
+                    secPlayConnect?.playQueue(YouTubeQueue(it))
                 }
             }
-            binding.bottomPlayer.container.setOnClickListener {
+            binding.mintyIncContainerPlay.container.setOnClickListener {
                 startPlayerPage()
             }
-            ImmersionBar.with(this).navigationBarColor(R.color.white).init()
+            ImmersionBar.with(this).navigationBarColor(R.color.new_color).init()
             binding.homePageSectionsRecyclerView.layoutManager = LinearLayoutManager(this)
             binding.homePageSectionsRecyclerView.isNestedScrollingEnabled = false
             binding.homePageSectionsRecyclerView.adapter = newReleaseAlbumsAdapter
             lifecycleScope.launch {
-//            withContext(Dispatchers.IO){
-//              database.quickPicks()
-//                    .first().shuffled().take(20).forEach {
-//                        Log.e("quickPicks-----",it.toString())
-//                  }
-//
-//                val fromTimeStamp = System.currentTimeMillis() - 86400000 * 7 * 2
-//
-//                database.mostPlayedSongs(fromTimeStamp, limit = 15, offset = 5)
-//                    .first().shuffled().take(10).forEach {
-//                        Log.e("keep -----",it.toString())
-//                    }
+
                 val options: RequestOptions = RequestOptions()
                     .placeholder(R.mipmap.bg1)
                     .error(R.mipmap.bg1)
@@ -154,19 +146,7 @@ class MintySecArtistDetailPage : MintyBaseActivity() {
                         )
                         .into(binding.thumbnailss)
 
-//                Glide.with(this@ArtistDetActivity)
-//                    .load(it?.artist?.thumbnail)
-//                    .apply(roundOptions)
-//                    .thumbnail(
-//                        Glide.with(this@ArtistDetActivity)
-//                            .load(randomBitmap())
-//                            .apply(roundOptions)
-//                    )
-//                    .into(binding.thumbnailTx)
 
-//                it?.artist?.thumbnail?.let {
-//                    Glide.with(this@ArtistDetActivity).asBitmap().load(it).into(binding.thumbnail)
-//                }
                     it?.sections?.let { ots ->
                         newReleaseAlbumsAdapter?.addData(ots)
                     }
@@ -176,49 +156,21 @@ class MintySecArtistDetailPage : MintyBaseActivity() {
                 }
 
 
-//            // 观察 ViewModel 数据
-//            albumViewModel?.librarySongs.observe(this) { artistPage ->
-//                if (artistPage != null) {
-//                    // 更新 UI
-//                    supportActionBar?.title = artistPage.artist.title
-//                    // 其他 UI 更新逻辑...
-//                }
-//            }
 //
-//            albumViewModel?.librarySongs.observe(this) { songs ->
-//                adapter.submitList(songs)
-//                progressBar.isVisible = false
-//            }
-//
-//
-//            albumViewModel?.songLists?.collect {
-//                    Timber.e(it.toString())
-//                    if (it == null) {
-//                        return@collect
-//                    }
-//                    // Set data to adapters
-//                    withContext(Dispatchers.Main){
-//                        it?.apply {
-//                            newReleaseAlbumsAdapter?.submitList(this)
-//                        }
-//                    }
-//
-//                }
-//            }
             }
             lifecycleScope.launch {
 
-                playerConnection?.mediaMetadata?.collect{
-                    updatePlayerUI(it)
+                secPlayConnect?.mediaMetadata?.collect{
+                    bottomSettingChange(it)
                 }
 
             }
             lifecycleScope.launch {
-                playerConnection?.isPlaying?.collect{
+                secPlayConnect?.isPlaying?.collect{
                     if (it){
-                        binding.bottomPlayer.playPauseButton.setImageResource(R.mipmap.pause)
+                        binding.mintyIncContainerPlay.playPauseButton.setImageResource(R.mipmap.pause)
                     }else{
-                        binding.bottomPlayer.playPauseButton.setImageResource(R.mipmap.home_plays)
+                        binding.mintyIncContainerPlay.playPauseButton.setImageResource(R.mipmap.home_plays)
                     }
                 }
             }
@@ -247,7 +199,7 @@ class MintySecArtistDetailPage : MintyBaseActivity() {
             }
 
             override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-
+            try {
                 val section = sections[position]
                 holder.sectionTitleTextView.text = section.title
                 section.moreEndpoint?.let{
@@ -258,16 +210,14 @@ class MintySecArtistDetailPage : MintyBaseActivity() {
                         startInterActivity(Intent(this@MintySecArtistDetailPage, ArtistMoreInfoView::class.java).apply {
                             putExtra("browseId",it.browseId)
                             putExtra("params",it.params)
+                            putExtra("title",section.title)
                         }, projectDetInter(),false)
                         logClickEvents("art_det_to_item_detail")
 
-//                        navController.navigate("artist/${viewModel.artistId}/items?browseId=${it.browseId}?params=${it.params}")
                     }
                 }
                 val isVertical = (section.items.firstOrNull() as? SongItem)?.album != null
-                if (isVertical){
-                    holder.mores.visibility = View.GONE
-                }
+
                 holder.sectionItemsRecyclerView.layoutManager = if (isVertical) {
                     LinearLayoutManager(this@MintySecArtistDetailPage, LinearLayoutManager.VERTICAL, false)
                 } else {
@@ -276,6 +226,10 @@ class MintySecArtistDetailPage : MintyBaseActivity() {
                 holder.sectionItemsRecyclerView.isNestedScrollingEnabled = false
 
                 holder.sectionItemsRecyclerView.adapter = SectionItemsAdapter(section.items,isVertical)
+            }catch (e : Exception){
+                e.printStackTrace()
+            }
+
             }
 
             override fun getItemCount(): Int = sections.size
@@ -346,15 +300,9 @@ class MintySecArtistDetailPage : MintyBaseActivity() {
                         holder.thumbnail?.let {
                             Glide.with(holder.itemView)
                                 .asBitmap()
-
                                 .load(item.thumbnail)
                                 .apply(artOptions2)
 
-//                                .thumbnail(
-//                                    Glide.with(holder.itemView)
-//                                        .load(randomBitmap())
-//                                        .apply(options)
-//                                )
                                 .into(it)
                         }
                         holder?.title?.text = item.title
@@ -380,12 +328,6 @@ class MintySecArtistDetailPage : MintyBaseActivity() {
                                 Glide.with(holder.itemView)
                                     .asBitmap()
                                     .load(item.thumbnail)
-//                                .apply(roundOptions2)
-//                                .thumbnail(
-//                                    Glide.with(holder.itemView)
-//                                        .load(randomBitmap())
-//                                        .apply(roundOptions)
-//                                )
                                     .into(it)
                             }
 
@@ -397,25 +339,6 @@ class MintySecArtistDetailPage : MintyBaseActivity() {
                     is PlaylistItem -> {
 
                         holder.thumbnail?.let {
-//                            Glide.with(holder.itemView)
-//                                .asBitmap()
-//                                .load(item.thumbnail)
-//                                .into(object : CustomTarget<Bitmap?>() {
-//
-//                                    override fun onResourceReady(
-//                                        resource: Bitmap,
-//                                        transition: Transition<in Bitmap?>?
-//                                    ) {
-//                                        Glide.with(holder.itemView)
-//                                .load(resource)
-//                                .apply(artOptions2)
-//                                .into(it)
-//                                    }
-//
-//                                    override fun onLoadCleared(@Nullable placeholder: Drawable?) {
-//
-//                                    }
-//                                })
                             Glide.with(holder.itemView)
                                 .asBitmap()
                                 .load(item.thumbnail)
@@ -432,7 +355,7 @@ class MintySecArtistDetailPage : MintyBaseActivity() {
                 holder.itemView.setOnClickListener {
                     when (item) {
                         is SongItem -> {
-                            playerConnection?.playQueue(radio(item.toMediaMetadata()))
+                            secPlayConnect?.playQueue(radio(item.toMediaMetadata()))
                            startPlayerPage()
                         }
                         is AlbumItem ->   {
@@ -452,33 +375,7 @@ class MintySecArtistDetailPage : MintyBaseActivity() {
                         }
                     }
                 }
-//                holder.itemView.setOnLongClickListener {
-//                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-//                    menuState.show {
-//                        when (item) {
-//                            is SongItem -> YouTubeSongMenu(
-//                                song = item,
-//                                navController = navController,
-//                                onDismiss = menuState::dismiss
-//                            )
-//                            is AlbumItem -> YouTubeAlbumMenu(
-//                                albumItem = item,
-//                                navController = navController,
-//                                onDismiss = menuState::dismiss
-//                            )
-//                            is ArtistItem -> YouTubeArtistMenu(
-//                                artist = item,
-//                                onDismiss = menuState::dismiss
-//                            )
-//                            is PlaylistItem -> YouTubePlaylistMenu(
-//                                playlist = item,
-//                                coroutineScope = coroutineScope,
-//                                onDismiss = menuState::dismiss
-//                            )
-//                        }
-//                    }
-//                    true
-//                }
+
 
                 holder.ivgs?.setOnClickListener{
                     val data = item as? SongItem ?: return@setOnClickListener
@@ -510,20 +407,20 @@ class MintySecArtistDetailPage : MintyBaseActivity() {
                                 if (isShowing){
                                     dismiss()
                                 }
-                                playerConnection?.playQueue(radio(data.toMediaMetadata()))
+                                secPlayConnect?.playQueue(radio(data.toMediaMetadata()))
                                 startPlayerPage()
                             }
                             findViewById<View>(R.id.play_next)?.setOnClickListener {
                                 if (isShowing){
                                     dismiss()
                                 }
-                                playerConnection?.playNext(data.toMediaItem())
+                                secPlayConnect?.playNext(data.toMediaItem())
                             }
                             findViewById<View>(R.id.add_queue)?.setOnClickListener {
                                 if (isShowing){
                                     dismiss()
                                 }
-                                playerConnection?.addToQueue(data.toMediaItem())
+                                secPlayConnect?.addToQueue(data.toMediaItem())
                             }
                             findViewById<View>(R.id.add_fav)?.setOnClickListener {
                                 if (isShowing){
@@ -570,9 +467,9 @@ class MintySecArtistDetailPage : MintyBaseActivity() {
         }
     override fun onResume() {
         super.onResume()
-        if (playerConnection != null && playerConnection?.player?.currentMetadata != null){
-            playerConnection?.mediaMetadata?.let {
-                updatePlayerUI(it.value)
+        if (secPlayConnect != null && secPlayConnect?.player?.currentMetadata != null){
+            secPlayConnect?.mediaMetadata?.let {
+                bottomSettingChange(it.value)
             }
         }
     }
@@ -582,8 +479,8 @@ class MintySecArtistDetailPage : MintyBaseActivity() {
 
 
 
-    private fun updatePlayerUI(metadata: MediaMetadata?) {
-        addUIPlayer(binding.bottomPlayer.artist,binding.bottomPlayer.title,binding.bottomPlayer.thumbnail,metadata)
+    private fun bottomSettingChange(metadata: MediaMetadata?) {
+        addUIPlayer(binding.mintyIncContainerPlay.artist,binding.mintyIncContainerPlay.title,binding.mintyIncContainerPlay.thumbnail,metadata)
     }
 }
 

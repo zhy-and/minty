@@ -27,13 +27,12 @@ import com.rapid.prominence.minty.database.entities.SongEntity
 import com.rapid.prominence.minty.ei.dialog.showDialogs
 import com.rapid.prominence.minty.extensions.toMediaItem
 import com.rapid.prominence.minty.options
-import com.rapid.prominence.minty.posBitmap
-import com.rapid.prominence.minty.second.view.MintySecMainPage.Companion.playerConnection
+import com.rapid.prominence.minty.second.view.MintySecMainPage.Companion.secPlayConnect
 import com.rapid.prominence.minty.second.SecPlayer
 import com.rapid.prominence.minty.service.queues.YouTubeQueue.Companion.radio
 
-class VideoSongAdapter(var songs: ArrayList<SongItem> = arrayListOf(), private val onSongClick: (SongItem) -> Unit) :
-    RecyclerView.Adapter<VideoSongAdapter.SongViewHolder>() {
+class SearchVideoSongAdapter(var songs: ArrayList<SongItem> = arrayListOf(), private val onSongClick: (SongItem) -> Unit) :
+    RecyclerView.Adapter<SearchVideoSongAdapter.SongViewHolder>() {
 
     class SongViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val title: TextView = itemView.findViewById(R.id.title)
@@ -49,13 +48,17 @@ class VideoSongAdapter(var songs: ArrayList<SongItem> = arrayListOf(), private v
 
 
 
-
 //    override fun getItemViewType(position: Int): Int {
 //        return position
 //    }
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SongViewHolder {
 
-       val view =  LayoutInflater.from(parent.context).inflate(R.layout.item_sec_video_so, parent, false)
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SongViewHolder {
+        val view = if (viewType == 999999999) {
+            LayoutInflater.from(parent.context).inflate(R.layout.minty_sec_it_los, parent, false)
+        } else {
+            LayoutInflater.from(parent.context).inflate(R.layout.item_sec_video_so, parent, false)
+        }
         return SongViewHolder(view)
     }
 
@@ -92,20 +95,20 @@ class VideoSongAdapter(var songs: ArrayList<SongItem> = arrayListOf(), private v
                         if (isShowing){
                             dismiss()
                         }
-                        playerConnection?.playQueue(radio(item.toMediaMetadata()))
+                        secPlayConnect?.playQueue(radio(item.toMediaMetadata()))
                         ActivityUtils.startActivity(Intent(holder.itemView.context, SecPlayer::class.java))
                     }
                     findViewById<View>(R.id.play_next)?.setOnClickListener {
                         if (isShowing){
                             dismiss()
                         }
-                        playerConnection?.playNext(item.toMediaItem())
+                        secPlayConnect?.playNext(item.toMediaItem())
                     }
                     findViewById<View>(R.id.add_queue)?.setOnClickListener {
                         if (isShowing){
                             dismiss()
                         }
-                        playerConnection?.addToQueue(item.toMediaItem())
+                        secPlayConnect?.addToQueue(item.toMediaItem())
                     }
                     findViewById<View>(R.id.add_fav)?.setOnClickListener {
                         if (isShowing){
@@ -143,24 +146,51 @@ class VideoSongAdapter(var songs: ArrayList<SongItem> = arrayListOf(), private v
                 e.printStackTrace()
             }
         }
+
+        if (item.duration != 999999999){
             holder.title.text = item.title
             holder.artist.text = item.artists.joinToString(", ") { it.name }
             item.thumbnail?.let {
                 Glide.with(holder.itemView)
                     .load(it)
+                    .encodeQuality(20)
                     .apply(options)
-                    .thumbnail(
-                        Glide.with(holder.itemView)
-                            .load(posBitmap(position))
-                            .apply(options)
-                    )
+//                    .thumbnail(
+//                        Glide.with(holder.itemView)
+//                            .load(posBitmap(position))
+//                            .apply(options)
+//                    )
                     .into(holder.ivgs)
             }
 
             holder.itemView.setOnClickListener { onSongClick(item) }
+        }else{
+            holder?.spec_anm?.let {
+                it.startShimmerAnimation()
+            }
+            holder?.menu?.visibility = View.GONE
+        }
+
 
     }
-    override fun getItemCount(): Int = songs.size
 
+    override fun getItemViewType(position: Int): Int = songs[position].duration?.toInt() ?: 0
+    override fun getItemCount(): Int = songs.size
+    fun removeLoadItem() {
+        if (songs.isEmpty() || songs[songs.size - 1].duration!= 999999999) return
+
+        val lastIdx = songs.size - 1
+        songs.removeAt(lastIdx)
+        notifyItemChanged(lastIdx)
+    }
+
+    fun addLoadItem() {
+        if (songs.size > 0 && songs[songs.size - 1].duration == 999999999) {
+            return
+        }
+        val footItem = SongItem("","", emptyList(), null,999999999,"",false,null)
+        songs.add(footItem)
+        notifyItemInserted(songs.size - 1)
+    }
 
 }

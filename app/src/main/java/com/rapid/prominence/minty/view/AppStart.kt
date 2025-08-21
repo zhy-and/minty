@@ -30,15 +30,16 @@ class AppStart : MintyBaseActivity() {
 
     private fun jumpPages() {
         binding?.root?.postDelayed({
-                startActivity(Intent(this, MintySecMainPage::class.java))
+                startActivity(Intent(this, EiMainPage::class.java))
             finish()
-        }, 2 * 1000L)
+        }, 3 * 1000L)
     }
 
     override fun onDestroy() {
         super.onDestroy()
         messManager?.removeCallbacksAndMessages(null)
         binding?.anims?.cancelAnimation()
+        binding?.progress?.cancelAnimation()
     }
 
 

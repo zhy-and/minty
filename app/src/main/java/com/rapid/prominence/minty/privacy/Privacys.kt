@@ -16,6 +16,8 @@ class Privacys : MintyBaseActivity() {
         setContentView(binding.root)
         binding.webs.loadUrl("https://feue.mintymu.com/privacyPolicy.html")
         binding.titles.apply {
+            inputSearch.visibility = View.GONE
+
             lists.visibility = View.GONE
             nowPlayingText.text = "Privacy"
             closeButton.setOnClickListener {

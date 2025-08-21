@@ -3,21 +3,37 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:background="@mipmap/lauch_bg"
+    android:background="@mipmap/new_lauch"
     android:layout_height="match_parent"
     >
-
     <com.airbnb.lottie.LottieAnimationView
         app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        android:id="@+id/progress"
+        android:layout_width="match_parent"
+        app:lottie_imageAssetsFolder="images"
+        app:lottie_loop="true"
+        app:lottie_fileName="loadings.json"
+        android:layout_marginHorizontal="30dp"
+        android:layout_marginTop="100dp"
+        app:lottie_autoPlay="true"
+        app:layout_constraintDimensionRatio="360:300"
+        android:layout_height="0dp"
+        />
+    <com.airbnb.lottie.LottieAnimationView
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/progress"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         android:id="@+id/anims"
         android:layout_width="match_parent"
         app:lottie_imageAssetsFolder="images"
         app:lottie_loop="true"
+        app:lottie_speed="0.75"
+        app:layout_constraintDimensionRatio="360:230"
         app:lottie_fileName="lauch.json"
         app:lottie_autoPlay="true"
-        android:layout_height="match_parent"
+        android:layout_height="0dp"
         />
 </androidx.constraintlayout.widget.ConstraintLayout>

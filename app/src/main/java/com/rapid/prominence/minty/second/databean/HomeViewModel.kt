@@ -19,6 +19,7 @@ import com.rapid.prominence.minty.database.entities.Song
 import com.rapid.prominence.minty.utils.dataStore
 import com.rapid.prominence.minty.utils.get
 import com.rapid.prominence.minty.utils.reportException
+import com.zionhuang.innertube.models.WatchEndpoint
 
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -80,44 +81,44 @@ class HomeViewModel @Inject constructor(
 //        }
 
         // Similar to artists
-//        val artistRecommendations =
-//            database.mostPlayedArtists(fromTimeStamp, limit = 10).first()
-//                .filter { it.artist.isYouTubeArtist }
-//                .shuffled().take(3)
-//                .mapNotNull {
-//                    val items = mutableListOf<YTItem>()
-//                    YouTube.artist(it.id).onSuccess { page ->
-//                        items += page.sections.getOrNull(page.sections.size - 2)?.items.orEmpty()
-//                        items += page.sections.lastOrNull()?.items.orEmpty()
-//                    }
-//                    SimilarRecommendation(
-//                        title = it,
-//                        items = items
-//                            .filterExplicit(hideExplicit)
-//                            .shuffled()
-//                            .ifEmpty { return@mapNotNull null }
-//                    )
-//                }
-        // Similar to songs
-//        val songRecommendations =
-//            database.mostPlayedSongs(fromTimeStamp, limit = 10).first()
-//                .filter { it.album != null }
-//                .shuffled().take(2)
-//                .mapNotNull { song ->
-//                    val endpoint = YouTube.next(WatchEndpoint(videoId = song.id)).getOrNull()?.relatedEndpoint ?: return@mapNotNull null
-//                    val page = YouTube.related(endpoint).getOrNull() ?: return@mapNotNull null
-//                    SimilarRecommendation(
-//                        title = song,
-//                        items = (page.songs.shuffled().take(8) +
-//                                page.albums.shuffled().take(4) +
-//                                page.artists.shuffled().take(4) +
-//                                page.playlists.shuffled().take(4))
-//                            .filterExplicit(hideExplicit)
-//                            .shuffled()
-//                            .ifEmpty { return@mapNotNull null }
-//                    )
-//                }
-//        similarRecommendations.value = (artistRecommendations + songRecommendations).shuffled()
+        val artistRecommendations =
+            database.mostPlayedArtists(fromTimeStamp, limit = 10).first()
+                .filter { it.artist.isYouTubeArtist }
+                .shuffled().take(3)
+                .mapNotNull {
+                    val items = mutableListOf<YTItem>()
+                    MainBe.artist(it.id).onSuccess { page ->
+                        items += page.sections.getOrNull(page.sections.size - 2)?.items.orEmpty()
+                        items += page.sections.lastOrNull()?.items.orEmpty()
+                    }
+                    SimilarRecommendation(
+                        title = it,
+                        items = items
+                            .filterExplicit(hideExplicit)
+                            .shuffled()
+                            .ifEmpty { return@mapNotNull null }
+                    )
+                }
+       //  Similar to songs
+        val songRecommendations =
+            database.mostPlayedSongs(fromTimeStamp, limit = 10).first()
+                .filter { it.album != null }
+                .shuffled().take(2)
+                .mapNotNull { song ->
+                    val endpoint = MainBe.next(WatchEndpoint(videoId = song.id)).getOrNull()?.relatedEndpoint ?: return@mapNotNull null
+                    val page = MainBe.related(endpoint).getOrNull() ?: return@mapNotNull null
+                    SimilarRecommendation(
+                        title = song,
+                        items = (page.songs.shuffled().take(8) +
+                                page.albums.shuffled().take(4) +
+                                page.artists.shuffled().take(4) +
+                                page.playlists.shuffled().take(4))
+                            .filterExplicit(hideExplicit)
+                            .shuffled()
+                            .ifEmpty { return@mapNotNull null }
+                    )
+                }
+        similarRecommendations.value = (artistRecommendations + songRecommendations).shuffled()
 
         MainBe.home().onSuccess { page ->
             homePage.value = page.filterExplicit(hideExplicit)

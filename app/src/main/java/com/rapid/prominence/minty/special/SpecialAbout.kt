@@ -20,6 +20,7 @@ class SpecialAbout : MintyBaseActivity() {
             finish()
         }
         binding.titles.apply {
+            inputSearch.visibility = View.GONE
             lists.visibility = View.GONE
             nowPlayingText.text = "About"
             closeButton.setOnClickListener {

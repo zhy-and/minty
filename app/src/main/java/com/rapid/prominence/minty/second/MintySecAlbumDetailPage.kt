@@ -15,7 +15,7 @@ import com.rapid.prominence.minty.databinding.MintySecAlbumPageBinding
 import com.rapid.prominence.minty.extensions.currentMetadata
 import com.rapid.prominence.minty.extensions.logClickEvents
 import com.rapid.prominence.minty.roundOptions2
-import com.rapid.prominence.minty.second.view.MintySecMainPage.Companion.playerConnection
+import com.rapid.prominence.minty.second.view.MintySecMainPage.Companion.secPlayConnect
 import com.rapid.prominence.minty.second.databean.AlbumViewModel
 import com.rapid.prominence.minty.service.queues.LocalAlbumRadio
 import kotlinx.coroutines.launch
@@ -28,9 +28,9 @@ class MintySecAlbumDetailPage : MintyBaseActivity() {
     private lateinit var newReleaseAlbumsAdapter: SecDetailSongsAdapter
     override fun onResume() {
         super.onResume()
-        if (playerConnection != null && playerConnection?.player?.currentMetadata != null){
-            playerConnection?.mediaMetadata?.let {
-                updatePlayerUI(it.value)
+        if (secPlayConnect != null && secPlayConnect?.player?.currentMetadata != null){
+            secPlayConnect?.mediaMetadata?.let {
+                bottomSettingChange(it.value)
             }
         }
     }
@@ -39,8 +39,8 @@ class MintySecAlbumDetailPage : MintyBaseActivity() {
 
 
 
-    private fun updatePlayerUI(metadata: MediaMetadata?) {
-        addUIPlayer(binding.bottomPlayer.artist,binding.bottomPlayer.title,binding.bottomPlayer.thumbnail,metadata)
+    private fun bottomSettingChange(metadata: MediaMetadata?) {
+        addUIPlayer(binding.mintyIncContainerPlay.artist,binding.mintyIncContainerPlay.title,binding.mintyIncContainerPlay.thumbnail,metadata)
     }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -70,15 +70,23 @@ class MintySecAlbumDetailPage : MintyBaseActivity() {
         binding.playBtns.setOnClickListener {
             logClickEvents("album_det_play_btn")
             albumSongs?.let {
-                playerConnection?.playQueue(LocalAlbumRadio(it))
+                secPlayConnect?.playQueue(LocalAlbumRadio(it))
                startPlayerPage()
             }
         }
-        binding.specAnm2.post {
-            binding.specAnm2.visibility = View.VISIBLE
-            binding.specAnm2.startShimmerAnimation()
+
+        binding.container.setOnClickListener {
+            logClickEvents("album_det_play_btn")
+            albumSongs?.let {
+                secPlayConnect?.playQueue(LocalAlbumRadio(it))
+               startPlayerPage()
+            }
         }
-        binding.bottomPlayer.container.setOnClickListener {
+        binding.loadings.post {
+            binding.loadings.visibility = View.VISIBLE
+            binding.loadings.startShimmerAnimation()
+        }
+        binding.mintyIncContainerPlay.container.setOnClickListener {
             startPlayerPage()
         }
         lifecycleScope.launch {
@@ -103,8 +111,8 @@ class MintySecAlbumDetailPage : MintyBaseActivity() {
                         return@collect
                     }
                     binding.container.visibility = View.VISIBLE
-                    binding.specAnm2.visibility = View.GONE
-                    binding.specAnm2.stopShimmerAnimation()
+                    binding.loadings.visibility = View.GONE
+                    binding.loadings.stopShimmerAnimation()
                     binding.titles.text = it.firstOrNull()?.album?.name
                     binding.artists.text =  it.firstOrNull()?.artists?.joinToString(", ") { it.name }
                             Glide.with(this@MintySecAlbumDetailPage)
@@ -120,8 +128,8 @@ class MintySecAlbumDetailPage : MintyBaseActivity() {
                     // Set data to adapters
                         it?.apply {
                             newReleaseAlbumsAdapter = SecDetailSongsAdapter(true,albumSongs,this@MintySecAlbumDetailPage)
-                            binding.moodAndGenresRecyclerView.layoutManager = LinearLayoutManager(this@MintySecAlbumDetailPage)
-                            binding.moodAndGenresRecyclerView.adapter = newReleaseAlbumsAdapter
+                            binding.listRecycleview.layoutManager = LinearLayoutManager(this@MintySecAlbumDetailPage)
+                            binding.listRecycleview.adapter = newReleaseAlbumsAdapter
                             newReleaseAlbumsAdapter?.submitList(this)
                         }
 
@@ -138,17 +146,17 @@ class MintySecAlbumDetailPage : MintyBaseActivity() {
         }
         lifecycleScope.launch {
 
-            playerConnection?.mediaMetadata?.collect{
-                updatePlayerUI(it)
+            secPlayConnect?.mediaMetadata?.collect{
+                bottomSettingChange(it)
             }
 
         }
         lifecycleScope.launch {
-            playerConnection?.isPlaying?.collect{
+            secPlayConnect?.isPlaying?.collect{
                 if (it){
-                    binding.bottomPlayer.playPauseButton.setImageResource(R.mipmap.pause)
+                    binding.mintyIncContainerPlay.playPauseButton.setImageResource(R.mipmap.pause)
                 }else{
-                    binding.bottomPlayer.playPauseButton.setImageResource(R.mipmap.home_plays)
+                    binding.mintyIncContainerPlay.playPauseButton.setImageResource(R.mipmap.home_plays)
                 }
             }
         }

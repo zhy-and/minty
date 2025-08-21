@@ -12,8 +12,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.CheckBox
-import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.GridLayoutManager
@@ -34,7 +32,7 @@ import com.rapid.prominence.minty.databinding.MintySecReleaseDetailBinding
 import com.rapid.prominence.minty.extensions.currentMetadata
 import com.rapid.prominence.minty.options
 import com.rapid.prominence.minty.randomBitmap
-import com.rapid.prominence.minty.second.view.MintySecMainPage.Companion.playerConnection
+import com.rapid.prominence.minty.second.view.MintySecMainPage.Companion.secPlayConnect
 import com.zionhuang.innertube.models.*
 import com.zionhuang.innertube.pages.ArtistSection
 import com.rapid.prominence.minty.second.databean.ArtistItemsViewModel
@@ -44,27 +42,23 @@ import com.rapid.prominence.minty.service.queues.YouTubeQueue.Companion.radio
 import com.rapid.prominence.minty.utils.joinByBullet
 import com.rapid.prominence.minty.utils.makeTimeString
 
-import kotlinx.coroutines.CoroutineScope
-
 class ArtistMoreInfoView : MintyBaseActivity() {
     private var tempPage: ItemsPage?= null
     private  var songAdapter: SongAdapter?= null
     private  var adapter: ItemsAdapter?= null
-    var isLoadingNextPage = false;
 
     private lateinit var binding: MintySecReleaseDetailBinding
-    private lateinit var newReleaseAlbumsAdapter: SectionsAdapter
     override fun onResume() {
         super.onResume()
-        if (playerConnection != null && playerConnection?.player?.currentMetadata != null){
-            playerConnection?.mediaMetadata?.let {
-                updatePlayerUI(it.value)
+        if (secPlayConnect != null && secPlayConnect?.player?.currentMetadata != null){
+            secPlayConnect?.mediaMetadata?.let {
+                bottomSettingChange(it.value)
             }
         }
     }
 
-    private fun updatePlayerUI(metadata: MediaMetadata?) {
-        addUIPlayer(binding.bottomPlayer.artist,binding.bottomPlayer.title,binding.bottomPlayer.thumbnail,metadata)
+    private fun bottomSettingChange(metadata: MediaMetadata?) {
+        addUIPlayer(binding.mintyIncContainerPlay.artist,binding.mintyIncContainerPlay.title,binding.mintyIncContainerPlay.thumbnail,metadata)
     }
 
 
@@ -75,6 +69,7 @@ class ArtistMoreInfoView : MintyBaseActivity() {
         setContentView(binding.root)
         ImmersionBar.with(this).transparentStatusBar().titleBar(binding.tops.root).init()
         binding.tops.apply {
+            lists.visibility = View.VISIBLE
             lists.setOnClickListener {
                 startQueuePage()
             }
@@ -85,75 +80,52 @@ class ArtistMoreInfoView : MintyBaseActivity() {
                 finishCurrent()
             }
         }
-        binding.bottomPlayer.container.setOnClickListener {
+        binding.mintyIncContainerPlay.container.setOnClickListener {
             startPlayerPage()
         }
-        binding.specAnm2.post {
-            binding.specAnm2.visibility = View.VISIBLE
-            binding.specAnm2.startShimmerAnimation()
+        binding.loadings.post {
+            binding.loadings.visibility = View.VISIBLE
+            binding.loadings.startShimmerAnimation()
         }
         val broId =   intent?.getStringExtra("browseId")
         val params =   intent?.getStringExtra("params")
         broId ?: return
         params ?: return
         val albumViewModel = ArtistItemsViewModel(this,broId,params)
-//        newReleaseAlbumsAdapter =  SectionsAdapter(emptyList())
-//
-//        binding.homePageSectionsRecyclerView.layoutManager = LinearLayoutManager(this)
-//        binding.homePageSectionsRecyclerView.adapter = newReleaseAlbumsAdapter
+
         lifecycleScope.launch {
-//            withContext(Dispatchers.IO){
-//              database.quickPicks()
-//                    .first().shuffled().take(20).forEach {
-//                        Log.e("quickPicks-----",it.toString())
-//                  }
-//
-//                val fromTimeStamp = System.currentTimeMillis() - 86400000 * 7 * 2
-//
-//                database.mostPlayedSongs(fromTimeStamp, limit = 15, offset = 5)
-//                    .first().shuffled().take(10).forEach {
-//                        Log.e("keep -----",it.toString())
-//                    }
 
-
-
-
-//            albumViewModel?.title.observe(this) { title ->
-//                titleTextView.text = title
-//            }
 
             albumViewModel?.itemsPage?.collect { itemsPage ->
                 tempPage = itemsPage
-                binding.titles.text = itemsPage?.items?.firstOrNull()?.title
-//                Log.e("artist item ----",itemsPage.toString())
+                binding.titles.text = intent?.getStringExtra("title") ?: "Recommend Songs"
                 if (isFinishing || isDestroyed){
                     return@collect
                 }
-                binding.specAnm2.visibility = View.GONE
-                binding.specAnm2.stopShimmerAnimation()
+                binding.loadings.visibility = View.GONE
+                binding.loadings.stopShimmerAnimation()
                 if (itemsPage == null) {
-                    // Show shimmer loading
                 } else {
                     if (itemsPage.items.firstOrNull() is SongItem) {
                         songAdapter =  SongAdapter { songItem ->
-                            playerConnection?.playQueue(radio(songItem.toMediaMetadata()))
+                            secPlayConnect?.playQueue(radio(songItem.toMediaMetadata()))
                             startPlayerPage()
                         }
                         songAdapter?.addData(itemsPage.items.filterIsInstance<SongItem>() as ArrayList<SongItem>)
-                        binding.moodAndGenresRecyclerView.layoutManager = LinearLayoutManager(this@ArtistMoreInfoView)
-                        binding.moodAndGenresRecyclerView.adapter = songAdapter
+                        binding.listRecycleview.layoutManager = LinearLayoutManager(this@ArtistMoreInfoView)
+                        binding.listRecycleview.adapter = songAdapter
 
                     } else {
-                        binding.moodAndGenresRecyclerView.layoutManager = GridLayoutManager(this@ArtistMoreInfoView,2)
-                        binding.moodAndGenresRecyclerView?.addItemDecoration(
+                        binding.listRecycleview.layoutManager = GridLayoutManager(this@ArtistMoreInfoView,2)
+                        binding.listRecycleview?.addItemDecoration(
                             SecGridItemDecoration(
-                                SizeUtils.dp2px( 20f),2)
+                                SizeUtils.dp2px( 1f),2)
                         )
                         adapter = ItemsAdapter(itemsPage.items)
-                        binding.moodAndGenresRecyclerView.adapter = adapter
+                        binding.listRecycleview.adapter = adapter
 
                     }
-                    binding.moodAndGenresRecyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+                    binding.listRecycleview.addOnScrollListener(object : RecyclerView.OnScrollListener() {
                         override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                             super.onScrolled(recyclerView, dx, dy)
 
@@ -164,7 +136,7 @@ class ArtistMoreInfoView : MintyBaseActivity() {
                             newState: Int
                         ) {
                             super.onScrollStateChanged(recyclerView, newState)
-//                            if (newState == RecyclerView.SCROLL_STATE_IDLE && isBottom(binding.moodAndGenresRecyclerView) && !isLoadingNextPage) {
+//                            if (newState == RecyclerView.SCROLL_STATE_IDLE && isBottom(binding.listRecycleview) && !isLoadingNextPage) {
 //                                lifecycleScope.launch {
 //                                    withContext(Dispatchers.IO){
 ////                                            val searchResult = YouTube.searchContinuation(continuation).getOrNull() ?: return@withContext
@@ -248,37 +220,23 @@ class ArtistMoreInfoView : MintyBaseActivity() {
         }
         lifecycleScope.launch {
 
-            playerConnection?.mediaMetadata?.collect{
-                updatePlayerUI(it)
+            secPlayConnect?.mediaMetadata?.collect{
+                bottomSettingChange(it)
             }
 
         }
         lifecycleScope.launch {
-            playerConnection?.isPlaying?.collect{
+            secPlayConnect?.isPlaying?.collect{
                 if (it){
-                    binding.bottomPlayer.playPauseButton.setImageResource(R.mipmap.pause)
+                    binding.mintyIncContainerPlay.playPauseButton.setImageResource(R.mipmap.pause)
                 }else{
-                    binding.bottomPlayer.playPauseButton.setImageResource(R.mipmap.home_plays)
+                    binding.mintyIncContainerPlay.playPauseButton.setImageResource(R.mipmap.home_plays)
                 }
             }
         }
     }
 
-
-
-
-
-
-
-
-
-
-
-
     // 设置艺术家页面部分
-
-
-
 
     inner class SectionsAdapter(private var sections: List<ArtistSection>) : RecyclerView.Adapter<SectionsAdapter.ViewHolder>() {
 
@@ -338,7 +296,7 @@ class ArtistMoreInfoView : MintyBaseActivity() {
             holder.itemView.setOnClickListener {
                 when (item) {
                     is SongItem ->{
-                        playerConnection?.playQueue(YouTubeQueue.radio(item.toMediaMetadata()))
+                        secPlayConnect?.playQueue(YouTubeQueue.radio(item.toMediaMetadata()))
                         startPlayerPage()
                     }
                     is AlbumItem ->   {
@@ -358,50 +316,11 @@ class ArtistMoreInfoView : MintyBaseActivity() {
                     }
                 }
             }
-//                holder.itemView.setOnLongClickListener {
-//                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-//                    menuState.show {
-//                        when (item) {
-//                            is SongItem -> YouTubeSongMenu(
-//                                song = item,
-//                                navController = navController,
-//                                onDismiss = menuState::dismiss
-//                            )
-//                            is AlbumItem -> YouTubeAlbumMenu(
-//                                albumItem = item,
-//                                navController = navController,
-//                                onDismiss = menuState::dismiss
-//                            )
-//                            is ArtistItem -> YouTubeArtistMenu(
-//                                artist = item,
-//                                onDismiss = menuState::dismiss
-//                            )
-//                            is PlaylistItem -> YouTubePlaylistMenu(
-//                                playlist = item,
-//                                coroutineScope = coroutineScope,
-//                                onDismiss = menuState::dismiss
-//                            )
-//                        }
-//                    }
-//                    true
-//                }
+
         }
 
         override fun getItemCount(): Int = items.size
     }
-
-    private lateinit var coroutineScope: CoroutineScope
-
-    private lateinit var titleTextView: TextView
-    private lateinit var recyclerView: RecyclerView
-    private lateinit var topAppBar: androidx.appcompat.widget.Toolbar
-    private lateinit var backIconButton: ImageButton
-    private lateinit var closeIconButton: ImageButton
-    private lateinit var selectAllCheckBox: CheckBox
-    private lateinit var moreIconButton: ImageButton
-
-    private var inSelectMode = false
-    private val selection = mutableListOf<String>()
 
 
 
@@ -431,7 +350,9 @@ class ArtistMoreInfoView : MintyBaseActivity() {
                 }
                 is AlbumItem ->   {
                     holder.artist.text =  joinByBullet(item.artists?.joinToString { it.name }, item.year?.toString())
-
+                    if (holder.artist.text.isEmpty()){
+                        holder.artist.visibility = View.GONE
+                    }
                 }
                 is ArtistItem -> {
                 }
@@ -454,7 +375,7 @@ class ArtistMoreInfoView : MintyBaseActivity() {
             holder.itemView.setOnClickListener {
                 when (item) {
                     is SongItem -> {
-                        playerConnection?.playQueue(YouTubeQueue(item.endpoint ?: WatchEndpoint(videoId = item.id), item.toMediaMetadata()))
+                        secPlayConnect?.playQueue(YouTubeQueue(item.endpoint ?: WatchEndpoint(videoId = item.id), item.toMediaMetadata()))
                         holder.artist.text =  joinByBullet(item.artists.joinToString { it.name }, makeTimeString(item.duration?.times(1000L)))
                     }
                     is AlbumItem ->   {

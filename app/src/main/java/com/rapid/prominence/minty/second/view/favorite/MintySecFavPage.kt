@@ -33,7 +33,7 @@ import com.rapid.prominence.minty.posBitmap
 import com.rapid.prominence.minty.second.SecGridItemDecoration
 import com.rapid.prominence.minty.second.HomeStyleAdapter
 import com.rapid.prominence.minty.second.SecReleaseAlbumAdapter
-import com.rapid.prominence.minty.second.view.MintySecMainPage.Companion.playerConnection
+import com.rapid.prominence.minty.second.view.MintySecMainPage.Companion.secPlayConnect
 import com.rapid.prominence.minty.service.queues.ListQueue
 import com.rapid.prominence.minty.utils.joinByBullet
 import com.rapid.prominence.minty.utils.makeTimeString
@@ -70,20 +70,20 @@ class MintySecFavPage : MintyBaseActivity() {
 
         lifecycleScope.launch {
 
-            playerConnection?.mediaMetadata?.collect{
-                updatePlayerUI(it)
+            secPlayConnect?.mediaMetadata?.collect{
+                bottomSettingChange(it)
             }
 
         }
-        binding.bottomPlayer.container.setOnClickListener {
+        binding.mintyIncContainerPlay.container.setOnClickListener {
             startPlayerPage(true)
         }
         lifecycleScope.launch {
-            playerConnection?.isPlaying?.collect{
+            secPlayConnect?.isPlaying?.collect{
                 if (it){
-                    binding.bottomPlayer.playPauseButton.setImageResource(R.mipmap.pause)
+                    binding.mintyIncContainerPlay.playPauseButton.setImageResource(R.mipmap.pause)
                 }else{
-                    binding.bottomPlayer.playPauseButton.setImageResource(R.mipmap.home_plays)
+                    binding.mintyIncContainerPlay.playPauseButton.setImageResource(R.mipmap.home_plays)
                 }
             }
         }
@@ -108,9 +108,9 @@ class MintySecFavPage : MintyBaseActivity() {
                 }
                 binding.listLayout.visibility = View.VISIBLE
                 favAdapter = ItemsAdapter(it)
-                binding.moodAndGenresRecyclerView.layoutManager =
+                binding.listRecycleview.layoutManager =
                     LinearLayoutManager(this@MintySecFavPage)
-                binding.moodAndGenresRecyclerView.adapter = favAdapter
+                binding.listRecycleview.adapter = favAdapter
             }
 
         }
@@ -148,12 +148,12 @@ class MintySecFavPage : MintyBaseActivity() {
                     }
                     if (homeStyleAdapter == null){
                         homeStyleAdapter = HomeStyleAdapter(this@MintySecFavPage)
-                        binding.homeMoodAndGenresRecyclerView.layoutManager =
+                        binding.homeListRecycleview.layoutManager =
                             GridLayoutManager(this@MintySecFavPage, 2)
 
-                        binding.homeMoodAndGenresRecyclerView?.addItemDecoration(SecGridItemDecoration(SizeUtils.dp2px( 10f),2))
+                        binding.homeListRecycleview?.addItemDecoration(SecGridItemDecoration(SizeUtils.dp2px( 10f),2))
 
-                        binding.homeMoodAndGenresRecyclerView.adapter = homeStyleAdapter
+                        binding.homeListRecycleview.adapter = homeStyleAdapter
                     }
                     withContext(Dispatchers.Main) {
                         it?.newReleaseAlbums?.apply {
@@ -169,16 +169,16 @@ class MintySecFavPage : MintyBaseActivity() {
     }
     override fun onResume() {
         super.onResume()
-        if (playerConnection != null && playerConnection?.player?.currentMetadata != null){
-            playerConnection?.mediaMetadata?.let {
-                updatePlayerUI(it.value)
+        if (secPlayConnect != null && secPlayConnect?.player?.currentMetadata != null){
+            secPlayConnect?.mediaMetadata?.let {
+                bottomSettingChange(it.value)
             }
         }
 
     }
 
-    private fun updatePlayerUI(metadata: MediaMetadata?) {
-        addUIPlayer(binding.bottomPlayer.artist,binding.bottomPlayer.title,binding.bottomPlayer.thumbnail,metadata)
+    private fun bottomSettingChange(metadata: MediaMetadata?) {
+        addUIPlayer(binding.mintyIncContainerPlay.artist,binding.mintyIncContainerPlay.title,binding.mintyIncContainerPlay.thumbnail,metadata)
     }
     inner class ItemsAdapter(var items: List<Song>) : RecyclerView.Adapter<ItemsAdapter.ViewHolder>() {
 
@@ -216,10 +216,10 @@ class MintySecFavPage : MintyBaseActivity() {
             holder.collect.setImageResource(R.mipmap.py_collect)
 
             holder.itemView.setOnClickListener {
-                if (item.song.id == playerConnection?.mediaMetadata?.value?.id) {
-                    playerConnection?.player?.togglePlayPause()
+                if (item.song.id == secPlayConnect?.mediaMetadata?.value?.id) {
+                    secPlayConnect?.player?.togglePlayPause()
                 } else {
-                    playerConnection?.playQueue(ListQueue(title = "Favourite",items.map { it.toMediaItem() }, startIndex = position))
+                    secPlayConnect?.playQueue(ListQueue(title = "Favourite",items.map { it.toMediaItem() }, startIndex = position))
                 }
                 startPlayerPage(true)
 

@@ -11,7 +11,11 @@ fun ViewPager2.customFunction() {
 
 
 }
-
+val songs_options: RequestOptions = RequestOptions()
+    .placeholder(randomBitmap())
+    .error(randomBitmap())
+    .centerCrop()
+    .transform(RoundedCorners(SizeUtils.dp2px(10f)))
 val options: RequestOptions = RequestOptions()
     .placeholder(randomBitmap())
     .error(randomBitmap())

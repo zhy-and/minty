@@ -21,15 +21,20 @@ import com.blankj.utilcode.util.AppUtils
 import com.blankj.utilcode.util.SizeUtils
 import com.blankj.utilcode.util.ThreadUtils
 import com.blankj.utilcode.util.ToastUtils
+import com.bumptech.glide.Glide
 import com.google.android.material.appbar.AppBarLayout
 import com.rapid.prominence.minty.R
 import com.rapid.prominence.minty.base.MintyBaseActivity
 import com.rapid.prominence.minty.bean.MediaMetadata
+import com.rapid.prominence.minty.bean.toMediaMetadata
 import com.rapid.prominence.minty.cons.MUSIC_CONSTANT_CURRENT_PAGE
 import com.rapid.prominence.minty.cons.StopMusicOnTaskClearKey
+import com.rapid.prominence.minty.cons.albumDetInter
+import com.rapid.prominence.minty.cons.artistDetInter
 import com.rapid.prominence.minty.cons.collectInter
 import com.rapid.prominence.minty.cons.historyInter
 import com.rapid.prominence.minty.cons.playViewsInter
+import com.rapid.prominence.minty.cons.playlistDetInter
 import com.rapid.prominence.minty.cons.releaseDetailInter
 import com.rapid.prominence.minty.database.InternalDatabase
 import com.rapid.prominence.minty.database.MusicDatabase
@@ -37,6 +42,8 @@ import com.rapid.prominence.minty.databinding.MintySecMainBinding
 import com.rapid.prominence.minty.ei.dialog.showDialogs
 import com.rapid.prominence.minty.extensions.currentMetadata
 import com.rapid.prominence.minty.extensions.logClickEvents
+import com.rapid.prominence.minty.posBitmap
+import com.rapid.prominence.minty.roundOptions
 import com.rapid.prominence.minty.second.appbar.AppBarStateChangeListener
 import com.rapid.prominence.minty.second.view.favorite.MintySecFavPage
 import com.rapid.prominence.minty.second.SecGridItemDecoration
@@ -46,15 +53,24 @@ import com.rapid.prominence.minty.second.SecPlayer
 import com.rapid.prominence.minty.second.HomeStyleAdapter
 import com.rapid.prominence.minty.second.SecReleaseAlbumAdapter
 import com.rapid.prominence.minty.second.MintyReDetailPage
+import com.rapid.prominence.minty.second.MintySecAlbumDetailPage
+import com.rapid.prominence.minty.second.MintySecArtistDetailPage
+import com.rapid.prominence.minty.second.MintySecPyDetailView
+import com.rapid.prominence.minty.second.SecHomeDetailAdapter
 
 import com.rapid.prominence.minty.second.databean.HomeViewModel
 import com.rapid.prominence.minty.service.MusicService
 import com.rapid.prominence.minty.service.PlayerConnection
+import com.rapid.prominence.minty.service.queues.YouTubeQueue
 import com.rapid.prominence.minty.special.SpecialAbout
 import com.rapid.prominence.minty.utils.dataStore
 import com.rapid.prominence.minty.utils.get
 import com.rapid.prominence.minty.utils.getInstallSys
 import com.tencent.mmkv.MMKV
+import com.zionhuang.innertube.models.AlbumItem
+import com.zionhuang.innertube.models.ArtistItem
+import com.zionhuang.innertube.models.PlaylistItem
+import com.zionhuang.innertube.models.SongItem
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
@@ -65,35 +81,40 @@ class MintySecMainPage : MintyBaseActivity() {
         bindService(Intent(this@MintySecMainPage, MusicService::class.java), serviceConnection, BIND_AUTO_CREATE)
     }
     companion object {
-        var playerConnection by mutableStateOf<PlayerConnection?>(null)
+        var secPlayConnect by mutableStateOf<PlayerConnection?>(null)
         var canShowFlag = false
     }
     private val serviceConnection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
-            if (service is  MusicService.MusicBinder) {
-                playerConnection = PlayerConnection(this@MintySecMainPage, service, database, lifecycleScope)
-                lifecycleScope.launch {
+            try {
+                if (service is  MusicService.MusicBinder) {
+                    secPlayConnect = PlayerConnection(this@MintySecMainPage, service, database, lifecycleScope)
+                    lifecycleScope.launch {
 
-                    playerConnection?.mediaMetadata?.collect{
-                       updatePlayerUI(it)
+                        secPlayConnect?.mediaMetadata?.collect{
+                            bottomSettingChange(it)
+                        }
+
                     }
-
-                }
-                lifecycleScope.launch {
-                    playerConnection?.isPlaying?.collect{
-                        if (it){
-                            binding.bottomPlayer.playPauseButton.setImageResource(R.mipmap.pause)
-                        }else{
-                            binding.bottomPlayer.playPauseButton.setImageResource(R.mipmap.home_plays)
+                    lifecycleScope.launch {
+                        secPlayConnect?.isPlaying?.collect{
+                            if (it){
+                                binding.mintyIncContainerPlay.playPauseButton.setImageResource(R.mipmap.pause)
+                            }else{
+                                binding.mintyIncContainerPlay.playPauseButton.setImageResource(R.mipmap.home_plays)
+                            }
                         }
                     }
                 }
+            }catch (e : Exception){
+                e.printStackTrace()
             }
+
         }
 
         override fun onServiceDisconnected(name: ComponentName?) {
-            playerConnection?.dispose()
-            playerConnection = null
+            secPlayConnect?.dispose()
+            secPlayConnect = null
         }
     }
 
@@ -119,9 +140,9 @@ class MintySecMainPage : MintyBaseActivity() {
     override fun onResume() {
         super.onResume()
         try {
-            if (playerConnection != null && playerConnection?.player?.currentMetadata != null){
-                playerConnection?.mediaMetadata?.let {
-                    updatePlayerUI(it.value)
+            if (secPlayConnect != null && secPlayConnect?.player?.currentMetadata != null){
+                secPlayConnect?.mediaMetadata?.let {
+                    bottomSettingChange(it.value)
                 }
             }
             if (!MMKV.defaultMMKV().getBoolean("showSuc",false)
@@ -138,16 +159,16 @@ class MintySecMainPage : MintyBaseActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        if (dataStore.get(StopMusicOnTaskClearKey,false)&& playerConnection?.isPlaying?.value == true && isFinishing){
+        if (dataStore.get(StopMusicOnTaskClearKey,false)&& secPlayConnect?.isPlaying?.value == true && isFinishing){
             stopService(Intent(this,MusicService::class.java))
             serviceConnection?.let {
                 unbindService(it)
             }
-            playerConnection = null
+            secPlayConnect = null
         }
     }
-    private fun updatePlayerUI(metadata: MediaMetadata?) {
-        addUIPlayer(binding.bottomPlayer.artist,binding.bottomPlayer.title,binding.bottomPlayer.thumbnail,metadata)
+    private fun bottomSettingChange(metadata: MediaMetadata?) {
+        addUIPlayer(binding.mintyIncContainerPlay.artist,binding.mintyIncContainerPlay.title,binding.mintyIncContainerPlay.thumbnail,metadata)
     }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -203,11 +224,11 @@ class MintySecMainPage : MintyBaseActivity() {
         binding.newReleaseAlbumsRecyclerView.layoutManager = LinearLayoutManager(this,LinearLayoutManager.HORIZONTAL, false)
         binding.newReleaseAlbumsRecyclerView.adapter = secReleaseAlbumAdapter
 
-        binding.moodAndGenresRecyclerView.layoutManager = GridLayoutManager(this, 2)
-//        binding.moodAndGenresRecyclerView?.addItemDecoration(SpaceItemDecoration( SizeUtils.dp2px( 10f)))
-        binding.moodAndGenresRecyclerView?.addItemDecoration(SecGridItemDecoration(SizeUtils.dp2px( 10f),2))
-        binding.moodAndGenresRecyclerView.adapter = homeStyleAdapter
-//        binding.moodAndGenresRecyclerView.isNestedScrollingEnabled = false
+        binding.listRecycleview.layoutManager = GridLayoutManager(this, 2)
+//        binding.listRecycleview?.addItemDecoration(SpaceItemDecoration( SizeUtils.dp2px( 10f)))
+        binding.listRecycleview?.addItemDecoration(SecGridItemDecoration(SizeUtils.dp2px( 10f),2))
+        binding.listRecycleview.adapter = homeStyleAdapter
+//        binding.listRecycleview.isNestedScrollingEnabled = false
 //        binding.newReleaseAlbumsRecyclerView.isNestedScrollingEnabled = false
 //        binding.homePageSectionsRecyclerView.isNestedScrollingEnabled = false
         binding.searchEditText.setOnClickListener {
@@ -234,11 +255,11 @@ class MintySecMainPage : MintyBaseActivity() {
             startInterActivity(Intent(this, MintySecFavPage::class.java), collectInter(),false)
 
         }
-        binding.bottomPlayer.container.setOnClickListener {
+        binding.mintyIncContainerPlay.container.setOnClickListener {
             logClickEvents("home_to_player")
             startInterActivity(Intent(this, SecPlayer::class.java), playViewsInter(),false)
         }
-//        binding.bottomPlayer.nextButton.setOnClickListener {
+//        binding.mintyIncContainerPlay.nextButton.setOnClickListener {
 //            playerConnection?.player?.seekToNext()
 //
 //        }
@@ -257,7 +278,7 @@ class MintySecMainPage : MintyBaseActivity() {
         }
 
 //        binding.scroll.post {
-//            binding.moodAndGenresRecyclerView?.parent?.apply {
+//            binding.listRecycleview?.parent?.apply {
 //
 //            }
 //        }
@@ -320,7 +341,93 @@ class MintySecMainPage : MintyBaseActivity() {
             }
         }
 //
+        lifecycleScope.launch{
+            try {
+                homeViewModel?.similarRecommendations?.collect{
+                    if (isFinishing || isDestroyed){
+                        return@collect
+                    }
 
+                    Timber.e(it.toString())
+                    if (it.isNullOrEmpty()) {
+                        return@collect
+                    }
+                    binding.specAnm.visibility = View.GONE
+                    binding.specAnm.stopShimmerAnimation()
+                    if (binding.emptyLayout.isVisible){
+                        binding.emptyLayout.visibility = View.GONE
+                    }
+                    binding.guess.visibility = View.VISIBLE
+//                binding.guess.text = it?.firstOrNull()?.title?.title ?: "Guess you like it"
+                    binding.similarList.apply {
+                        visibility = View.VISIBLE
+                        layoutManager = LinearLayoutManager(this@MintySecMainPage,LinearLayoutManager.HORIZONTAL,false)
+                        val detAdapter = SecHomeDetailAdapter(
+                            onItemClickListener = { item ->
+                                when (item) {
+                                    is SongItem -> {
+//                            Log.e("-------type","song")
+                                        secPlayConnect?.playQueue(YouTubeQueue.radio(item.toMediaMetadata()))
+                                        if (isFinishing || isDestroyed){
+                                            return@SecHomeDetailAdapter
+                                        }
+                                        logClickEvents("home_to_player")
+                                        startInterActivity(Intent(this@MintySecMainPage, SecPlayer::class.java), playViewsInter(),false)
+//                            playerConnection.playQueue(YouTubeQueue(item.endpoint ?: WatchEndpoint(videoId = item.id), item.toMediaMetadata()))
+                                    }
+//                            playerConnection.playQueue(YouTubeQueue(item.endpoint ?: WatchEndpoint(videoId = item.id), item.toMediaMetadata()))
+                                    is AlbumItem ->{
+//                            Log.e("-------type","album")
+                                        if (isFinishing ||  isDestroyed ){
+                                            return@SecHomeDetailAdapter
+                                        }
+                                        logClickEvents("home_to_album_det")
+
+                                        startInterActivity(Intent(this@MintySecMainPage, MintySecAlbumDetailPage::class.java).apply {
+                                            putExtra("albumId",item.id)
+                                        }, albumDetInter(),false)
+                                    }
+//                            navController.navigate("album/${item.id}")
+                                    is ArtistItem -> {
+//                            Log.e("-------type","artist")
+                                        if (isFinishing ||  isDestroyed ){
+                                            return@SecHomeDetailAdapter
+                                        }
+                                        logClickEvents("home_to_artist_det")
+
+                                        startInterActivity(Intent(this@MintySecMainPage, MintySecArtistDetailPage::class.java).apply {
+                                            putExtra("artistId",item.id)
+                                        }, artistDetInter(),false)
+
+                                    }
+//                            navController.navigate("artist/${item.id}")
+                                    is PlaylistItem -> {
+//                            Log.e("-------type","PlaylistItem")
+
+                                        if (isFinishing ||  isDestroyed ){
+                                            return@SecHomeDetailAdapter
+                                        }
+                                        logClickEvents("home_to_playlist_det")
+
+                                        startInterActivity(Intent(this@MintySecMainPage, MintySecPyDetailView::class.java).apply {
+                                            putExtra("playlistId",item.id)
+                                        }, playlistDetInter(),false)
+
+                                    }
+//                            navController.navigate("online_playlist/${item.id}")
+                                }
+                            },
+                        )
+                        adapter = detAdapter
+                        detAdapter.setList(it.first().items)
+
+                    }
+                }
+            }catch (e : Exception){
+                e.printStackTrace()
+            }
+
+        }
         lifecycleScope.launch {
             try {
                 homeViewModel?.isError?.collect {

@@ -13,13 +13,13 @@
         layout="@layout/top_containers"
         />
     <include
-        android:id="@+id/bottom_player"
+        android:id="@+id/minty_inc_container_play"
         layout="@layout/bottom_mp"
         />
 
     <androidx.core.widget.NestedScrollView
         mlns:layout_constraintTop_toBottomOf="@id/tops"
-        mlns:layout_constraintBottom_toTopOf="@id/bottom_player"
+        mlns:layout_constraintBottom_toTopOf="@id/minty_inc_container_play"
         android:layout_width="match_parent"
         android:layout_height="0dp">
         <androidx.constraintlayout.widget.ConstraintLayout
@@ -37,7 +37,7 @@
                 android:layout_marginTop="8dp"
                 android:layout_marginBottom="18dp"
                 mlns:layout_constraintTop_toBottomOf="@id/ad_con"
-                android:id="@+id/mood_and_genres_recycler_view"
+                android:id="@+id/list_recycleview"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
 
@@ -51,7 +51,7 @@
         <io.supercharge.shimmerlayout.ShimmerLayout
             android:visibility="gone"
             app:layout_constraintTop_toTopOf="parent"
-            android:id="@+id/spec_anm2"
+            android:id="@+id/loadings"
             app:shimmer_animation_duration="1000"
             app:layout_constraintStart_toStartOf="parent"
             android:layout_width="match_parent"

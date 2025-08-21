@@ -19,7 +19,7 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.bumptech.glide.request.RequestOptions
 import com.rapid.prominence.minty.base.MintyBaseActivity
-import com.rapid.prominence.minty.ei.main.EiMainPage.Companion.playerConnection
+import com.rapid.prominence.minty.ei.main.EiMainPage.Companion.eiPlays
 import com.rapid.prominence.minty.R
 import com.rapid.prominence.minty.bean.MediaMetadata
 import com.rapid.prominence.minty.databinding.MintyQueueBinding
@@ -36,20 +36,20 @@ import kotlinx.coroutines.launch
 class EiMintyQueue : MintyBaseActivity() {
     override fun onResume() {
         super.onResume()
-        if (playerConnection != null && playerConnection?.player?.currentMetadata != null){
-            playerConnection?.mediaMetadata?.let {
-                updatePlayerUI(it.value)
+        if (eiPlays != null && eiPlays?.player?.currentMetadata != null){
+            eiPlays?.mediaMetadata?.let {
+                bottomSettingChange(it.value)
             }
         }
     }
     private lateinit var binding: MintyQueueBinding
     private lateinit var newReleaseAlbumsAdapter: ItemsAdapter
-    private fun updatePlayerUI(metadata: MediaMetadata?) {
+    private fun bottomSettingChange(metadata: MediaMetadata?) {
         if (!TextUtils.isEmpty(metadata?.title)){
-            binding.bottomPlayer.title.text = metadata?.title
+            binding.mintyIncContainerPlay.title.text = metadata?.title
         }
         if (!TextUtils.isEmpty(metadata?.artists?.joinToString(", ") { it.name })){
-            binding.bottomPlayer.artist.text = metadata?.artists?.joinToString(", ") { it.name }
+            binding.mintyIncContainerPlay.artist.text = metadata?.artists?.joinToString(", ") { it.name }
         }
         Glide.with(this@EiMintyQueue)
             .load(metadata?.thumbnailUrl)
@@ -59,7 +59,7 @@ class EiMintyQueue : MintyBaseActivity() {
                     .load(posBitmap(0))
                     .apply(roundOptions)
             )
-            .into(binding.bottomPlayer.thumbnail)
+            .into(binding.mintyIncContainerPlay.thumbnail)
     }
 
 
@@ -77,13 +77,13 @@ class EiMintyQueue : MintyBaseActivity() {
         }
         newReleaseAlbumsAdapter = ItemsAdapter()
 
-        binding.bottomPlayer.container.setOnClickListener {
+        binding.mintyIncContainerPlay.container.setOnClickListener {
             startActivity(Intent(this, EiPlayer::class.java))
         }
-        binding.moodAndGenresRecyclerView.layoutManager = LinearLayoutManager(this@EiMintyQueue)
-        binding.moodAndGenresRecyclerView.adapter = newReleaseAlbumsAdapter
+        binding.listRecycleview.layoutManager = LinearLayoutManager(this@EiMintyQueue)
+        binding.listRecycleview.adapter = newReleaseAlbumsAdapter
         lifecycleScope.launch {
-            playerConnection?.queueWindows?.value?.let {
+            eiPlays?.queueWindows?.value?.let {
                 if (it.isNullOrEmpty()){
                     return@launch
                 }
@@ -102,11 +102,11 @@ class EiMintyQueue : MintyBaseActivity() {
 
         }
         lifecycleScope.launch {
-            playerConnection?.isPlaying?.collect{
+            eiPlays?.isPlaying?.collect{
                 if (it){
-                    binding.bottomPlayer.playPauseButton.setImageResource(R.mipmap.pause)
+                    binding.mintyIncContainerPlay.playPauseButton.setImageResource(R.mipmap.pause)
                 }else{
-                    binding.bottomPlayer.playPauseButton.setImageResource(R.mipmap.home_plays)
+                    binding.mintyIncContainerPlay.playPauseButton.setImageResource(R.mipmap.home_plays)
                 }
             }
         }
@@ -147,9 +147,9 @@ class EiMintyQueue : MintyBaseActivity() {
                     ToastUtils.getDefaultMaker().setGravity(Gravity.CENTER,0,0).show("Only one song left, please add more!")
                     return@setOnClickListener
                 }
-                playerConnection?.player?.mediaItems?.forEachIndexed { index, mediaItem ->
+                eiPlays?.player?.mediaItems?.forEachIndexed { index, mediaItem ->
                     if (mediaItem.mediaMetadata.title == item.mediaItem.metadata?.title) {
-                        playerConnection?.player?.removeMediaItem(index)
+                        eiPlays?.player?.removeMediaItem(index)
                     }
                     }
                 items.remove(item)
@@ -157,11 +157,11 @@ class EiMintyQueue : MintyBaseActivity() {
             }
 
             holder.itemView.setOnClickListener {
-                if (position == playerConnection?.currentWindowIndex?.value) {
-                    playerConnection?.player?.togglePlayPause()
+                if (position == eiPlays?.currentWindowIndex?.value) {
+                    eiPlays?.player?.togglePlayPause()
                 } else {
-                    playerConnection?.player?.seekToDefaultPosition(item.firstPeriodIndex)
-                    playerConnection?.player?.playWhenReady = true
+                    eiPlays?.player?.seekToDefaultPosition(item.firstPeriodIndex)
+                    eiPlays?.player?.playWhenReady = true
                 }
                 startActivity(Intent(this@EiMintyQueue, EiPlayer::class.java))
             }

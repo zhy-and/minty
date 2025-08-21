@@ -130,7 +130,7 @@
     <io.supercharge.shimmerlayout.ShimmerLayout
         android:visibility="gone"
         mlns:layout_constraintTop_toBottomOf="@id/tops"
-        mlns:layout_constraintBottom_toTopOf="@id/bottom_player"
+        mlns:layout_constraintBottom_toTopOf="@id/minty_inc_container_play"
         android:id="@+id/spec_anm"
         app:shimmer_animation_duration="1000"
         app:layout_constraintStart_toStartOf="parent"
@@ -140,7 +140,7 @@
     </io.supercharge.shimmerlayout.ShimmerLayout>
 
     <include
-        android:id="@+id/bottom_player"
+        android:id="@+id/minty_inc_container_play"
         layout="@layout/bottom_mp"
         />
 

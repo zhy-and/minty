@@ -12,13 +12,13 @@
         layout="@layout/top_containers"
         />
     <include
-        android:id="@+id/bottom_player"
+        android:id="@+id/minty_inc_container_play"
         layout="@layout/bottom_mp"
         />
 
 
     <androidx.constraintlayout.widget.ConstraintLayout
-        app:layout_constraintBottom_toTopOf="@id/bottom_player"
+        app:layout_constraintBottom_toTopOf="@id/minty_inc_container_play"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/titles"
         android:layout_width="match_parent"
@@ -32,7 +32,7 @@
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            android:id="@+id/mood_and_genres_recycler_view"
+            android:id="@+id/list_recycleview"
             android:layout_width="match_parent"
             android:layout_height="0dp" />
 
@@ -43,7 +43,7 @@
         android:visibility="gone"
         android:id="@+id/empty_layout"
         app:layout_constraintTop_toBottomOf="@id/titles"
-        app:layout_constraintBottom_toTopOf="@id/bottom_player"
+        app:layout_constraintBottom_toTopOf="@id/minty_inc_container_play"
         android:layout_width="match_parent"
         android:layout_height="0dp">
         <androidx.constraintlayout.widget.ConstraintLayout
@@ -139,7 +139,7 @@
             <androidx.recyclerview.widget.RecyclerView
                 app:layout_constraintTop_toBottomOf="@id/mood_title"
                 app:layout_constraintStart_toStartOf="parent"
-                android:id="@+id/home_mood_and_genres_recycler_view"
+                android:id="@+id/home_list_recycleview"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
 

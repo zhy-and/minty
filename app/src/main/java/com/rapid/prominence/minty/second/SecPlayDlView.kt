@@ -27,7 +27,7 @@ import com.rapid.prominence.minty.extensions.metadata
 import com.rapid.prominence.minty.extensions.togglePlayPause
 import com.rapid.prominence.minty.options
 import com.rapid.prominence.minty.posBitmap
-import com.rapid.prominence.minty.second.view.MintySecMainPage.Companion.playerConnection
+import com.rapid.prominence.minty.second.view.MintySecMainPage.Companion.secPlayConnect
 import com.rapid.prominence.minty.second.databean.HomeViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -39,9 +39,9 @@ class SecPlayDlView : MintyBaseActivity() {
 
     override fun onResume() {
         super.onResume()
-        if (playerConnection != null && playerConnection?.player?.currentMetadata != null){
-            playerConnection?.mediaMetadata?.let {
-                updatePlayerUI(it.value)
+        if (secPlayConnect != null && secPlayConnect?.player?.currentMetadata != null){
+            secPlayConnect?.mediaMetadata?.let {
+                bottomSettingChange(it.value)
             }
         }
 
@@ -52,8 +52,8 @@ class SecPlayDlView : MintyBaseActivity() {
     private  var secReleaseAlbumAdapter: SecReleaseAlbumAdapter?= null
     private  var homeStyleAdapter: HomeStyleAdapter?= null
 
-    private fun updatePlayerUI(metadata: MediaMetadata?) {
-        addUIPlayer(binding.bottomPlayer.artist,binding.bottomPlayer.title,binding.bottomPlayer.thumbnail,metadata)
+    private fun bottomSettingChange(metadata: MediaMetadata?) {
+        addUIPlayer(binding.mintyIncContainerPlay.artist,binding.mintyIncContainerPlay.title,binding.mintyIncContainerPlay.thumbnail,metadata)
 
     }
 
@@ -76,17 +76,17 @@ class SecPlayDlView : MintyBaseActivity() {
 
         }
 
-        binding.bottomPlayer.container.setOnClickListener {
+        binding.mintyIncContainerPlay.container.setOnClickListener {
             startPlayerPage()
         }
-        binding.moodAndGenresRecyclerView.layoutManager = LinearLayoutManager(this@SecPlayDlView)
-        binding.moodAndGenresRecyclerView.adapter = songAdapter
+        binding.listRecycleview.layoutManager = LinearLayoutManager(this@SecPlayDlView)
+        binding.listRecycleview.adapter = songAdapter
         lifecycleScope.launch {
-            if (playerConnection?.queueWindows?.value.isNullOrEmpty()){
+            if (secPlayConnect?.queueWindows?.value.isNullOrEmpty()){
                 initEmptyLayout()
                 return@launch
             }
-            playerConnection?.queueWindows?.value?.let {
+            secPlayConnect?.queueWindows?.value?.let {
                 if (it.isNullOrEmpty()){
                     initEmptyLayout()
                     return@launch
@@ -114,17 +114,17 @@ class SecPlayDlView : MintyBaseActivity() {
 
         lifecycleScope.launch {
 
-            playerConnection?.mediaMetadata?.collect{
-                updatePlayerUI(it)
+            secPlayConnect?.mediaMetadata?.collect{
+                bottomSettingChange(it)
             }
 
         }
         lifecycleScope.launch {
-            playerConnection?.isPlaying?.collect{
+            secPlayConnect?.isPlaying?.collect{
                 if (it){
-                    binding.bottomPlayer.playPauseButton.setImageResource(R.mipmap.pause)
+                    binding.mintyIncContainerPlay.playPauseButton.setImageResource(R.mipmap.pause)
                 }else{
-                    binding.bottomPlayer.playPauseButton.setImageResource(R.mipmap.home_plays)
+                    binding.mintyIncContainerPlay.playPauseButton.setImageResource(R.mipmap.home_plays)
                 }
             }
         }
@@ -161,12 +161,12 @@ class SecPlayDlView : MintyBaseActivity() {
                     )
                     binding.newReleaseAlbumsRecyclerView.adapter = secReleaseAlbumAdapter
 
-                    binding.homeMoodAndGenresRecyclerView.layoutManager =
+                    binding.homeListRecycleview.layoutManager =
                         GridLayoutManager(this@SecPlayDlView, 2)
-                    binding.homeMoodAndGenresRecyclerView?.addItemDecoration(SecGridItemDecoration(SizeUtils.dp2px( 10f),2))
+                    binding.homeListRecycleview?.addItemDecoration(SecGridItemDecoration(SizeUtils.dp2px( 10f),2))
 
-                    binding.homeMoodAndGenresRecyclerView.adapter = homeStyleAdapter
-                    binding.homeMoodAndGenresRecyclerView.isNestedScrollingEnabled = false
+                    binding.homeListRecycleview.adapter = homeStyleAdapter
+                    binding.homeListRecycleview.isNestedScrollingEnabled = false
                     withContext(Dispatchers.Main) {
                         it?.newReleaseAlbums?.apply {
                             secReleaseAlbumAdapter?.submitList(this)
@@ -248,11 +248,11 @@ class SecPlayDlView : MintyBaseActivity() {
 //                            -it.firstPeriodIndex
 //                        }.forEach {
 //                            its ->
-                            playerConnection?.player?.removeMediaItem(item.firstPeriodIndex)
+                            secPlayConnect?.player?.removeMediaItem(item.firstPeriodIndex)
 //                        }
                             try {
                                 val arrayList = ArrayList<Timeline.Window>()
-                                playerConnection?.player?.getQueueWindows()?.forEach { one ->
+                                secPlayConnect?.player?.getQueueWindows()?.forEach { one ->
                                     arrayList.add(one)
                                 }
                                 addData(arrayList)
@@ -272,13 +272,13 @@ class SecPlayDlView : MintyBaseActivity() {
             holder.itemView.setOnClickListener {
 
 
-                if (position == playerConnection?.currentWindowIndex?.value) {
-                    playerConnection?.player?.togglePlayPause()
+                if (position == secPlayConnect?.currentWindowIndex?.value) {
+                    secPlayConnect?.player?.togglePlayPause()
                 } else {
 
 
-                    playerConnection?.player?.seekToDefaultPosition(items[position].firstPeriodIndex)
-                    playerConnection?.player?.playWhenReady = true
+                    secPlayConnect?.player?.seekToDefaultPosition(items[position].firstPeriodIndex)
+                    secPlayConnect?.player?.playWhenReady = true
                 }
                startPlayerPage()
             }

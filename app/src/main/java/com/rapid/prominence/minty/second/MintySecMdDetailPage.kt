@@ -38,7 +38,7 @@ import com.rapid.prominence.minty.extensions.currentMetadata
 import com.rapid.prominence.minty.extensions.toMediaItem
 import com.rapid.prominence.minty.options
 import com.rapid.prominence.minty.posBitmap
-import com.rapid.prominence.minty.second.view.MintySecMainPage.Companion.playerConnection
+import com.rapid.prominence.minty.second.view.MintySecMainPage.Companion.secPlayConnect
 import com.zionhuang.innertube.models.*
 import com.zionhuang.innertube.pages.BrowseResult
 import com.rapid.prominence.minty.second.databean.YouTubeBrowseViewModel
@@ -65,13 +65,13 @@ class MintySecMdDetailPage : MintyBaseActivity() {
             params ?: return
             val albumViewModel =
                 YouTubeBrowseViewModel(this, broId, params)
-            binding.specAnm2.post {
-                binding.specAnm2.visibility = View.VISIBLE
-                binding.specAnm2.startShimmerAnimation()
+            binding.loadings.post {
+                binding.loadings.visibility = View.VISIBLE
+                binding.loadings.startShimmerAnimation()
             }
             newReleaseAlbumsAdapter = YouTubeBrowseAdapter(emptyList())
-            binding.moodAndGenresRecyclerView.layoutManager = LinearLayoutManager(this)
-            binding.moodAndGenresRecyclerView.adapter = newReleaseAlbumsAdapter
+            binding.listRecycleview.layoutManager = LinearLayoutManager(this)
+            binding.listRecycleview.adapter = newReleaseAlbumsAdapter
             binding.tops.apply {
                 lists.visibility = View.VISIBLE
 
@@ -85,7 +85,7 @@ class MintySecMdDetailPage : MintyBaseActivity() {
                     finishCurrent()
                 }
             }
-            binding.bottomPlayer.container.setOnClickListener {
+            binding.mintyIncContainerPlay.container.setOnClickListener {
                 startPlayerPage()
             }
             lifecycleScope.launch {
@@ -93,8 +93,8 @@ class MintySecMdDetailPage : MintyBaseActivity() {
                     if (isFinishing || isDestroyed) {
                         return@collect
                     }
-                    binding.specAnm2.visibility = View.GONE
-                    binding.specAnm2.stopShimmerAnimation()
+                    binding.loadings.visibility = View.GONE
+                    binding.loadings.stopShimmerAnimation()
 
                     if (browseResult == null) {
                         // Show shimmer loading
@@ -105,17 +105,17 @@ class MintySecMdDetailPage : MintyBaseActivity() {
             }
             lifecycleScope.launch {
 
-                playerConnection?.mediaMetadata?.collect{
-                    updatePlayerUI(it)
+                secPlayConnect?.mediaMetadata?.collect{
+                    bottomSettingChange(it)
                 }
 
             }
             lifecycleScope.launch {
-                playerConnection?.isPlaying?.collect{
+                secPlayConnect?.isPlaying?.collect{
                     if (it){
-                        binding.bottomPlayer.playPauseButton.setImageResource(R.mipmap.pause)
+                        binding.mintyIncContainerPlay.playPauseButton.setImageResource(R.mipmap.pause)
                     }else{
-                        binding.bottomPlayer.playPauseButton.setImageResource(R.mipmap.home_plays)
+                        binding.mintyIncContainerPlay.playPauseButton.setImageResource(R.mipmap.home_plays)
                     }
                 }
             }
@@ -210,7 +210,7 @@ class MintySecMdDetailPage : MintyBaseActivity() {
                 when (item) {
                     is SongItem -> {
                         holder.ivgs.visibility = View.VISIBLE
-                        playerConnection?.playQueue(YouTubeQueue(item.endpoint ?: WatchEndpoint(videoId = item.id), item.toMediaMetadata()))
+                        secPlayConnect?.playQueue(YouTubeQueue(item.endpoint ?: WatchEndpoint(videoId = item.id), item.toMediaMetadata()))
                         startInterActivity(Intent(this@MintySecMdDetailPage, SecPlayer::class.java), playViewsInter(),false)
                     }
                     is AlbumItem ->   {
@@ -260,20 +260,20 @@ class MintySecMdDetailPage : MintyBaseActivity() {
                             if (isShowing){
                                 dismiss()
                             }
-                            playerConnection?.playQueue(radio(data.toMediaMetadata()))
+                            secPlayConnect?.playQueue(radio(data.toMediaMetadata()))
                             startPlayerPage()
                         }
                         findViewById<View>(R.id.play_next)?.setOnClickListener {
                             if (isShowing){
                                 dismiss()
                             }
-                            playerConnection?.playNext(data.toMediaItem())
+                            secPlayConnect?.playNext(data.toMediaItem())
                         }
                         findViewById<View>(R.id.add_queue)?.setOnClickListener {
                             if (isShowing){
                                 dismiss()
                             }
-                            playerConnection?.addToQueue(data.toMediaItem())
+                            secPlayConnect?.addToQueue(data.toMediaItem())
                         }
                         findViewById<View>(R.id.add_fav)?.setOnClickListener {
                             if (isShowing){
@@ -320,15 +320,15 @@ class MintySecMdDetailPage : MintyBaseActivity() {
     }
     override fun onResume() {
         super.onResume()
-        if (playerConnection != null && playerConnection?.player?.currentMetadata != null){
-            playerConnection?.mediaMetadata?.let {
-                updatePlayerUI(it.value)
+        if (secPlayConnect != null && secPlayConnect?.player?.currentMetadata != null){
+            secPlayConnect?.mediaMetadata?.let {
+                bottomSettingChange(it.value)
             }
         }
     }
 
-    private fun updatePlayerUI(metadata: MediaMetadata?) {
-        addUIPlayer(binding.bottomPlayer.artist,binding.bottomPlayer.title,binding.bottomPlayer.thumbnail,metadata)
+    private fun bottomSettingChange(metadata: MediaMetadata?) {
+        addUIPlayer(binding.mintyIncContainerPlay.artist,binding.mintyIncContainerPlay.title,binding.mintyIncContainerPlay.thumbnail,metadata)
     }
 
 

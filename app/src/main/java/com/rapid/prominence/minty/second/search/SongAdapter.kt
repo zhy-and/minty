@@ -22,7 +22,7 @@ import com.rapid.prominence.minty.ei.dialog.showDialogs
 import com.rapid.prominence.minty.extensions.toMediaItem
 import com.rapid.prominence.minty.options
 import com.rapid.prominence.minty.posBitmap
-import com.rapid.prominence.minty.second.view.MintySecMainPage.Companion.playerConnection
+import com.rapid.prominence.minty.second.view.MintySecMainPage.Companion.secPlayConnect
 import com.rapid.prominence.minty.second.SecPlayer
 import com.rapid.prominence.minty.service.queues.YouTubeQueue.Companion.radio
 import com.zionhuang.innertube.models.SongItem
@@ -108,20 +108,20 @@ class SongAdapter(var songs: ArrayList<SongItem> = arrayListOf(), private val on
                         if (isShowing){
                             dismiss()
                         }
-                        playerConnection?.playQueue(radio(item.toMediaMetadata()))
+                        secPlayConnect?.playQueue(radio(item.toMediaMetadata()))
                         ActivityUtils.startActivity(Intent(holder.itemView.context, SecPlayer::class.java))
                     }
                     findViewById<View>(R.id.play_next)?.setOnClickListener {
                         if (isShowing){
                             dismiss()
                         }
-                        playerConnection?.playNext(item.toMediaItem())
+                        secPlayConnect?.playNext(item.toMediaItem())
                     }
                     findViewById<View>(R.id.add_queue)?.setOnClickListener {
                         if (isShowing){
                             dismiss()
                         }
-                        playerConnection?.addToQueue(item.toMediaItem())
+                        secPlayConnect?.addToQueue(item.toMediaItem())
                     }
                     findViewById<View>(R.id.add_fav)?.setOnClickListener {
                         if (isShowing){
@@ -165,6 +165,7 @@ class SongAdapter(var songs: ArrayList<SongItem> = arrayListOf(), private val on
             item.thumbnail?.let {
                 Glide.with(holder.itemView)
                     .load(it)
+                    .encodeQuality(30)
                     .apply(options)
                     .thumbnail(
                         Glide.with(holder.itemView)

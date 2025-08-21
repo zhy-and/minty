@@ -1,6 +1,6 @@
 package com.rapid.prominence.minty.ei.pages
 import android.content.ContentUris
-import com.rapid.prominence.minty.ei.main.EiMainPage.Companion.playerConnection
+import com.rapid.prominence.minty.ei.main.EiMainPage.Companion.eiPlays
 import com.rapid.prominence.minty.bean.MediaMetadata
 import com.rapid.prominence.minty.bean.Song
 import com.rapid.prominence.minty.databinding.MintyEiAlbumDetBinding
@@ -39,7 +39,7 @@ class EiAlbumDetail : MintyBaseActivity() {
 
         setupRecyclerView()
 
-        binding.bottomPlayer.container.setOnClickListener {
+        binding.mintyIncContainerPlay.container.setOnClickListener {
             startActivity(Intent(this, EiPlayer::class.java))
         }
         val queryType = intent.getIntExtra("type",0)
@@ -90,11 +90,11 @@ class EiAlbumDetail : MintyBaseActivity() {
                 .into(binding.album)
 
             lifecycleScope.launch {
-                playerConnection?.isPlaying?.collect{
+                eiPlays?.isPlaying?.collect{
                     if (it){
-                        binding.bottomPlayer.playPauseButton.setImageResource(R.mipmap.pause)
+                        binding.mintyIncContainerPlay.playPauseButton.setImageResource(R.mipmap.pause)
                     }else{
-                        binding.bottomPlayer.playPauseButton.setImageResource(R.mipmap.home_plays)
+                        binding.mintyIncContainerPlay.playPauseButton.setImageResource(R.mipmap.home_plays)
                     }
                 }
             }
@@ -105,10 +105,10 @@ class EiAlbumDetail : MintyBaseActivity() {
 
 
     private fun setupRecyclerView() {
-        binding.moodAndGenresRecyclerView.layoutManager = LinearLayoutManager(this)
+        binding.listRecycleview.layoutManager = LinearLayoutManager(this)
         adapter =
             TabHome.SongAdapter() // 传递点击监听器‌:ml-citation{ref="1,7" data="citationList"}
-        binding.moodAndGenresRecyclerView.adapter = adapter
+        binding.listRecycleview.adapter = adapter
     }
 
     private fun loadSongs(id: String?) {
@@ -178,20 +178,20 @@ class EiAlbumDetail : MintyBaseActivity() {
     }
     override fun onResume() {
         super.onResume()
-        if (playerConnection != null && playerConnection?.player?.currentMetadata != null && MMKV.defaultMMKV().getBoolean("isAuth",false)){
-            playerConnection?.mediaMetadata?.let {
-                updatePlayerUI(it.value)
+        if (eiPlays != null && eiPlays?.player?.currentMetadata != null && MMKV.defaultMMKV().getBoolean("isAuth",false)){
+            eiPlays?.mediaMetadata?.let {
+                bottomSettingChange(it.value)
             }
         }
     }
 
 
-    private fun updatePlayerUI(metadata: MediaMetadata?) {
+    private fun bottomSettingChange(metadata: MediaMetadata?) {
         if (!TextUtils.isEmpty(metadata?.title)){
-            binding.bottomPlayer.title.text = metadata?.title
+            binding.mintyIncContainerPlay.title.text = metadata?.title
         }
         if (!TextUtils.isEmpty(metadata?.artists?.joinToString(", ") { it.name })){
-            binding.bottomPlayer.artist.text = metadata?.artists?.joinToString(", ") { it.name }
+            binding.mintyIncContainerPlay.artist.text = metadata?.artists?.joinToString(", ") { it.name }
         }
         Glide.with(this@EiAlbumDetail)
             .load(metadata?.thumbnailUrl)
@@ -201,7 +201,7 @@ class EiAlbumDetail : MintyBaseActivity() {
                     .load(posBitmap(0))
                     .apply(roundOptions)
             )
-            .into(binding.bottomPlayer.thumbnail)
+            .into(binding.mintyIncContainerPlay.thumbnail)
     }
 
 }

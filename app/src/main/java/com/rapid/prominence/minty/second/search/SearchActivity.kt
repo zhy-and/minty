@@ -18,6 +18,7 @@ import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.gyf.immersionbar.ImmersionBar
 import com.rapid.prominence.minty.R
 import com.rapid.prominence.minty.base.MintyBaseActivity
 import com.rapid.prominence.minty.bean.ItemsPage
@@ -34,7 +35,7 @@ import com.rapid.prominence.minty.second.SearchViewAlbumAdapter
 import com.rapid.prominence.minty.second.MintySecAlbumDetailPage
 import com.rapid.prominence.minty.second.SearchViewArtAdapter
 import com.rapid.prominence.minty.second.MintySecArtistDetailPage
-import com.rapid.prominence.minty.second.view.MintySecMainPage.Companion.playerConnection
+import com.rapid.prominence.minty.second.view.MintySecMainPage.Companion.secPlayConnect
 import com.rapid.prominence.minty.second.SpecialVerManager
 import com.rapid.prominence.minty.service.queues.YouTubeQueue.Companion.radio
 import com.rapid.prominence.minty.utils.dataStore
@@ -55,6 +56,7 @@ import kotlinx.coroutines.withContext
 
 class MusicSearchActivity : MintyBaseActivity() {
     private var lastVisibleItem: Int = 0
+    private var lastVideoVisibleItem: Int = 0
     private var data: MusicDatabase?= null
     private  var songAdapter: SongAdapter?= null
     private  var searchViewAlbumAdapter: SearchViewAlbumAdapter?= null
@@ -62,18 +64,109 @@ class MusicSearchActivity : MintyBaseActivity() {
     private  var songUniqueAdapter: SongAdapter?= null
     private  var albumUniqueAdapter: SearchViewAlbumAdapter?= null
     private  var artistUniqueAdapter: SearchViewArtAdapter?= null
-    private  var videoUniqueAdapter: VideoSongAdapter?= null
+    private  var videoUniqueAdapter: SearchVideoSongAdapter?= null
     var isLoadingNextPage = false
     var isLoadingAlbumNextPage = false
     var isLoadingArtistNextPage = false
     var isLoadingPlayNextPage = false
-    private  var playAdapter: VideoSongAdapter?= null
+    private  var playAdapter: SearchVideoSongAdapter?= null
     private val youTube = MainBe
     var key = FILTER_SONG.value
     var currentType = 0
     var currentSearchContent = ""
     val viewStateMap = mutableStateMapOf<String, ItemsPage?>()
 
+    private fun showAnimations(isShow: Boolean) {
+        binding.specAnm.apply {
+            if (isShow){
+                visibility = View.VISIBLE
+                startShimmerAnimation()
+            }else{
+                visibility = View.GONE
+                stopShimmerAnimation()
+            }
+        }
+    }
+
+    private fun setVisible(one: View,song: View, album: View, artist: View,view : View) {
+        one.visibility = View.VISIBLE
+        song.visibility = View.GONE
+        album.visibility = View.GONE
+        artist.visibility = View.GONE
+        view.visibility = View.GONE
+        if (binding.emptyResult.isVisible){
+            binding.emptyResult.visibility = View.GONE
+        }
+        when(currentType){
+            0 ->{
+                binding.all.setBackgroundResource(R.drawable.tag_se_search)
+                binding.artist.setBackgroundResource(R.drawable.tag_un_search)
+                binding.albums.setBackgroundResource(R.drawable.tag_un_search)
+                binding.video.setBackgroundResource(R.drawable.tag_un_search)
+                binding.song.setBackgroundResource(R.drawable.tag_un_search)
+                binding.all.setTextColor("#000000".toColorInt())
+                binding.artist.setTextColor("#829D77".toColorInt())
+                binding.albums.setTextColor("#829D77".toColorInt())
+                binding.video.setTextColor("#829D77".toColorInt())
+                binding.song.setTextColor("#829D77".toColorInt())
+            }
+            1 ->{
+                binding.song.setBackgroundResource(R.drawable.tag_se_search)
+                binding.artist.setBackgroundResource(R.drawable.tag_un_search)
+                binding.albums.setBackgroundResource(R.drawable.tag_un_search)
+                binding.video.setBackgroundResource(R.drawable.tag_un_search)
+                binding.all.setBackgroundResource(R.drawable.tag_un_search)
+                binding.song.setTextColor("#000000".toColorInt())
+                binding.artist.setTextColor("#829D77".toColorInt())
+                binding.albums.setTextColor("#829D77".toColorInt())
+                binding.video.setTextColor("#829D77".toColorInt())
+                binding.all.setTextColor("#829D77".toColorInt())
+            }
+            2 ->{
+                binding.albums.setBackgroundResource(R.drawable.tag_se_search)
+                binding.artist.setBackgroundResource(R.drawable.tag_un_search)
+                binding.all.setBackgroundResource(R.drawable.tag_un_search)
+                binding.video.setBackgroundResource(R.drawable.tag_un_search)
+                binding.song.setBackgroundResource(R.drawable.tag_un_search)
+                binding.albums.setTextColor("#000000".toColorInt())
+                binding.artist.setTextColor("#829D77".toColorInt())
+                binding.all.setTextColor("#829D77".toColorInt())
+                binding.video.setTextColor("#829D77".toColorInt())
+                binding.song.setTextColor("#829D77".toColorInt())
+            }
+            3 ->{
+                binding.artist.setBackgroundResource(R.drawable.tag_se_search)
+                binding.all.setBackgroundResource(R.drawable.tag_un_search)
+                binding.albums.setBackgroundResource(R.drawable.tag_un_search)
+                binding.video.setBackgroundResource(R.drawable.tag_un_search)
+                binding.song.setBackgroundResource(R.drawable.tag_un_search)
+                binding.artist.setTextColor("#000000".toColorInt())
+                binding.all.setTextColor("#829D77".toColorInt())
+                binding.albums.setTextColor("#829D77".toColorInt())
+                binding.video.setTextColor("#829D77".toColorInt())
+                binding.song.setTextColor("#829D77".toColorInt())
+            }
+            4 ->{
+                binding.video.setBackgroundResource(R.drawable.tag_se_search)
+                binding.artist.setBackgroundResource(R.drawable.tag_un_search)
+                binding.albums.setBackgroundResource(R.drawable.tag_un_search)
+                binding.all.setBackgroundResource(R.drawable.tag_un_search)
+                binding.song.setBackgroundResource(R.drawable.tag_un_search)
+                binding.video.setTextColor("#000000".toColorInt())
+                binding.albums.setTextColor("#829D77".toColorInt())
+                binding.artist.setTextColor("#829D77".toColorInt())
+                binding.all.setTextColor("#829D77".toColorInt())
+                binding.song.setTextColor("#829D77".toColorInt())
+            }
+        }
+    }
+    companion object {
+        fun isBottom(recyclerView: RecyclerView): Boolean {
+
+            return (recyclerView.computeVerticalScrollExtent() + recyclerView.computeVerticalScrollOffset() >= recyclerView.computeVerticalScrollRange()
+                    && !recyclerView.canScrollVertically(1))
+        }
+    }
 
     private lateinit var binding: MintySecSearchResBinding
     fun emptyLayout(){
@@ -95,6 +188,8 @@ class MusicSearchActivity : MintyBaseActivity() {
             data =  InternalDatabase.newInstance(this@MusicSearchActivity)
 
         }
+        ImmersionBar.with(this).navigationBarColor(R.color.new_color).init()
+
         binding.tops.closeButton.setOnClickListener {
             finishCurrent()
         }
@@ -138,7 +233,7 @@ class MusicSearchActivity : MintyBaseActivity() {
         binding.list.apply {
             layoutManager =  SpecialVerManager(this@MusicSearchActivity,2)
             songAdapter = SongAdapter() { songItem ->
-                playerConnection?.playQueue(radio(songItem.toMediaMetadata()))
+                secPlayConnect?.playQueue(radio(songItem.toMediaMetadata()))
                 startPlayerPage()
 
             }
@@ -157,8 +252,8 @@ class MusicSearchActivity : MintyBaseActivity() {
 
 
         binding.playList.layoutManager = SpecialVerManager(this,2)
-        playAdapter =  VideoSongAdapter() { songItem ->
-            playerConnection?.playQueue(radio(songItem.toMediaMetadata()))
+        playAdapter =  SearchVideoSongAdapter() { songItem ->
+            secPlayConnect?.playQueue(radio(songItem.toMediaMetadata()))
             startPlayerPage()
 
         }
@@ -185,7 +280,7 @@ class MusicSearchActivity : MintyBaseActivity() {
 
         binding.uniqueSongList.apply {
             songUniqueAdapter = SongAdapter() { songItem ->
-                playerConnection?.playQueue(radio(songItem.toMediaMetadata()))
+                secPlayConnect?.playQueue(radio(songItem.toMediaMetadata()))
                 startPlayerPage()
 
             }
@@ -200,88 +295,47 @@ class MusicSearchActivity : MintyBaseActivity() {
                     if (layoutManager is LinearLayoutManager) {
                         lastVisibleItem = layoutManager.findLastVisibleItemPosition()
                     }
-//                        Log.e("count","----"+totalItemCount)
 //
-//
-//                        Log.e("lastVisibleItem","----ff"+lastVisibleItem)
-//
-//                        if (lastVisibleItem == totalItemCount - 1 && !isLoadingNextPage ) {
-//                            if (totalItemCount > 0) {
-//                                // 在 recyclerView 滚动时向列表中添加item 并调用 notifyItemInserted() 方法更新时，
-//                                // 系统会给出 warning: 可能会影响RecyclerView滑动时的高度等测量
-//                                // 所以将这次更新 UI 的操作，延迟到下一帧绘制。
-//                                binding.uniqueSongList?.post{
-//                                    songUniqueAdapter?.addLoadItem()
-//                                }
-//                            }
-//                            // 在前面addLoadItem后，itemCount已经变化
-//                            // 增加一层判断，确保用户是滑到了正在加载的地方，才加载更多
-//                            val findLastVisibleItemPosition = layoutManager.findLastCompletelyVisibleItemPosition()
-//                            if (findLastVisibleItemPosition == layoutManager.itemCount - 1) {
-//                                isLoadingNextPage = true
-//                                lifecycleScope.launch {
-//                                    withContext(Dispatchers.IO){
-//
-//                                        val viewState = viewStateMap[key] ?: return@withContext
-//                                        val continuation = viewState.continuation
-//                                        if (continuation != null) {
-//                                            val searchResult = YouTube.searchContinuation(continuation).getOrNull() ?: return@withContext
-//                                            viewStateMap[key] = ItemsPage((viewState.items + searchResult.items).distinctBy { it.id }, searchResult.continuation)
-//                                            viewStateMap[key]?.items?.filterIsInstance<SongItem>()?.let {
-//                                                withContext(Dispatchers.Main){
-//                                                    songUniqueAdapter?.removeLoadItem()
-//                                                    songUniqueAdapter?.addData(it as ArrayList<SongItem>)
-//                                                }
-//                                                isLoadingNextPage = false
-////                                                                            binding.progress.visibility = View.GONE
-//                                            }
-//                                            Log.e("viewStateMap2",viewStateMap[key].toString())
-//                                        }else{
-//                                            withContext(Dispatchers.Main){
-//                                                songUniqueAdapter?.removeLoadItem()
-//                                            }
-//                                        }
-//                                    }
-//
-//                                }}
-//                        }
-//
-//                    }
                 }
 
                 override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
                     super.onScrollStateChanged(recyclerView, newState)
-//                    if (newState == RecyclerView.SCROLL_STATE_IDLE && isBottom(binding.uniqueSongList) && !isLoadingNextPage) { //当前状态为停止滑动
-                    if (newState == RecyclerView.SCROLL_STATE_IDLE && lastVisibleItem + 1 >= songUniqueAdapter?.songs?.size!! && !isLoadingNextPage) { //当前状态为停止滑动
-                        binding.uniqueSongList.post {
-                            songUniqueAdapter?.addLoadItem()
-                        }
-                        lifecycleScope.launch {
-                            withContext(Dispatchers.IO){
-                                val viewState = viewStateMap[key] ?: return@withContext
-                                val continuation = viewState.continuation
-                                if (continuation != null) {
-                                    isLoadingNextPage = true
-                                    val searchResult = MainBe.searchContinuation(continuation).getOrNull() ?: return@withContext
-                                    viewStateMap[key] = ItemsPage((viewState.items + searchResult.items).distinctBy { it.id }, searchResult.continuation)
-                                    viewStateMap[key]?.items?.filterIsInstance<SongItem>()?.let {
+                    try{
+                        if (newState == RecyclerView.SCROLL_STATE_IDLE && lastVisibleItem + 1 >= songUniqueAdapter?.songs?.size!! && !isLoadingNextPage) { //当前状态为停止滑动
+                            binding.uniqueSongList.post {
+                                songUniqueAdapter?.addLoadItem()
+                            }
+                            lifecycleScope.launch {
+                                withContext(Dispatchers.IO){
+                                    val viewState = viewStateMap[key] ?: return@withContext
+                                    val continuation = viewState.continuation
+                                    if (continuation != null) {
+                                        isLoadingNextPage = true
+                                        val searchResult = MainBe.searchContinuation(continuation).getOrNull() ?: return@withContext
+                                        viewStateMap[key] = ItemsPage((viewState.items + searchResult.items).distinctBy { it.id }, searchResult.continuation)
+                                        viewStateMap[key]?.items?.filterIsInstance<SongItem>()?.let {
+                                            withContext(Dispatchers.Main){
+                                                songUniqueAdapter?.removeLoadItem()
+                                                songUniqueAdapter?.addData(it as ArrayList<SongItem>)
+                                            }
+                                            isLoadingNextPage = false
+//                                                                            binding.progress.visibility = View.GONE
+                                        }
+//                                        Log.e("viewStateMap2",viewStateMap[key].toString())
+                                    }else{
                                         withContext(Dispatchers.Main){
                                             songUniqueAdapter?.removeLoadItem()
-                                            songUniqueAdapter?.addData(it as ArrayList<SongItem>)
                                         }
-                                        isLoadingNextPage = false
-//                                                                            binding.progress.visibility = View.GONE
-                                    }
-//                                        Log.e("viewStateMap2",viewStateMap[key].toString())
-                                }else{
-                                    withContext(Dispatchers.Main){
-                                        songUniqueAdapter?.removeLoadItem()
                                     }
                                 }
-                            }
 
+                            }
                         }
+
+                    }catch(e : Exception){
+                        e.printStackTrace()
                     }
+//                    if (newState == RecyclerView.SCROLL_STATE_IDLE && isBottom(binding.uniqueSongList) && !isLoadingNextPage) { //当前状态为停止滑动
                 }
 
             })
@@ -322,48 +376,7 @@ class MusicSearchActivity : MintyBaseActivity() {
                         }
                     }
                 }
-//                override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-//                    super.onScrolled(recyclerView, dx, dy)
-////                    val layoutManager = recyclerView.layoutManager
-////                    if (layoutManager is LinearLayoutManager) {
-////                        val totalItemCount = layoutManager.itemCount
-////                        val lastVisibleItem = layoutManager.findLastVisibleItemPosition()
-////                        if (lastVisibleItem == totalItemCount - 1 && !isLoadingAlbumNextPage ) {
-////                            if (totalItemCount > 0) {
-////                                // 在 recyclerView 滚动时向列表中添加item 并调用 notifyItemInserted() 方法更新时，
-////                                // 系统会给出 warning: 可能会影响RecyclerView滑动时的高度等测量
-////                                // 所以将这次更新 UI 的操作，延迟到下一帧绘制。
-//////                            recyclerView.post {
-//////                                mAdapter.addLoadItem()
-//////                            }
-////                            }
-////                            // 在前面addLoadItem后，itemCount已经变化
-////                            // 增加一层判断，确保用户是滑到了正在加载的地方，才加载更多
-////                            val findLastVisibleItemPosition = layoutManager.findLastVisibleItemPosition()
-////                            if (findLastVisibleItemPosition == layoutManager.itemCount - 1) {
-////                                isLoadingAlbumNextPage = true
-////                                lifecycleScope.launch {
-////                                    withContext(Dispatchers.IO){
-////                                        val viewState = viewStateMap[key] ?: return@withContext
-////                                        val continuation = viewState.continuation
-////                                        if (continuation != null) {
-////                                            val searchResult = YouTube.searchContinuation(continuation).getOrNull() ?: return@withContext
-////                                            viewStateMap[key] = ItemsPage((viewState.items + searchResult.items).distinctBy { it.id }, searchResult.continuation)
-////                                            viewStateMap[key]?.items?.filterIsInstance<AlbumItem>()?.let {
-////                                                withContext(Dispatchers.Main){
-////                                                    albumUniqueAdapter?.addData(it)
-////                                                }
-////                                                isLoadingAlbumNextPage = false
-////                                            }
-////                                            Log.e("album2",viewStateMap[key].toString())
-////                                        }
-////                                    }
-////
-////                                }}
-////                        }
-////
-////                    }
-//                }
+//
             })
 
             binding.uniqueArtistList.apply {
@@ -376,48 +389,7 @@ class MusicSearchActivity : MintyBaseActivity() {
                 layoutManager = LinearLayoutManager(this@MusicSearchActivity)
                 adapter = artistUniqueAdapter
                 addOnScrollListener(object : RecyclerView.OnScrollListener() {
-                    //                    override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-//                        super.onScrolled(recyclerView, dx, dy)
-//                        val layoutManager = recyclerView.layoutManager
-//                        if (layoutManager is LinearLayoutManager) {
-//                            val totalItemCount = layoutManager.itemCount
-//                            val lastVisibleItem = layoutManager.findLastVisibleItemPosition()
-//                            if (lastVisibleItem == totalItemCount - 1 && !isLoadingArtistNextPage ) {
-//                                if (totalItemCount > 0) {
-//                                    // 在 recyclerView 滚动时向列表中添加item 并调用 notifyItemInserted() 方法更新时，
-//                                    // 系统会给出 warning: 可能会影响RecyclerView滑动时的高度等测量
-//                                    // 所以将这次更新 UI 的操作，延迟到下一帧绘制。
-////                            recyclerView.post {
-////                                mAdapter.addLoadItem()
-////                            }
-//                                }
-//                                // 在前面addLoadItem后，itemCount已经变化
-//                                // 增加一层判断，确保用户是滑到了正在加载的地方，才加载更多
-//                                val findLastVisibleItemPosition = layoutManager.findLastVisibleItemPosition()
-//                                if (findLastVisibleItemPosition == layoutManager.itemCount - 1) {
-//                                    isLoadingArtistNextPage = true
-//                                    lifecycleScope.launch {
-//                                        withContext(Dispatchers.IO){
-//                                            val viewState = viewStateMap[key] ?: return@withContext
-//                                            val continuation = viewState.continuation
-//                                            if (continuation != null) {
-//                                                val searchResult = YouTube.searchContinuation(continuation).getOrNull() ?: return@withContext
-//                                                viewStateMap[key] = ItemsPage((viewState.items + searchResult.items).distinctBy { it.id }, searchResult.continuation)
-//                                                viewStateMap[key]?.items?.filterIsInstance<ArtistItem>()?.let {
-//                                                    withContext(Dispatchers.Main){
-//                                                        artistUniqueAdapter?.addData(it)
-//                                                    }
-//                                                    isLoadingArtistNextPage = false
-//                                                }
-//                                                Log.e("artist2",viewStateMap[key].toString())
-//                                            }
-//                                        }
-//
-//                                    }}
-//                            }
-//
-//                        }
-//                    }
+
                     override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
                         super.onScrollStateChanged(recyclerView, newState)
                         if (newState == RecyclerView.SCROLL_STATE_IDLE && isBottom(binding.uniqueArtistList) && !isLoadingArtistNextPage) { //当前状态为停止滑动
@@ -448,81 +420,64 @@ class MusicSearchActivity : MintyBaseActivity() {
 
             }
             binding.uniqueVideoList.apply {
-                videoUniqueAdapter =  VideoSongAdapter() { songItem ->
-                    playerConnection?.playQueue(radio(songItem.toMediaMetadata()))
+                videoUniqueAdapter =  SearchVideoSongAdapter() { songItem ->
+                    secPlayConnect?.playQueue(radio(songItem.toMediaMetadata()))
                     startPlayerPage()
 
                 }
 
                 layoutManager = LinearLayoutManager(this@MusicSearchActivity)
                 adapter = videoUniqueAdapter
+
                 addOnScrollListener(object : RecyclerView.OnScrollListener() {
-                    //                    override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-//                        super.onScrolled(recyclerView, dx, dy)
-//                        val layoutManager = recyclerView.layoutManager
-//                        if (layoutManager is LinearLayoutManager) {
-//                            val totalItemCount = layoutManager.itemCount
-//                            val lastVisibleItem = layoutManager.findLastVisibleItemPosition()
-//                            if (lastVisibleItem == totalItemCount - 1 && !isLoadingPlayNextPage ) {
-//                                if (totalItemCount > 0) {
-//                                    // 在 recyclerView 滚动时向列表中添加item 并调用 notifyItemInserted() 方法更新时，
-//                                    // 系统会给出 warning: 可能会影响RecyclerView滑动时的高度等测量
-//                                    // 所以将这次更新 UI 的操作，延迟到下一帧绘制。
-////                            recyclerView.post {
-////                                mAdapter.addLoadItem()
-////                            }
-//                                }
-//                                // 在前面addLoadItem后，itemCount已经变化
-//                                // 增加一层判断，确保用户是滑到了正在加载的地方，才加载更多
-//                                val findLastVisibleItemPosition = layoutManager.findLastVisibleItemPosition()
-//                                if (findLastVisibleItemPosition == layoutManager.itemCount - 1) {
-//                                    isLoadingPlayNextPage = true
-//                                    lifecycleScope.launch {
-//                                        withContext(Dispatchers.IO){
-//                                            val viewState = viewStateMap[key] ?: return@withContext
-//                                            val continuation = viewState.continuation
-//                                            if (continuation != null) {
-//                                                val searchResult = YouTube.searchContinuation(continuation).getOrNull() ?: return@withContext
-//                                                viewStateMap[key] = ItemsPage((viewState.items + searchResult.items).distinctBy { it.id }, searchResult.continuation)
-//                                                viewStateMap[key]?.items?.filterIsInstance<PlaylistItem>()?.let {
-//                                                    withContext(Dispatchers.Main){
-//                                                        videoUniqueAdapter?.addData(it)
-//                                                    }
-//                                                    isLoadingPlayNextPage = false
-//                                                }
-//                                                Log.e("playlist2",viewStateMap[key].toString())
-//                                            }
-//                                        }
+                    override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                        super.onScrolled(recyclerView, dx, dy)
+
+                        val layoutManager = recyclerView.layoutManager
+                        if (layoutManager is LinearLayoutManager) {
+                            lastVideoVisibleItem = layoutManager.findLastVisibleItemPosition()
+                        }
 //
-//                                    }
-//                                }
-//                            }
-//
-//                        }
-//                    }
+                    }
+
                     override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
                         super.onScrollStateChanged(recyclerView, newState)
-                        if (newState == RecyclerView.SCROLL_STATE_IDLE && isBottom(binding.uniqueVideoList) && !isLoadingPlayNextPage) { //当前状态为停止滑动
-                            lifecycleScope.launch {
-                                withContext(Dispatchers.IO){
-                                    val viewState = viewStateMap[key] ?: return@withContext
-                                    val continuation = viewState.continuation
-                                    if (continuation != null) {
-                                        isLoadingPlayNextPage = true
-                                        val searchResult = MainBe.searchContinuation(continuation).getOrNull() ?: return@withContext
-                                        viewStateMap[key] = ItemsPage((viewState.items + searchResult.items).distinctBy { it.id }, searchResult.continuation)
-                                        viewStateMap[key]?.items?.filterIsInstance<SongItem>()?.let {
-                                            withContext(Dispatchers.Main){
-                                                videoUniqueAdapter?.addData(it as ArrayList<SongItem>)
-                                            }
-                                            isLoadingPlayNextPage = false
-                                        }
-//                                        Log.e("playlist2",viewStateMap[key].toString())
-                                    }
+                        try{
+                            if (newState == RecyclerView.SCROLL_STATE_IDLE && lastVideoVisibleItem + 1 >= videoUniqueAdapter?.songs?.size!! && !isLoadingPlayNextPage) { //当前状态为停止滑动
+                                binding.uniqueVideoList.post {
+                                    videoUniqueAdapter?.addLoadItem()
                                 }
+                                lifecycleScope.launch {
+                                    withContext(Dispatchers.IO){
+                                        val viewState = viewStateMap[key] ?: return@withContext
+                                        val continuation = viewState.continuation
+                                        if (continuation != null) {
+                                            isLoadingPlayNextPage = true
+                                            val searchResult = MainBe.searchContinuation(continuation).getOrNull() ?: return@withContext
+                                            viewStateMap[key] = ItemsPage((viewState.items + searchResult.items).distinctBy { it.id }, searchResult.continuation)
+                                            viewStateMap[key]?.items?.filterIsInstance<SongItem>()?.let {
+                                                withContext(Dispatchers.Main){
+                                                    videoUniqueAdapter?.removeLoadItem()
+                                                    videoUniqueAdapter?.addData(it as ArrayList<SongItem>)
+                                                }
+                                                isLoadingPlayNextPage = false
+//                                                                            binding.progress.visibility = View.GONE
+                                            }
+//                                        Log.e("viewStateMap2",viewStateMap[key].toString())
+                                        }else{
+                                            withContext(Dispatchers.Main){
+                                                videoUniqueAdapter?.removeLoadItem()
+                                            }
+                                        }
+                                    }
 
+                                }
                             }
+
+                        }catch (e : Exception){
+                            e.printStackTrace()
                         }
+//                    if (newState == RecyclerView.SCROLL_STATE_IDLE && isBottom(binding.uniqueSongList) && !isLoadingNextPage) { //当前状态为停止滑动
                     }
                 })
 
@@ -712,15 +667,7 @@ class MusicSearchActivity : MintyBaseActivity() {
 //                                reportException(it)
                             }
                     }}else{
-//                    viewStateMap[key]?.items?.filterIsInstance<ArtistItem>().isNullOrEmpty().apply {
-//                        binding.emptyResult.visibility = View.VISIBLE
-//                    }
-//                    viewStateMap[key]?.items?.filterIsInstance<ArtistItem>()?.let {
-//                        withContext(Dispatchers.Main){
-//                            showAnimations(false)
-//                            artistUniqueAdapter?.addData(it)
-//                        }
-//                    }
+//
                 }
 
             }
@@ -799,12 +746,6 @@ class MusicSearchActivity : MintyBaseActivity() {
 
         binding.tops.search.setOnClickListener {
             var isFirst = false
-//           if (!isNetworkOnline1()){
-//               diconnectView()
-//               return@setOnClickListener
-//           }else{
-//               connect()
-//           }
             var content  = ""
             if (TextUtils.isEmpty(binding.tops.searchEditText.text.toString())){
                 Toast.makeText(this, "Please input content", Toast.LENGTH_SHORT).show()
@@ -1026,103 +967,6 @@ class MusicSearchActivity : MintyBaseActivity() {
 
     }
 
-    private fun showAnimations(isShow: Boolean) {
-        binding.specAnm.apply {
-            if (isShow){
-                visibility = View.VISIBLE
-                startShimmerAnimation()
-            }else{
-                visibility = View.GONE
-                stopShimmerAnimation()
-            }
-        }
-    }
-
-    private fun setVisible(one: View,song: View, album: View, artist: View,view : View) {
-        one.visibility = View.VISIBLE
-        song.visibility = View.GONE
-        album.visibility = View.GONE
-        artist.visibility = View.GONE
-        view.visibility = View.GONE
-        if (binding.emptyResult.isVisible){
-            binding.emptyResult.visibility = View.GONE
-        }
-        when(currentType){
-            0 ->{
-                binding.all.setBackgroundResource(R.drawable.tag_se_search)
-                binding.artist.setBackgroundResource(R.drawable.tag_un_search)
-                binding.albums.setBackgroundResource(R.drawable.tag_un_search)
-                binding.video.setBackgroundResource(R.drawable.tag_un_search)
-                binding.song.setBackgroundResource(R.drawable.tag_un_search)
-                binding.all.setTextColor("#000000".toColorInt())
-                binding.artist.setTextColor("#829D77".toColorInt())
-                binding.albums.setTextColor("#829D77".toColorInt())
-                binding.video.setTextColor("#829D77".toColorInt())
-                binding.song.setTextColor("#829D77".toColorInt())
-            }
-            1 ->{
-                binding.song.setBackgroundResource(R.drawable.tag_se_search)
-                binding.artist.setBackgroundResource(R.drawable.tag_un_search)
-                binding.albums.setBackgroundResource(R.drawable.tag_un_search)
-                binding.video.setBackgroundResource(R.drawable.tag_un_search)
-                binding.all.setBackgroundResource(R.drawable.tag_un_search)
-                binding.song.setTextColor("#000000".toColorInt())
-                binding.artist.setTextColor("#829D77".toColorInt())
-                binding.albums.setTextColor("#829D77".toColorInt())
-                binding.video.setTextColor("#829D77".toColorInt())
-                binding.all.setTextColor("#829D77".toColorInt())
-            }
-            2 ->{
-                binding.albums.setBackgroundResource(R.drawable.tag_se_search)
-                binding.artist.setBackgroundResource(R.drawable.tag_un_search)
-                binding.all.setBackgroundResource(R.drawable.tag_un_search)
-                binding.video.setBackgroundResource(R.drawable.tag_un_search)
-                binding.song.setBackgroundResource(R.drawable.tag_un_search)
-                binding.albums.setTextColor("#000000".toColorInt())
-                binding.artist.setTextColor("#829D77".toColorInt())
-                binding.all.setTextColor("#829D77".toColorInt())
-                binding.video.setTextColor("#829D77".toColorInt())
-                binding.song.setTextColor("#829D77".toColorInt())
-            }
-            3 ->{
-                binding.artist.setBackgroundResource(R.drawable.tag_se_search)
-                binding.all.setBackgroundResource(R.drawable.tag_un_search)
-                binding.albums.setBackgroundResource(R.drawable.tag_un_search)
-                binding.video.setBackgroundResource(R.drawable.tag_un_search)
-                binding.song.setBackgroundResource(R.drawable.tag_un_search)
-                binding.artist.setTextColor("#000000".toColorInt())
-                binding.all.setTextColor("#829D77".toColorInt())
-                binding.albums.setTextColor("#829D77".toColorInt())
-                binding.video.setTextColor("#829D77".toColorInt())
-                binding.song.setTextColor("#829D77".toColorInt())
-            }
-            4 ->{
-                binding.video.setBackgroundResource(R.drawable.tag_se_search)
-                binding.artist.setBackgroundResource(R.drawable.tag_un_search)
-                binding.albums.setBackgroundResource(R.drawable.tag_un_search)
-                binding.all.setBackgroundResource(R.drawable.tag_un_search)
-                binding.song.setBackgroundResource(R.drawable.tag_un_search)
-                binding.video.setTextColor("#000000".toColorInt())
-                binding.albums.setTextColor("#829D77".toColorInt())
-                binding.artist.setTextColor("#829D77".toColorInt())
-                binding.all.setTextColor("#829D77".toColorInt())
-                binding.song.setTextColor("#829D77".toColorInt())
-            }
-        }
-    }
-    companion object {
-        fun isBottom(recyclerView: RecyclerView): Boolean {
-            if (recyclerView == null)
-                return false
-
-            if (recyclerView.computeVerticalScrollExtent() + recyclerView.computeVerticalScrollOffset() >= recyclerView.computeVerticalScrollRange()
-                && !recyclerView.canScrollVertically(1)
-            )
-                return true
-
-            return false;
-        }
-    }
 
 
 
