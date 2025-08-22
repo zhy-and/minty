@@ -2,11 +2,10 @@ package com.zionhuang.innertube.models.response
 
 import com.zionhuang.innertube.models.ResponseContext
 import com.zionhuang.innertube.models.Thumbnails
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 /**
- * PlayerResponse with [com.zionhuang.innertube.models.YouTubeClient.WEB_REMIX] client
+ * PlayerResponse with [com.zionhuang.innertube.models.YouTubeClient.ANDROID_MUSIC] client
  */
 @Serializable
 data class PlayerResponse(
@@ -15,8 +14,6 @@ data class PlayerResponse(
     val playerConfig: PlayerConfig?,
     val streamingData: StreamingData?,
     val videoDetails: VideoDetails?,
-    @SerialName("playbackTracking")
-    val playbackTracking: PlaybackTracking?,
 ) {
     @Serializable
     data class PlayabilityStatus(
@@ -60,7 +57,6 @@ data class PlayerResponse(
             val audioChannels: Int?,
             val loudnessDb: Double?,
             val lastModified: Long?,
-            val signatureCipher: String?,
         ) {
             val isAudio: Boolean
                 get() = width == null
@@ -78,31 +74,4 @@ data class PlayerResponse(
         val viewCount: String,
         val thumbnail: Thumbnails,
     )
-
-    @Serializable
-    data class PlaybackTracking(
-        @SerialName("videostatsPlaybackUrl")
-        val videostatsPlaybackUrl: VideostatsPlaybackUrl?,
-        @SerialName("videostatsWatchtimeUrl")
-        val videostatsWatchtimeUrl: VideostatsWatchtimeUrl?,
-        @SerialName("atrUrl")
-        val atrUrl: AtrUrl?,
-    ) {
-        @Serializable
-        data class VideostatsPlaybackUrl(
-            @SerialName("baseUrl")
-            val baseUrl: String?,
-        )
-
-        @Serializable
-        data class VideostatsWatchtimeUrl(
-            @SerialName("baseUrl")
-            val baseUrl: String?,
-        )
-        @Serializable
-        data class AtrUrl(
-            @SerialName("baseUrl")
-            val baseUrl: String?,
-        )
-    }
 }

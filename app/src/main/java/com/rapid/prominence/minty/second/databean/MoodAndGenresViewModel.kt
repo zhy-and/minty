@@ -3,7 +3,7 @@ package com.rapid.prominence.minty.second.databean
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.rapid.prominence.minty.utils.reportException
-import com.zionhuang.innertube.MainBe
+import com.zionhuang.innertube.MintyMusicBe
 import com.zionhuang.innertube.pages.MoodAndGenres
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
@@ -14,7 +14,7 @@ class MoodAndGenresViewModel @Inject constructor() : ViewModel() {
 
     init {
         viewModelScope.launch {
-            MainBe.moodAndGenres().onSuccess {
+            MintyMusicBe.moodAndGenres().onSuccess {
                 moodAndGenres.value = it
             }.onFailure {
                 reportException(it)

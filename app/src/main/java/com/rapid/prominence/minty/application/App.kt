@@ -25,7 +25,7 @@ import com.rapid.prominence.minty.extensions.toInetSocketAddress
 import com.rapid.prominence.minty.utils.dataStore
 import com.rapid.prominence.minty.utils.get
 import com.tencent.mmkv.MMKV
-import com.zionhuang.innertube.MainBe
+import com.zionhuang.innertube.MintyMusicBe
 import com.zionhuang.innertube.models.YouTubeLocale
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineScope
@@ -90,7 +90,7 @@ class App : Application(), ImageLoaderFactory {
         }
         val locale = Locale.getDefault()
         val languageTag = locale.toLanguageTag().replace("-Hant", "") // replace zh-Hant-* to zh-*
-        MainBe.locale = YouTubeLocale(
+        MintyMusicBe.locale = YouTubeLocale(
             gl = dataStore[ContentCountryKey]?.takeIf { it != SYSTEM_DEFAULT }
                 ?: locale.country.takeIf { it in CountryCodeToName }
                 ?: "US",
@@ -102,7 +102,7 @@ class App : Application(), ImageLoaderFactory {
 
         if (dataStore[ProxyEnabledKey] == true) {
             try {
-                MainBe.proxy = Proxy(
+                MintyMusicBe.proxy = Proxy(
                     dataStore[ProxyTypeKey].toEnum(defaultValue = Proxy.Type.HTTP),
                     dataStore[ProxyUrlKey]!!.toInetSocketAddress()
                 )
@@ -113,7 +113,7 @@ class App : Application(), ImageLoaderFactory {
         }
 
         if (dataStore[UseLoginForBrowse] == true) {
-            MainBe.useLoginForBrowse = true
+            MintyMusicBe.useLoginForBrowse = true
         }
 
         GlobalScope.launch {
@@ -121,13 +121,13 @@ class App : Application(), ImageLoaderFactory {
                 .map { it[VisitorDataKey] }
                 .distinctUntilChanged()
                 .collect { visitorData ->
-                   MainBe.visitorData = visitorData
+                   MintyMusicBe.visitorData = visitorData
                         ?.takeIf { it != "null" } // Previously visitorData was sometimes saved as "null" due to a bug
-                        ?: MainBe.visitorData().getOrNull()?.also { newVisitorData ->
+                        ?: MintyMusicBe.visitorData().getOrNull()?.also { newVisitorData ->
                             dataStore.edit { settings ->
                                 settings[VisitorDataKey] = newVisitorData
                             }
-                        } ?: MainBe.DEFAULT_VISITOR_DATA
+                        } ?: MintyMusicBe.DEFAULT_VISITOR_DATA
                 }
         }
         GlobalScope.launch {
@@ -135,7 +135,7 @@ class App : Application(), ImageLoaderFactory {
                 .map { it[InnerTubeCookieKey] }
                 .distinctUntilChanged()
                 .collect { cookie ->
-                    MainBe.cookie = cookie
+                    MintyMusicBe.cookie = cookie
                 }
         }
     }

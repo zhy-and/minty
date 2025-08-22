@@ -8,7 +8,7 @@ import com.rapid.prominence.minty.cons.HideExplicitKey
 import com.rapid.prominence.minty.utils.dataStore
 import com.rapid.prominence.minty.utils.get
 import com.rapid.prominence.minty.utils.reportException
-import com.zionhuang.innertube.MainBe
+import com.zionhuang.innertube.MintyMusicBe
 import com.zionhuang.innertube.models.BrowseEndpoint
 import com.zionhuang.innertube.models.filterExplicit
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -28,7 +28,7 @@ class ArtistItemsViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            MainBe.artistItems(
+            MintyMusicBe.artistItems(
                 BrowseEndpoint(
                     browseId = browseId,
                     params = params
@@ -49,7 +49,7 @@ class ArtistItemsViewModel @Inject constructor(
         viewModelScope.launch {
             val oldItemsPage = itemsPage.value ?: return@launch
             val continuation = oldItemsPage.continuation ?: return@launch
-            MainBe.artistItemsContinuation(continuation)
+            MintyMusicBe.artistItemsContinuation(continuation)
                 .onSuccess { artistItemsContinuationPage ->
                     itemsPage.update {
                         ItemsPage(

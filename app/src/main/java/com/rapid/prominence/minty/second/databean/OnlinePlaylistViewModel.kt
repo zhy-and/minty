@@ -3,7 +3,7 @@ package com.rapid.prominence.minty.second.databean
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.rapid.prominence.minty.utils.reportException
-import com.zionhuang.innertube.MainBe
+import com.zionhuang.innertube.MintyMusicBe
 import com.zionhuang.innertube.models.PlaylistItem
 import com.zionhuang.innertube.models.SongItem
 import com.zionhuang.innertube.utils.completed
@@ -20,7 +20,7 @@ class OnlinePlaylistViewModel  constructor(
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
-            MainBe.playlist(playlistid).completed()
+            MintyMusicBe.playlist(playlistid).completed()
                 .onSuccess { playlistPage ->
                     playlist.value = playlistPage.playlist
                     playlistSongs.value = playlistPage.songs

@@ -2,7 +2,7 @@ package com.rapid.prominence.minty.service.queues
 
 import androidx.media3.common.MediaItem
 import com.rapid.prominence.minty.bean.MediaMetadata
-import com.zionhuang.innertube.MainBe
+import com.zionhuang.innertube.MintyMusicBe
 import com.zionhuang.innertube.models.WatchEndpoint
 import com.rapid.prominence.minty.extensions.toMediaItem
 import kotlinx.coroutines.Dispatchers.IO
@@ -16,7 +16,7 @@ class YouTubeQueue(
 
     override suspend fun getInitialStatus(): Queue.Status {
         val nextResult = withContext(IO) {
-            MainBe.next(endpoint, continuation).getOrThrow()
+            MintyMusicBe.next(endpoint, continuation).getOrThrow()
         }
         endpoint = nextResult.endpoint
         continuation = nextResult.continuation
@@ -31,7 +31,7 @@ class YouTubeQueue(
 
     override suspend fun nextPage(): List<MediaItem> {
         val nextResult = withContext(IO) {
-            MainBe.next(endpoint, continuation).getOrThrow()
+            MintyMusicBe.next(endpoint, continuation).getOrThrow()
         }
         endpoint = nextResult.endpoint
         continuation = nextResult.continuation

@@ -240,7 +240,7 @@ class SecPlayer : MintyBaseActivity() {
     }
     // 更新当前歌曲位置
     private fun viewStatusCurrentSongPosition(position: Int) {
-        LogUtils.e(""+position+"viewStatusCurrentSongPosition")
+//        LogUtils.e(""+position+"viewStatusCurrentSongPosition")
         val currentIndex = secPlayConnect?.currentWindowIndex?.value ?: -1
         if (position == currentIndex) {
             // 位置未改变，不需要操作
@@ -418,7 +418,7 @@ class SecPlayer : MintyBaseActivity() {
             override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
                 super.onMediaItemTransition(mediaItem, reason)
                 try{
-                    LogUtils.e(" -------- change ------")
+//                    LogUtils.e(" -------- change ------")
                     val currentIndex =  secPlayConnect?.currentWindowIndex?.value ?: -1
                     if (currentIndex >= 0 && currentIndex < musicPicts.size){
                         viewStatusBannerToCurrentSong(currentIndex)

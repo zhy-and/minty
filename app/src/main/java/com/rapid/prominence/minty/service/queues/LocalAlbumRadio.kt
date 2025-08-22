@@ -2,7 +2,7 @@ package com.rapid.prominence.minty.service.queues
 
 import androidx.media3.common.MediaItem
 import com.rapid.prominence.minty.bean.MediaMetadata
-import com.zionhuang.innertube.MainBe
+import com.zionhuang.innertube.MintyMusicBe
 import com.zionhuang.innertube.models.WatchEndpoint
 import com.rapid.prominence.minty.database.entities.AlbumWithSongs
 import com.rapid.prominence.minty.extensions.toMediaItem
@@ -37,8 +37,8 @@ class LocalAlbumRadio(
 
     override suspend fun nextPage(): List<MediaItem> = withContext(IO) {
         if (!firstTimeLoaded) {
-            playlistId = MainBe.album(albumWithSongs.album.id).getOrThrow().album.playlistId
-            val nextResult = MainBe.next(endpoint, continuation).getOrThrow()
+            playlistId = MintyMusicBe.album(albumWithSongs.album.id).getOrThrow().album.playlistId
+            val nextResult = MintyMusicBe.next(endpoint, continuation).getOrThrow()
             continuation = nextResult.continuation
             firstTimeLoaded = true
             return@withContext nextResult.items.subList(albumWithSongs.songs.size, nextResult.items.size).map { it.toMediaItem() }

@@ -7,7 +7,7 @@ import com.rapid.prominence.minty.cons.HideExplicitKey
 import com.rapid.prominence.minty.utils.dataStore
 import com.rapid.prominence.minty.utils.get
 import com.rapid.prominence.minty.utils.reportException
-import com.zionhuang.innertube.MainBe
+import com.zionhuang.innertube.MintyMusicBe
 import com.zionhuang.innertube.pages.BrowseResult
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,7 +24,7 @@ class YouTubeBrowseViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            MainBe.browse(browseId, params).onSuccess {
+            MintyMusicBe.browse(browseId, params).onSuccess {
                 result.value = it.filterExplicit(context.dataStore.get(HideExplicitKey, false))
             }.onFailure {
                 reportException(it)

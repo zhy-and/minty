@@ -30,7 +30,7 @@ class AppStart : MintyBaseActivity() {
 
     private fun jumpPages() {
         binding?.root?.postDelayed({
-                startActivity(Intent(this, EiMainPage::class.java))
+                startActivity(Intent(this, MintySecMainPage::class.java))
             finish()
         }, 3 * 1000L)
     }

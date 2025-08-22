@@ -2,7 +2,7 @@ package com.rapid.prominence.minty.service.queues
 
 import androidx.media3.common.MediaItem
 import com.rapid.prominence.minty.bean.MediaMetadata
-import com.zionhuang.innertube.MainBe
+import com.zionhuang.innertube.MintyMusicBe
 import com.zionhuang.innertube.models.WatchEndpoint
 import com.rapid.prominence.minty.extensions.toMediaItem
 import kotlinx.coroutines.Dispatchers.IO
@@ -24,7 +24,7 @@ class YouTubeAlbumRadio(
     private var firstTimeLoaded: Boolean = false
 
     override suspend fun getInitialStatus(): Queue.Status = withContext(IO) {
-        val albumSongs = MainBe.albumSongs(playlistId).getOrThrow()
+        val albumSongs = MintyMusicBe.albumSongs(playlistId).getOrThrow()
         albumSongCount = albumSongs.size
         Queue.Status(
             title = albumSongs.first().album?.name.orEmpty(),
@@ -36,7 +36,7 @@ class YouTubeAlbumRadio(
     override fun hasNextPage(): Boolean = !firstTimeLoaded || continuation != null
 
     override suspend fun nextPage(): List<MediaItem> = withContext(IO) {
-        val nextResult = MainBe.next(endpoint, continuation).getOrThrow()
+        val nextResult = MintyMusicBe.next(endpoint, continuation).getOrThrow()
         continuation = nextResult.continuation
         if (!firstTimeLoaded) {
             firstTimeLoaded = true

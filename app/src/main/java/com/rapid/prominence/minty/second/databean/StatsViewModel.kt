@@ -5,7 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.rapid.prominence.minty.cons.StatPeriod
 import com.rapid.prominence.minty.database.MusicDatabase
 import com.rapid.prominence.minty.utils.reportException
-import com.zionhuang.innertube.MainBe
+import com.zionhuang.innertube.MintyMusicBe
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -50,7 +50,7 @@ class StatsViewModel @Inject constructor(
                         it.thumbnailUrl == null || Duration.between(it.lastUpdateTime, LocalDateTime.now()) > Duration.ofDays(10)
                     }
                     .forEach { artist ->
-                        MainBe.artist(artist.id).onSuccess { artistPage ->
+                        MintyMusicBe.artist(artist.id).onSuccess { artistPage ->
                             database.query {
                                 update(artist, artistPage)
                             }
@@ -64,7 +64,7 @@ class StatsViewModel @Inject constructor(
                 albums.filter {
                     it.album.songCount == 0
                 }.forEach { album ->
-                    MainBe.album(album.id).onSuccess { albumPage ->
+                    MintyMusicBe.album(album.id).onSuccess { albumPage ->
                         database.query {
                             update(album.album, albumPage)
                         }

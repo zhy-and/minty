@@ -1,6 +1,6 @@
 package com.zionhuang.innertube.utils
 
-import com.zionhuang.innertube.MainBe
+import com.zionhuang.innertube.MintyMusicBe
 import com.zionhuang.innertube.pages.PlaylistPage
 import java.security.MessageDigest
 
@@ -9,7 +9,7 @@ suspend fun Result<PlaylistPage>.completed() = runCatching {
     val songs = page.songs.toMutableList()
     var continuation = page.songsContinuation
     while (continuation != null) {
-        val continuationPage = MainBe.playlistContinuation(continuation).getOrNull() ?: break
+        val continuationPage = MintyMusicBe.playlistContinuation(continuation).getOrNull() ?: break
         songs += continuationPage.songs
         continuation = continuationPage.continuation
     }

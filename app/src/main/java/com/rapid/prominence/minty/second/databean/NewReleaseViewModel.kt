@@ -5,7 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.rapid.prominence.minty.cons.HideExplicitKey
 import com.rapid.prominence.minty.database.MusicDatabase
-import com.zionhuang.innertube.MainBe
+import com.zionhuang.innertube.MintyMusicBe
 import com.zionhuang.innertube.models.AlbumItem
 import com.zionhuang.innertube.models.filterExplicit
 import com.rapid.prominence.minty.database.entities.Artist
@@ -29,7 +29,7 @@ class NewReleaseViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            MainBe.newReleaseAlbums().onSuccess { albums ->
+            MintyMusicBe.newReleaseAlbums().onSuccess { albums ->
                 val artists: Set<String>
                 val favouriteArtists: Set<String>
                 database.artistsByCreateDateAsc().first().let { list ->

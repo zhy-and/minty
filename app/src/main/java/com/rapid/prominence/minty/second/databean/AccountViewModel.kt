@@ -3,7 +3,7 @@ package com.rapid.prominence.minty.second.databean
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.rapid.prominence.minty.utils.reportException
-import com.zionhuang.innertube.MainBe
+import com.zionhuang.innertube.MintyMusicBe
 import com.zionhuang.innertube.models.PlaylistItem
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,7 +16,7 @@ class AccountViewModel @Inject constructor() : ViewModel() {
 
     init {
         viewModelScope.launch {
-            MainBe.likedPlaylists().onSuccess {
+            MintyMusicBe.likedPlaylists().onSuccess {
                 playlists.value = it
             }.onFailure {
                 reportException(it)

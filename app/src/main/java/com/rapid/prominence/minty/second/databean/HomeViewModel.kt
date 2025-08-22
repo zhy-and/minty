@@ -6,7 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.rapid.prominence.minty.bean.SimilarRecommendation
 import com.rapid.prominence.minty.cons.HideExplicitKey
 import com.rapid.prominence.minty.database.MusicDatabase
-import com.zionhuang.innertube.MainBe
+import com.zionhuang.innertube.MintyMusicBe
 import com.zionhuang.innertube.models.PlaylistItem
 import com.zionhuang.innertube.models.YTItem
 import com.zionhuang.innertube.models.filterExplicit
@@ -87,7 +87,7 @@ class HomeViewModel @Inject constructor(
                 .shuffled().take(3)
                 .mapNotNull {
                     val items = mutableListOf<YTItem>()
-                    MainBe.artist(it.id).onSuccess { page ->
+                    MintyMusicBe.artist(it.id).onSuccess { page ->
                         items += page.sections.getOrNull(page.sections.size - 2)?.items.orEmpty()
                         items += page.sections.lastOrNull()?.items.orEmpty()
                     }
@@ -105,8 +105,8 @@ class HomeViewModel @Inject constructor(
                 .filter { it.album != null }
                 .shuffled().take(2)
                 .mapNotNull { song ->
-                    val endpoint = MainBe.next(WatchEndpoint(videoId = song.id)).getOrNull()?.relatedEndpoint ?: return@mapNotNull null
-                    val page = MainBe.related(endpoint).getOrNull() ?: return@mapNotNull null
+                    val endpoint = MintyMusicBe.next(WatchEndpoint(videoId = song.id)).getOrNull()?.relatedEndpoint ?: return@mapNotNull null
+                    val page = MintyMusicBe.related(endpoint).getOrNull() ?: return@mapNotNull null
                     SimilarRecommendation(
                         title = song,
                         items = (page.songs.shuffled().take(8) +
@@ -120,14 +120,14 @@ class HomeViewModel @Inject constructor(
                 }
         similarRecommendations.value = (artistRecommendations + songRecommendations).shuffled()
 
-        MainBe.home().onSuccess { page ->
+        MintyMusicBe.home().onSuccess { page ->
             homePage.value = page.filterExplicit(hideExplicit)
         }.onFailure {
             isError.value = true
             reportException(it)
         }
 
-        MainBe.explore().onSuccess { page ->
+        MintyMusicBe.explore().onSuccess { page ->
             val artists: Set<String>
             val favouriteArtists: Set<String>
             database.artistsByCreateDateAsc().first().let { list ->

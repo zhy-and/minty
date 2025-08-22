@@ -109,7 +109,6 @@ dependencies {
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
     implementation(libs.timber)
     implementation ("com.github.zhpanvip:bannerviewpager:3.5.12")
-    implementation("androidx.webkit:webkit:1.14.0")
-    implementation(libs.ktor.serialization.json)
+
 
 }

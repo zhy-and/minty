@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.rapid.prominence.minty.database.MusicDatabase
 import com.rapid.prominence.minty.utils.reportException
-import com.zionhuang.innertube.MainBe
+import com.zionhuang.innertube.MintyMusicBe
 import com.zionhuang.innertube.models.AlbumItem
 import com.zionhuang.innertube.models.SongItem
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -27,7 +27,7 @@ class AlbumViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             val album = database.album(albumId).first()
-            MainBe.album(albumId).onSuccess {
+            MintyMusicBe.album(albumId).onSuccess {
                 if (album == null || album.album.songCount == 0) {
                     database.transaction {
                         if (album == null) insert(it)

@@ -40,11 +40,11 @@ import com.rapid.prominence.minty.second.SpecialVerManager
 import com.rapid.prominence.minty.service.queues.YouTubeQueue.Companion.radio
 import com.rapid.prominence.minty.utils.dataStore
 import com.rapid.prominence.minty.utils.get
-import com.zionhuang.innertube.MainBe
-import com.zionhuang.innertube.MainBe.SearchFilter.Companion.FILTER_ALBUM
-import com.zionhuang.innertube.MainBe.SearchFilter.Companion.FILTER_ARTIST
-import com.zionhuang.innertube.MainBe.SearchFilter.Companion.FILTER_SONG
-import com.zionhuang.innertube.MainBe.SearchFilter.Companion.FILTER_VIDEO
+import com.zionhuang.innertube.MintyMusicBe
+import com.zionhuang.innertube.MintyMusicBe.SearchFilter.Companion.FILTER_ALBUM
+import com.zionhuang.innertube.MintyMusicBe.SearchFilter.Companion.FILTER_ARTIST
+import com.zionhuang.innertube.MintyMusicBe.SearchFilter.Companion.FILTER_SONG
+import com.zionhuang.innertube.MintyMusicBe.SearchFilter.Companion.FILTER_VIDEO
 import com.zionhuang.innertube.models.AlbumItem
 import com.zionhuang.innertube.models.ArtistItem
 import com.zionhuang.innertube.models.SongItem
@@ -70,7 +70,7 @@ class MusicSearchActivity : MintyBaseActivity() {
     var isLoadingArtistNextPage = false
     var isLoadingPlayNextPage = false
     private  var playAdapter: SearchVideoSongAdapter?= null
-    private val youTube = MainBe
+    private val youTube = MintyMusicBe
     var key = FILTER_SONG.value
     var currentType = 0
     var currentSearchContent = ""
@@ -323,7 +323,7 @@ class MusicSearchActivity : MintyBaseActivity() {
                                     val continuation = viewState.continuation
                                     if (continuation != null) {
                                         isLoadingNextPage = true
-                                        val searchResult = MainBe.searchContinuation(continuation).getOrNull() ?: return@withContext
+                                        val searchResult = MintyMusicBe.searchContinuation(continuation).getOrNull() ?: return@withContext
                                         viewStateMap[key] = ItemsPage((viewState.items + searchResult.items).distinctBy { it.id }, searchResult.continuation)
                                         viewStateMap[key]?.items?.filterIsInstance<SongItem>()?.let {
                                             withContext(Dispatchers.Main){
@@ -373,7 +373,7 @@ class MusicSearchActivity : MintyBaseActivity() {
                                 val continuation = viewState.continuation
                                 if (continuation != null) {
                                     isLoadingAlbumNextPage = true
-                                    val searchResult = MainBe.searchContinuation(continuation).getOrNull() ?: return@withContext
+                                    val searchResult = MintyMusicBe.searchContinuation(continuation).getOrNull() ?: return@withContext
                                     viewStateMap[key] = ItemsPage((viewState.items + searchResult.items).distinctBy { it.id }, searchResult.continuation)
                                     viewStateMap[key]?.items?.filterIsInstance<AlbumItem>()?.let {
                                         withContext(Dispatchers.Main){
@@ -412,7 +412,7 @@ class MusicSearchActivity : MintyBaseActivity() {
                                     val continuation = viewState.continuation
                                     if (continuation != null) {
                                         isLoadingArtistNextPage = true
-                                        val searchResult = MainBe.searchContinuation(continuation).getOrNull() ?: return@withContext
+                                        val searchResult = MintyMusicBe.searchContinuation(continuation).getOrNull() ?: return@withContext
                                         viewStateMap[key] = ItemsPage((viewState.items + searchResult.items).distinctBy { it.id }, searchResult.continuation)
                                         viewStateMap[key]?.items?.filterIsInstance<ArtistItem>()?.let {
                                             withContext(Dispatchers.Main){
@@ -465,7 +465,7 @@ class MusicSearchActivity : MintyBaseActivity() {
                                         val continuation = viewState.continuation
                                         if (continuation != null) {
                                             isLoadingPlayNextPage = true
-                                            val searchResult = MainBe.searchContinuation(continuation).getOrNull() ?: return@withContext
+                                            val searchResult = MintyMusicBe.searchContinuation(continuation).getOrNull() ?: return@withContext
                                             viewStateMap[key] = ItemsPage((viewState.items + searchResult.items).distinctBy { it.id }, searchResult.continuation)
                                             viewStateMap[key]?.items?.filterIsInstance<SongItem>()?.let {
                                                 withContext(Dispatchers.Main){
@@ -515,7 +515,7 @@ class MusicSearchActivity : MintyBaseActivity() {
 
                     withContext(Dispatchers.IO){
 
-                        MainBe.search(binding.tops.searchEditText.text.toString(), FILTER_SONG)
+                        MintyMusicBe.search(binding.tops.searchEditText.text.toString(), FILTER_SONG)
                             .onSuccess { result ->
                                 ItemsPage(
                                     result.items
@@ -579,7 +579,7 @@ class MusicSearchActivity : MintyBaseActivity() {
 
                     withContext(Dispatchers.IO){
 
-                        MainBe.search(binding.tops.searchEditText.text.toString(), FILTER_ALBUM)
+                        MintyMusicBe.search(binding.tops.searchEditText.text.toString(), FILTER_ALBUM)
                             .onSuccess { result ->
                                 ItemsPage(
                                     result.items
@@ -641,7 +641,7 @@ class MusicSearchActivity : MintyBaseActivity() {
 
                     withContext(Dispatchers.IO){
 
-                        MainBe.search(binding.tops.searchEditText.text.toString(), FILTER_ARTIST)
+                        MintyMusicBe.search(binding.tops.searchEditText.text.toString(), FILTER_ARTIST)
                             .onSuccess { result ->
                                 ItemsPage(
                                     result.items
@@ -701,7 +701,7 @@ class MusicSearchActivity : MintyBaseActivity() {
 
                     withContext(Dispatchers.IO){
 
-                        MainBe.search(binding.tops.searchEditText.text.toString(), FILTER_VIDEO)
+                        MintyMusicBe.search(binding.tops.searchEditText.text.toString(), FILTER_VIDEO)
                             .onSuccess { result ->
                                 ItemsPage(
                                     result.items

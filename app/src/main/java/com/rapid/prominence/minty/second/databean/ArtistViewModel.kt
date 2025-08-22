@@ -8,7 +8,7 @@ import com.rapid.prominence.minty.database.MusicDatabase
 import com.rapid.prominence.minty.utils.dataStore
 import com.rapid.prominence.minty.utils.get
 import com.rapid.prominence.minty.utils.reportException
-import com.zionhuang.innertube.MainBe
+import com.zionhuang.innertube.MintyMusicBe
 import com.zionhuang.innertube.models.YTItem
 import com.zionhuang.innertube.pages.ArtistPage
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -33,7 +33,7 @@ class ArtistViewModel  @Inject constructor(
     init {
         viewModelScope.launch {
 
-            MainBe.artist(artistId)
+            MintyMusicBe.artist(artistId)
                 .onSuccess { page ->
 //                    artistPage.value = page
                     artistPage.value = page.filterExplicit(context.dataStore.get(HideExplicitKey, false))

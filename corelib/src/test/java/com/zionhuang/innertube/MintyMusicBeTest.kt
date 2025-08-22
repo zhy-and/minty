@@ -1,12 +1,12 @@
 
 package com.zionhuang.innertube
 
-import com.zionhuang.innertube.MainBe.SearchFilter.Companion.FILTER_ALBUM
-import com.zionhuang.innertube.MainBe.SearchFilter.Companion.FILTER_ARTIST
-import com.zionhuang.innertube.MainBe.SearchFilter.Companion.FILTER_COMMUNITY_PLAYLIST
-import com.zionhuang.innertube.MainBe.SearchFilter.Companion.FILTER_FEATURED_PLAYLIST
-import com.zionhuang.innertube.MainBe.SearchFilter.Companion.FILTER_SONG
-import com.zionhuang.innertube.MainBe.SearchFilter.Companion.FILTER_VIDEO
+import com.zionhuang.innertube.MintyMusicBe.SearchFilter.Companion.FILTER_ALBUM
+import com.zionhuang.innertube.MintyMusicBe.SearchFilter.Companion.FILTER_ARTIST
+import com.zionhuang.innertube.MintyMusicBe.SearchFilter.Companion.FILTER_COMMUNITY_PLAYLIST
+import com.zionhuang.innertube.MintyMusicBe.SearchFilter.Companion.FILTER_FEATURED_PLAYLIST
+import com.zionhuang.innertube.MintyMusicBe.SearchFilter.Companion.FILTER_SONG
+import com.zionhuang.innertube.MintyMusicBe.SearchFilter.Companion.FILTER_VIDEO
 import com.zionhuang.innertube.models.WatchEndpoint
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp
@@ -22,8 +22,8 @@ import org.junit.Test
  * 用于测试 YouTube 功能的测试类。
  */
 @Ignore("未知原因导致 GitHub Action 始终运行此测试时出错")
-class MainBeTest {
-    private val youTube = MainBe
+class MintyMusicBeTest {
+    private val youTube = MintyMusicBe
 
     /**
      * 测试 'player' 接口，确保播放状态为 "OK"。
@@ -169,7 +169,7 @@ class MainBeTest {
         // 此播放列表包含 2900 首歌曲
         val playlistId = "PLtAw-mgfCzRwduBTjBHknz5U4_ZM4n6qm"
         var count = 5
-        val playlistPage = MainBe.playlist(playlistId).getOrThrow()
+        val playlistPage = MintyMusicBe.playlist(playlistId).getOrThrow()
         var songs = playlistPage.songs
         var continuation = playlistPage.songsContinuation
         while (count > 0) {
@@ -177,7 +177,7 @@ class MainBeTest {
                 println(it.id)
             }
             if (continuation == null) break
-            val continuationPage = MainBe.playlistContinuation(continuation).getOrThrow()
+            val continuationPage = MintyMusicBe.playlistContinuation(continuation).getOrThrow()
             songs = continuationPage.songs
             continuation = continuationPage.continuation
             count--
@@ -189,8 +189,8 @@ class MainBeTest {
      */
     @Test
     fun lyrics() = runBlocking {
-        val nextResult = MainBe.next(WatchEndpoint(videoId = "NCC6lI0GGy0")).getOrThrow()
-        val lyrics = MainBe.lyrics(nextResult.lyricsEndpoint!!).getOrThrow()
+        val nextResult = MintyMusicBe.next(WatchEndpoint(videoId = "NCC6lI0GGy0")).getOrThrow()
+        val lyrics = MintyMusicBe.lyrics(nextResult.lyricsEndpoint!!).getOrThrow()
         assertTrue(lyrics != null)
     }
 
@@ -199,8 +199,8 @@ class MainBeTest {
      */
     @Test
     fun related() = runBlocking {
-        val relatedEndpoint = MainBe.next(WatchEndpoint(videoId = "Z6ji6kls_OA")).getOrThrow().relatedEndpoint!!
-        val relatedPage = MainBe.related(relatedEndpoint).getOrThrow()
+        val relatedEndpoint = MintyMusicBe.next(WatchEndpoint(videoId = "Z6ji6kls_OA")).getOrThrow().relatedEndpoint!!
+        val relatedPage = MintyMusicBe.related(relatedEndpoint).getOrThrow()
         assertTrue(relatedPage.songs.isNotEmpty())
     }
 
@@ -209,7 +209,7 @@ class MainBeTest {
      */
     @Test
     fun transcript() = runBlocking {
-        val lyrics = MainBe.transcript("7G0ovtPqHnI").getOrThrow()
+        val lyrics = MintyMusicBe.transcript("7G0ovtPqHnI").getOrThrow()
         assertTrue(lyrics.isNotEmpty())
     }
 

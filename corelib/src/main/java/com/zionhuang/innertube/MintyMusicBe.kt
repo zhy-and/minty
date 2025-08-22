@@ -12,7 +12,9 @@ import com.zionhuang.innertube.models.SearchSuggestions
 import com.zionhuang.innertube.models.SongItem
 import com.zionhuang.innertube.models.WatchEndpoint
 import com.zionhuang.innertube.models.WatchEndpoint.WatchEndpointMusicSupportedConfigs.WatchEndpointMusicConfig.Companion.MUSIC_VIDEO_TYPE_ATV
-import com.zionhuang.innertube.models.YouTubeClient
+import com.zionhuang.innertube.models.YouTubeClient.Companion.ANDROID_MUSIC
+import com.zionhuang.innertube.models.YouTubeClient.Companion.IOS
+import com.zionhuang.innertube.models.YouTubeClient.Companion.TVHTML5
 import com.zionhuang.innertube.models.YouTubeClient.Companion.WEB
 import com.zionhuang.innertube.models.YouTubeClient.Companion.WEB_REMIX
 import com.zionhuang.innertube.models.YouTubeLocale
@@ -25,6 +27,7 @@ import com.zionhuang.innertube.models.response.GetQueueResponse
 import com.zionhuang.innertube.models.response.GetSearchSuggestionsResponse
 import com.zionhuang.innertube.models.response.GetTranscriptResponse
 import com.zionhuang.innertube.models.response.NextResponse
+import com.zionhuang.innertube.models.response.PipedResponse
 import com.zionhuang.innertube.models.response.PlayerResponse
 import com.zionhuang.innertube.models.response.SearchResponse
 import com.zionhuang.innertube.pages.AlbumPage
@@ -58,23 +61,17 @@ import java.net.Proxy
  * Parse useful data with [InStudio] sending requests.
  * Modified from [ViMusic](https://github.com/vfsfitvnm/ViMusic)
  */
-object MainBe {
+object MintyMusicBe {
     private val inStudio = InStudio()
-
     var locale: YouTubeLocale
         get() = inStudio.locale
         set(value) {
             inStudio.locale = value
         }
-    var visitorData: String?
+    var visitorData: String
         get() = inStudio.visitorData
         set(value) {
             inStudio.visitorData = value
-        }
-    var dataSyncId: String?
-        get() = inStudio.dataSyncId
-        set(value) {
-            inStudio.dataSyncId = value
         }
     var cookie: String?
         get() = inStudio.cookie
@@ -91,8 +88,6 @@ object MainBe {
         set(value) {
             inStudio.useLoginForBrowse = value
         }
-
-
 
     suspend fun searchSuggestions(query: String): Result<SearchSuggestions> = runCatching {
         val response = inStudio.getSearchSuggestions(WEB_REMIX, query).body<GetSearchSuggestionsResponse>()
@@ -458,8 +453,35 @@ object MainBe {
                 ArtistItemsPage.fromMusicTwoRowItemRenderer(it) as? PlaylistItem
             }
     }
-    suspend fun player(videoId: String, playlistId: String? = null, client: YouTubeClient, signatureTimestamp: Int? = null, webPlayerPot: String? = null): Result<PlayerResponse> = runCatching {
-        inStudio.player(client, videoId, playlistId, signatureTimestamp, webPlayerPot).body<PlayerResponse>()
+
+    suspend fun player(videoId: String, playlistId: String? = null): Result<PlayerResponse> = runCatching {
+        var playerResponse: PlayerResponse
+        if (this.cookie != null) { // if logged in: try ANDROID_MUSIC client first because IOS client does not play age restricted songs
+            playerResponse = inStudio.player(ANDROID_MUSIC, videoId, playlistId).body<PlayerResponse>()
+            if (playerResponse.playabilityStatus.status == "OK") {
+                return@runCatching playerResponse
+            }
+        }
+        playerResponse = inStudio.player(IOS, videoId, playlistId).body<PlayerResponse>()
+        if (playerResponse.playabilityStatus.status == "OK") {
+            return@runCatching playerResponse
+        }
+        val safePlayerResponse = inStudio.player(TVHTML5, videoId, playlistId).body<PlayerResponse>()
+        if (safePlayerResponse.playabilityStatus.status != "OK") {
+            return@runCatching playerResponse
+        }
+        val audioStreams = inStudio.pipedStreams(videoId).body<PipedResponse>().audioStreams
+        safePlayerResponse.copy(
+            streamingData = safePlayerResponse.streamingData?.copy(
+                adaptiveFormats = safePlayerResponse.streamingData.adaptiveFormats.mapNotNull { adaptiveFormat ->
+                    audioStreams.find { it.bitrate == adaptiveFormat.bitrate }?.let {
+                        adaptiveFormat.copy(
+                            url = it.url
+                        )
+                    }
+                }
+            )
+        )
     }
 
     suspend fun next(endpoint: WatchEndpoint, continuation: String? = null): Result<NextResult> = runCatching {
