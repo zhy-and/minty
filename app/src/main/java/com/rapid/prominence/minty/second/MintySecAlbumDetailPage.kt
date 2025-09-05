@@ -1,28 +1,110 @@
 package com.rapid.prominence.minty.second
 
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.os.Message
 import android.view.View
+import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.blankj.utilcode.util.LogUtils
 import com.bumptech.glide.Glide
+import com.google.android.gms.ads.nativead.NativeAd
 import com.gyf.immersionbar.ImmersionBar
 import com.rapid.prominence.minty.R
 import com.rapid.prominence.minty.base.MintyBaseActivity
 import com.rapid.prominence.minty.bean.MediaMetadata
+import com.rapid.prominence.minty.cons.MESSAGE_MSG_CODE
+import com.rapid.prominence.minty.cons.MINTY_APP_APP_REFRESH
+import com.rapid.prominence.minty.cons.NativeWeavesListener
+import com.rapid.prominence.minty.cons.albumDetBanner
+import com.rapid.prominence.minty.cons.albumDetInter
 import com.rapid.prominence.minty.database.InternalDatabase
 import com.rapid.prominence.minty.database.entities.AlbumWithSongs
 import com.rapid.prominence.minty.databinding.MintySecAlbumPageBinding
 import com.rapid.prominence.minty.extensions.currentMetadata
-import com.rapid.prominence.minty.extensions.logClickEvents
+import com.rapid.prominence.minty.extensions.firebaseLog
 import com.rapid.prominence.minty.roundOptions2
 import com.rapid.prominence.minty.second.view.MintySecMainPage.Companion.secPlayConnect
 import com.rapid.prominence.minty.second.databean.AlbumViewModel
 import com.rapid.prominence.minty.service.queues.LocalAlbumRadio
+import com.tencent.mmkv.MMKV
 import kotlinx.coroutines.launch
+import media.library.flys.MintyValueStys
+import media.library.flys.tools.SpeMintyTools
+import media.library.flys.tools.EventsAppendTool
 import timber.log.Timber
 
 class MintySecAlbumDetailPage : MintyBaseActivity() {
+    private val handler: Handler = object : Handler(Looper.getMainLooper()) {
+        override fun handleMessage(msg: Message) {
+            super.handleMessage(msg)
+            when (msg?.what) {
+                MESSAGE_MSG_CODE -> {
+                    loadSpeNative()
+                }
+            }
+        }
+    }
 
+    override fun onPause() {
+        super.onPause()
+        if (handler?.hasMessages(MESSAGE_MSG_CODE) == true){
+            handler?.removeMessages(MESSAGE_MSG_CODE)
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        handler?.removeCallbacksAndMessages(null)
+    }
+
+
+    private fun loadSpeNative() {
+        val normalBan: NativeAd? = SpeMintyTools.homeStudy.showWeaveNatives(
+            albumDetBanner(), this)
+        if (normalBan == null) {
+            if (EventsAppendTool.cyIsShowingFLag) {
+                LogUtils.e("albumDetBanner  ban inter is showing return------")
+                return
+            }
+            if (isFinishing || isDestroyed) {
+                LogUtils.e("albumDetBanner  ban destroy  return------")
+                return
+            }
+            if (EventsAppendTool.posIsCanShow(albumDetBanner())) {
+                LogUtils.e("albumDetBanner  ban limit  return------")
+                return
+            }
+            SpeMintyTools.homeStudy.initLoadBanners(albumDetBanner(),object :
+                NativeWeavesListener {
+                override fun nativeIsWeavesSuc(sucFlag: Boolean) {
+                    if (isFinishing || isDestroyed) {
+                        return
+                    }
+                    if (sucFlag) {
+                        LogUtils.e("albumDetBanner  ban load  suc------")
+                        loadSpeNative()
+                    }
+                }
+            })
+        } else {
+            LogUtils.e("albumDetBanner  ban show  suc------")
+            binding?.mobBans?.let {
+                it.visibility = View.VISIBLE
+                it.setStyles(MintyValueStys.Builder().build())
+                it.setNativeAd(normalBan)
+                if(!EventsAppendTool.posIsCanShow(albumDetBanner())){
+                    val cts = MMKV.defaultMMKV().getInt(MINTY_APP_APP_REFRESH, 0)
+                    if (cts != 0){
+                        handler.removeMessages(MESSAGE_MSG_CODE)
+                        handler.sendEmptyMessageDelayed(MESSAGE_MSG_CODE,(cts * 1000).toLong())
+                    }
+                }
+            }
+        }
+    }
     private var albumSongs: AlbumWithSongs? = null
     private lateinit var binding: MintySecAlbumPageBinding
     private lateinit var newReleaseAlbumsAdapter: SecDetailSongsAdapter
@@ -33,6 +115,7 @@ class MintySecAlbumDetailPage : MintyBaseActivity() {
                 bottomSettingChange(it.value)
             }
         }
+        loadSpeNative()
     }
 
 
@@ -47,6 +130,7 @@ class MintySecAlbumDetailPage : MintyBaseActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        SpeMintyTools.homeStudy.getShowCyAds(albumDetInter(),this)
 
         binding = MintySecAlbumPageBinding.inflate(layoutInflater)
         setContentView(binding.root)
@@ -77,7 +161,7 @@ class MintySecAlbumDetailPage : MintyBaseActivity() {
         secReleaseAlbumAdapter = SecReleaseAlbumAdapter(this@MintySecAlbumDetailPage)
 
         binding.playBtns.setOnClickListener {
-            logClickEvents("album_det_play_btn")
+            firebaseLog("album_det_play_btn")
             albumSongs?.let {
                 secPlayConnect?.playQueue(LocalAlbumRadio(it))
                startPlayerPage()
@@ -86,7 +170,7 @@ class MintySecAlbumDetailPage : MintyBaseActivity() {
         binding.recRecycleview.layoutManager = LinearLayoutManager(this,LinearLayoutManager.HORIZONTAL, false)
         binding.recRecycleview.adapter = secReleaseAlbumAdapter
         binding.container.setOnClickListener {
-            logClickEvents("album_det_play_btn")
+            firebaseLog("album_det_play_btn")
             albumSongs?.let {
                 secPlayConnect?.playQueue(LocalAlbumRadio(it))
                startPlayerPage()
@@ -146,6 +230,26 @@ class MintySecAlbumDetailPage : MintyBaseActivity() {
                 }
 
         }
+        lifecycleScope.launch {
+            try{
+                albumViewModel?.isError?.collect{
+                    if (it) {
+                        LogUtils.e("error")
+                        if (isFinishing || isDestroyed){
+                            return@collect
+                        }
+                        if (binding?.loadings?.isVisible == true){
+                            binding?.loadings?.visibility = View.GONE
+                            binding?.loadings?.stopShimmerAnimation()
+                        }
+                    }
+                }
+            }catch (e : Exception){
+                e.printStackTrace()
+            }
+
+        }
+
         lifecycleScope.launch {
             albumViewModel?.albumWithSongs?.collect {
                 if (it == null){

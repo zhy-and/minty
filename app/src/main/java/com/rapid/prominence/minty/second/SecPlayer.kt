@@ -5,6 +5,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.os.Message
 import android.view.View
 import android.widget.SeekBar
 import android.widget.SeekBar.OnSeekBarChangeListener
@@ -19,21 +20,28 @@ import androidx.media3.common.Timeline
 import androidx.viewpager2.widget.ViewPager2
 import com.blankj.utilcode.util.LogUtils
 import com.blankj.utilcode.util.SizeUtils
+import com.google.android.gms.ads.nativead.NativeAd
 import com.rapid.prominence.minty.application.App.Companion.isNextPlay
 import com.rapid.prominence.minty.CustomViewsInfo
 import com.rapid.prominence.minty.R
 import com.rapid.prominence.minty.base.MintyBaseActivity
+import com.rapid.prominence.minty.cons.MESSAGE_MSG_CODE
+import com.rapid.prominence.minty.cons.MINTY_APP_APP_REFRESH
+import com.rapid.prominence.minty.cons.NativeWeavesListener
 import com.rapid.prominence.minty.cons.collectInter
+import com.rapid.prominence.minty.cons.playViewBanner
+import com.rapid.prominence.minty.cons.playViewsInter
 import com.rapid.prominence.minty.database.InternalDatabase
 import com.rapid.prominence.minty.databinding.MintyEiPlaysBinding
 import com.rapid.prominence.minty.ei.BindingAdapter
 import com.rapid.prominence.minty.extensions.collectLatest
-import com.rapid.prominence.minty.extensions.logClickEvents
+import com.rapid.prominence.minty.extensions.firebaseLog
 import com.rapid.prominence.minty.extensions.mediaItems
 import com.rapid.prominence.minty.extensions.metadata
 import com.rapid.prominence.minty.extensions.toggleRepeatMode
 import com.rapid.prominence.minty.second.view.MintySecMainPage.Companion.secPlayConnect
 import com.rapid.prominence.minty.second.view.favorite.MintySecFavPage
+import com.tencent.mmkv.MMKV
 import com.zhpan.bannerview.annotation.APageStyle
 import com.zhpan.bannerview.constants.PageStyle
 import kotlinx.coroutines.CoroutineScope
@@ -43,15 +51,72 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
 import kotlinx.coroutines.withContext
+import media.library.flys.MintyValueStys
+import media.library.flys.tools.SpeMintyTools
+import media.library.flys.tools.EventsAppendTool
 import java.util.concurrent.TimeUnit
 import kotlin.random.Random
 
 
 class SecPlayer : MintyBaseActivity() {
+    private val adMessage: Handler = object : Handler(Looper.getMainLooper()) {
+        override fun handleMessage(msg: Message) {
+            super.handleMessage(msg)
+            when (msg?.what) {
+                MESSAGE_MSG_CODE -> {
+                    loadSpeNative()
+                }
+            }
+        }
+    }
 
+
+    private fun loadSpeNative() {
+        val normalBan: NativeAd? = SpeMintyTools.homeStudy.showWeaveNatives(
+            playViewBanner(), this)
+        if (normalBan == null) {
+
+            if (isFinishing || isDestroyed) {
+                LogUtils.e("playViewBanner  ban destroy  return------")
+                return
+            }
+            if (EventsAppendTool.posIsCanShow(playViewBanner())) {
+                LogUtils.e("playViewBanner  ban limit  return------")
+                return
+            }
+            SpeMintyTools.homeStudy.initLoadBanners(playViewBanner(),object :
+                NativeWeavesListener {
+                override fun nativeIsWeavesSuc(sucFlag: Boolean) {
+                    if (isFinishing || isDestroyed) {
+                        return
+                    }
+                    if (sucFlag) {
+                        LogUtils.e("playViewBanner  ban load  suc------")
+                        loadSpeNative()
+                    }
+                }
+            })
+        } else {
+            LogUtils.e("playViewBanner  ban show  suc------")
+            binding?.mobBans?.let {
+                it.visibility = View.VISIBLE
+                it.setStyles(MintyValueStys.Builder().build())
+                it.setNativeAd(normalBan)
+                if(!EventsAppendTool.posIsCanShow(playViewBanner())){
+                    val cts = MMKV.defaultMMKV().getInt(MINTY_APP_APP_REFRESH, 0)
+                    if (cts != 0){
+                        adMessage.removeMessages(MESSAGE_MSG_CODE)
+                        adMessage.sendEmptyMessageDelayed(MESSAGE_MSG_CODE,(cts * 1000).toLong())
+                    }
+                }
+            }
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        SpeMintyTools.homeStudy.getShowCyAds(playViewsInter(),this)
+
         binding = MintyEiPlaysBinding.inflate(layoutInflater)
         setContentView(binding.root)
         try {
@@ -78,17 +143,17 @@ class SecPlayer : MintyBaseActivity() {
                     finishCurrent()
                 }
                 inputSearch.setOnClickListener {
-                    logClickEvents("player_to_search")
+                    firebaseLog("player_to_search")
 
                     startSearchPage()
                 }
                 searchEditText.setOnClickListener {
-                    logClickEvents("player_to_search")
+                    firebaseLog("player_to_search")
 
                     startSearchPage()
                 }
                 lists.setOnClickListener {
-                    logClickEvents("player_to_queue")
+                    firebaseLog("player_to_queue")
 
                     startQueuePage()
                 }
@@ -168,6 +233,7 @@ class SecPlayer : MintyBaseActivity() {
         seekMessage?.let {
             handler.removeCallbacks(it)
         }
+        adMessage?.removeCallbacksAndMessages(null)
     }
     private lateinit var binding: MintyEiPlaysBinding
 
@@ -176,6 +242,7 @@ class SecPlayer : MintyBaseActivity() {
         if (secPlayConnect != null && secPlayConnect?.player?.isPlaying == true) {
             startProgressUpdate()
         }
+        loadSpeNative()
     }
     private fun randomPlay(){
         try {
@@ -257,7 +324,7 @@ class SecPlayer : MintyBaseActivity() {
         var database = InternalDatabase.newInstance(this@SecPlayer)
         binding.addFav?.setOnClickListener {
             try {
-                logClickEvents("player_collect_btn")
+                firebaseLog("player_collect_btn")
 
                 if (secPlayConnect == null || binding.title.text.contains(getString(R.string.app_name))){
                     startInterActivity(Intent(this, MintySecFavPage::class.java), collectInter(),false)
@@ -309,11 +376,11 @@ class SecPlayer : MintyBaseActivity() {
         binding.playPauseButton?.setOnClickListener { v: View? ->
             if (secPlayConnect == null || binding.title.text.contains(getString(R.string.app_name))){
                 startQueuePage()
-                logClickEvents("player_empty_click_play_btn")
+                firebaseLog("player_empty_click_play_btn")
 
                 return@setOnClickListener
             }
-            logClickEvents("player_play_btn")
+            firebaseLog("player_play_btn")
 
             if (secPlayConnect != null) {
                 if (secPlayConnect?.player?.playbackState == Player.STATE_ENDED) {
@@ -339,7 +406,7 @@ class SecPlayer : MintyBaseActivity() {
                 if (secPlayConnect != null) {
                     secPlayConnect?.seekToPrevious()
                 }
-                logClickEvents("player_previous_btn")
+                firebaseLog("player_previous_btn")
             }catch (e : Exception){
                 e.printStackTrace()
             }
@@ -360,7 +427,7 @@ class SecPlayer : MintyBaseActivity() {
                 if (secPlayConnect != null) {
                     secPlayConnect?.seekToNext()
                 }
-                logClickEvents("player_next_btn")
+                firebaseLog("player_next_btn")
             }catch (e : Exception){
                 e.printStackTrace()
             }
@@ -376,7 +443,7 @@ class SecPlayer : MintyBaseActivity() {
             if (secPlayConnect != null) {
                 secPlayConnect?.player?.toggleRepeatMode()
             }
-            logClickEvents("player_repeat_btn")
+            firebaseLog("player_repeat_btn")
 
         }
 
@@ -573,7 +640,9 @@ class SecPlayer : MintyBaseActivity() {
         seekMessage?.let {
             handler.removeCallbacks(it)
         }
-
+        if (adMessage?.hasMessages(MESSAGE_MSG_CODE) == true){
+            adMessage?.removeMessages(MESSAGE_MSG_CODE)
+        }
     }
 
 

@@ -75,7 +75,7 @@ import com.rapid.prominence.minty.cons.AutoSkipNextOnErrorKey
 import com.rapid.prominence.minty.cons.DiscordTokenKey
 import com.rapid.prominence.minty.cons.EnableDiscordRPCKey
 import com.rapid.prominence.minty.cons.HideExplicitKey
-import com.rapid.prominence.minty.cons.MUSIC_CONSTANT_IS_M_USER
+import com.rapid.prominence.minty.cons.MINTY_APP_IS_M_USER
 import com.rapid.prominence.minty.cons.PauseListenHistoryKey
 import com.rapid.prominence.minty.cons.PersistentQueueKey
 import com.rapid.prominence.minty.cons.PlayerVolumeKey
@@ -657,7 +657,7 @@ class MusicService : MediaLibraryService(),
             }.getOrElse { throwable ->
                 when (throwable) {
                     is ConnectException, is UnknownHostException -> {
-                        if (MMKV.defaultMMKV().getBoolean(MUSIC_CONSTANT_IS_M_USER,false)){
+                        if (MMKV.defaultMMKV().getBoolean(MINTY_APP_IS_M_USER,false)){
                             ToastUtils.showShort(getString(R.string.error_no_internet))
                         }
 
@@ -666,7 +666,7 @@ class MusicService : MediaLibraryService(),
                     }
 
                     is SocketTimeoutException -> {
-                        if (MMKV.defaultMMKV().getBoolean(MUSIC_CONSTANT_IS_M_USER,false)){
+                        if (MMKV.defaultMMKV().getBoolean(MINTY_APP_IS_M_USER,false)){
                             ToastUtils.showShort(getString(R.string.error_timeout))
                         }
 
@@ -675,7 +675,7 @@ class MusicService : MediaLibraryService(),
                     }
 
                     else -> {
-                        if (MMKV.defaultMMKV().getBoolean(MUSIC_CONSTANT_IS_M_USER,false)){
+                        if (MMKV.defaultMMKV().getBoolean(MINTY_APP_IS_M_USER,false)){
                             ToastUtils.showShort(getString(R.string.error_unknown))
                         }
 
@@ -685,7 +685,7 @@ class MusicService : MediaLibraryService(),
                 }
             }
             if (playerResponse.playabilityStatus.status != "OK") {
-                if (MMKV.defaultMMKV().getBoolean(MUSIC_CONSTANT_IS_M_USER,false)){
+                if (MMKV.defaultMMKV().getBoolean(MINTY_APP_IS_M_USER,false)){
                     ToastUtils.showShort("Play Timeout!")
                 }
 

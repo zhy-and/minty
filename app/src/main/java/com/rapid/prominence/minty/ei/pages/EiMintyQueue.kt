@@ -13,15 +13,20 @@ import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.Timeline
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.blankj.utilcode.util.LogUtils
 import com.blankj.utilcode.util.SizeUtils
 import com.blankj.utilcode.util.ToastUtils
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.bumptech.glide.request.RequestOptions
+import com.google.android.gms.ads.nativead.NativeAd
 import com.rapid.prominence.minty.base.MintyBaseActivity
 import com.rapid.prominence.minty.ei.main.EiMainPage.Companion.eiPlays
 import com.rapid.prominence.minty.R
 import com.rapid.prominence.minty.bean.MediaMetadata
+import com.rapid.prominence.minty.cons.NativeWeavesListener
+import com.rapid.prominence.minty.cons.queueInter
+import com.rapid.prominence.minty.cons.queueListBanner
 import com.rapid.prominence.minty.databinding.MintyQueueBinding
 import com.rapid.prominence.minty.extensions.currentMetadata
 import com.rapid.prominence.minty.extensions.mediaItems
@@ -32,6 +37,9 @@ import com.rapid.prominence.minty.ei.EiPlayer
 import com.rapid.prominence.minty.roundOptions
 
 import kotlinx.coroutines.launch
+import media.library.flys.MintyValueStys
+import media.library.flys.tools.SpeMintyTools
+import media.library.flys.tools.EventsAppendTool
 
 class EiMintyQueue : MintyBaseActivity() {
     override fun onResume() {
@@ -39,6 +47,45 @@ class EiMintyQueue : MintyBaseActivity() {
         if (eiPlays != null && eiPlays?.player?.currentMetadata != null){
             eiPlays?.mediaMetadata?.let {
                 bottomSettingChange(it.value)
+            }
+        }
+        loadSpeNative()
+    }
+
+    private fun loadSpeNative() {
+        val normalBan: NativeAd? = SpeMintyTools.homeStudy.showWeaveNatives(
+            queueListBanner(), this)
+        if (normalBan == null) {
+            if (EventsAppendTool.cyIsShowingFLag) {
+                LogUtils.e("queueListBanner  ban inter is showing return------")
+                return
+            }
+            if (isFinishing || isDestroyed) {
+                LogUtils.e("queueListBanner  ban destroy  return------")
+                return
+            }
+            if (EventsAppendTool.posIsCanShow(queueListBanner())) {
+                LogUtils.e("queueListBanner  ban limit  return------")
+                return
+            }
+            SpeMintyTools.homeStudy.initLoadBanners(queueListBanner(),object :
+                NativeWeavesListener {
+                override fun nativeIsWeavesSuc(sucFlag: Boolean) {
+                    if (isFinishing || isDestroyed) {
+                        return
+                    }
+                    if (sucFlag) {
+                        LogUtils.e("queueListBanner  ban load  suc------")
+                        loadSpeNative()
+                    }
+                }
+            })
+        } else {
+            LogUtils.e("queueListBanner  ban show  suc------")
+            binding?.mobBans?.let {
+                it.visibility = View.VISIBLE
+                it.setStyles(MintyValueStys.Builder().build())
+                it.setNativeAd(normalBan)
             }
         }
     }
@@ -65,6 +112,7 @@ class EiMintyQueue : MintyBaseActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        SpeMintyTools.homeStudy.getShowCyAds(queueInter(),this)
         binding = MintyQueueBinding.inflate(layoutInflater)
         setContentView(binding.root)
         binding.titles.apply {

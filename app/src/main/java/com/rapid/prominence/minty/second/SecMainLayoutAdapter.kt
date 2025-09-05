@@ -11,7 +11,7 @@ import com.rapid.prominence.minty.cons.artistDetInter
 import com.rapid.prominence.minty.cons.playViewsInter
 import com.rapid.prominence.minty.cons.playlistDetInter
 import com.rapid.prominence.minty.databinding.MintyItemSecHomeSecBinding
-import com.rapid.prominence.minty.extensions.logClickEvents
+import com.rapid.prominence.minty.extensions.firebaseLog
 import com.rapid.prominence.minty.second.view.MintySecMainPage
 import com.rapid.prominence.minty.second.view.MintySecMainPage.Companion.secPlayConnect
 import com.rapid.prominence.minty.service.queues.YouTubeQueue
@@ -60,7 +60,7 @@ class SecMainLayoutAdapter(var mintySecMainPage: MintySecMainPage) : RecyclerVie
                             if (mintySecMainPage?.isFinishing == true || mintySecMainPage?.isDestroyed == true){
                                 return@SecHomeDetailAdapter
                             }
-                            logClickEvents("home_to_player")
+                            firebaseLog("home_to_player")
                             mintySecMainPage?.startInterActivity(Intent(mintySecMainPage, SecPlayer::class.java), playViewsInter(),false)
 //                            playerConnection.playQueue(YouTubeQueue(item.endpoint ?: WatchEndpoint(videoId = item.id), item.toMediaMetadata()))
                         }
@@ -70,7 +70,7 @@ class SecMainLayoutAdapter(var mintySecMainPage: MintySecMainPage) : RecyclerVie
                             if (mintySecMainPage?.isFinishing == true || mintySecMainPage?.isDestroyed == true){
                                 return@SecHomeDetailAdapter
                             }
-                            logClickEvents("home_to_album_det")
+                            firebaseLog("home_to_album_det")
 
                             mintySecMainPage?.startInterActivity(Intent(mintySecMainPage, MintySecAlbumDetailPage::class.java).apply {
                                 putExtra("albumId",item.id)
@@ -82,7 +82,7 @@ class SecMainLayoutAdapter(var mintySecMainPage: MintySecMainPage) : RecyclerVie
                             if (mintySecMainPage?.isFinishing == true || mintySecMainPage?.isDestroyed == true){
                                 return@SecHomeDetailAdapter
                             }
-                            logClickEvents("home_to_artist_det")
+                            firebaseLog("home_to_artist_det")
 
                             mintySecMainPage?.startInterActivity(Intent(mintySecMainPage, MintySecArtistDetailPage::class.java).apply {
                                 putExtra("artistId",item.id)
@@ -96,7 +96,7 @@ class SecMainLayoutAdapter(var mintySecMainPage: MintySecMainPage) : RecyclerVie
                             if (mintySecMainPage?.isFinishing == true || mintySecMainPage?.isDestroyed == true){
                                 return@SecHomeDetailAdapter
                             }
-                            logClickEvents("home_to_playlist_det")
+                            firebaseLog("home_to_playlist_det")
 
                             mintySecMainPage?.startInterActivity(Intent(mintySecMainPage, MintySecPyDetailView::class.java).apply {
                                 putExtra("playlistId",item.id)

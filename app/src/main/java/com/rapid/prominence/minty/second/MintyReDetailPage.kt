@@ -2,21 +2,32 @@ package com.rapid.prominence.minty.second
 
 import android.content.Intent
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.os.Message
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.blankj.utilcode.util.LogUtils
 import com.blankj.utilcode.util.SizeUtils
 import com.bumptech.glide.Glide
+import com.google.android.gms.ads.nativead.NativeAd
 import com.gyf.immersionbar.ImmersionBar
 import com.rapid.prominence.minty.R
 import com.rapid.prominence.minty.base.MintyBaseActivity
 import com.rapid.prominence.minty.bean.MediaMetadata
+import com.rapid.prominence.minty.cons.MESSAGE_MSG_CODE
+import com.rapid.prominence.minty.cons.MINTY_APP_APP_REFRESH
+import com.rapid.prominence.minty.cons.NativeWeavesListener
 import com.rapid.prominence.minty.cons.albumDetInter
+import com.rapid.prominence.minty.cons.homeReleaseDetailBanner
+import com.rapid.prominence.minty.cons.releaseDetailInter
 import com.rapid.prominence.minty.database.InternalDatabase
 import com.rapid.prominence.minty.databinding.MintySecReleaseDetailBinding
 import com.rapid.prominence.minty.extensions.currentMetadata
@@ -26,11 +37,82 @@ import com.rapid.prominence.minty.second.view.MintySecMainPage.Companion.secPlay
 import com.zionhuang.innertube.models.AlbumItem
 import com.rapid.prominence.minty.second.databean.NewReleaseViewModel
 import com.rapid.prominence.minty.utils.joinByBullet
+import com.tencent.mmkv.MMKV
 import kotlinx.coroutines.launch
+import media.library.flys.MintyValueStys
+import media.library.flys.tools.SpeMintyTools
+import media.library.flys.tools.EventsAppendTool
 import timber.log.Timber
 
 class MintyReDetailPage : MintyBaseActivity() {
+    private val handler: Handler = object : Handler(Looper.getMainLooper()) {
+        override fun handleMessage(msg: Message) {
+            super.handleMessage(msg)
+            when (msg?.what) {
+                MESSAGE_MSG_CODE -> {
+                    loadSpeNative()
+                }
+            }
+        }
+    }
 
+    override fun onPause() {
+        super.onPause()
+        if (handler?.hasMessages(MESSAGE_MSG_CODE) == true){
+            handler?.removeMessages(MESSAGE_MSG_CODE)
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        handler?.removeCallbacksAndMessages(null)
+    }
+
+
+    private fun loadSpeNative() {
+        val normalBan: NativeAd? = SpeMintyTools.homeStudy.showWeaveNatives(
+            homeReleaseDetailBanner(), this)
+        if (normalBan == null) {
+            if (EventsAppendTool.cyIsShowingFLag) {
+                LogUtils.e("homeReleaseDetailBanner  ban inter is showing return------")
+                return
+            }
+            if (isFinishing || isDestroyed) {
+                LogUtils.e("homeReleaseDetailBanner  ban destroy  return------")
+                return
+            }
+            if (EventsAppendTool.posIsCanShow(homeReleaseDetailBanner())) {
+                LogUtils.e("homeReleaseDetailBanner  ban limit  return------")
+                return
+            }
+            SpeMintyTools.homeStudy.initLoadBanners(homeReleaseDetailBanner(),object :
+                NativeWeavesListener {
+                override fun nativeIsWeavesSuc(sucFlag: Boolean) {
+                    if (isFinishing || isDestroyed) {
+                        return
+                    }
+                    if (sucFlag) {
+                        LogUtils.e("homeReleaseDetailBanner  ban load  suc------")
+                        loadSpeNative()
+                    }
+                }
+            })
+        } else {
+            LogUtils.e("homeReleaseDetailBanner  ban show  suc------")
+            binding?.mobBans?.let {
+                it.visibility = View.VISIBLE
+                it.setStyles(MintyValueStys.Builder().build())
+                it.setNativeAd(normalBan)
+                if(!EventsAppendTool.posIsCanShow(homeReleaseDetailBanner())){
+                    val cts = MMKV.defaultMMKV().getInt(MINTY_APP_APP_REFRESH, 0)
+                    if (cts != 0){
+                        handler.removeMessages(MESSAGE_MSG_CODE)
+                        handler.sendEmptyMessageDelayed(MESSAGE_MSG_CODE,(cts * 1000).toLong())
+                    }
+                }
+            }
+        }
+    }
     private lateinit var binding: MintySecReleaseDetailBinding
     private lateinit var newReleaseAlbumsAdapter: ItemsAdapter
     override fun onResume() {
@@ -40,6 +122,7 @@ class MintyReDetailPage : MintyBaseActivity() {
                 bottomSettingChange(it.value)
             }
         }
+        loadSpeNative()
     }
 
     private fun bottomSettingChange(metadata: MediaMetadata?) {
@@ -47,6 +130,8 @@ class MintyReDetailPage : MintyBaseActivity() {
     }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        SpeMintyTools.homeStudy.getShowCyAds(releaseDetailInter(),this)
+
         binding = MintySecReleaseDetailBinding.inflate(layoutInflater)
         setContentView(binding.root)
         ImmersionBar.with(this).transparentStatusBar().titleBar(binding.tops.root).init()
@@ -97,7 +182,25 @@ class MintyReDetailPage : MintyBaseActivity() {
                 }
 
         }
+        lifecycleScope.launch {
+            try{
+                albumViewModel?.isError?.collect{
+                    if (it) {
+                        LogUtils.e("error")
+                        if (isFinishing || isDestroyed){
+                            return@collect
+                        }
+                        if (binding?.loadings?.isVisible == true){
+                            binding?.loadings?.visibility = View.GONE
+                            binding?.loadings?.stopShimmerAnimation()
+                        }
+                    }
+                }
+            }catch (e : Exception){
+                e.printStackTrace()
+            }
 
+        }
         lifecycleScope.launch {
 
             secPlayConnect?.mediaMetadata?.collect{

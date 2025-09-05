@@ -19,12 +19,14 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata.MEDIA_TYPE_MUSIC
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2
+import com.blankj.utilcode.util.ThreadUtils
 import com.bumptech.glide.Glide
 import com.rapid.prominence.minty.R
 import com.rapid.prominence.minty.base.MintyBaseActivity
 import com.rapid.prominence.minty.bean.MediaMetadata
 import com.rapid.prominence.minty.bean.Song
-import com.rapid.prominence.minty.cons.MUSIC_CONSTANT_CURRENT_PAGE
+import com.rapid.prominence.minty.cons.MINTY_APP_CURRENT_PAGE
+import com.rapid.prominence.minty.cons.MINTY_APP_IS_M_USER
 import com.rapid.prominence.minty.cons.StopMusicOnTaskClearKey
 import com.rapid.prominence.minty.cons.queueInter
 import com.rapid.prominence.minty.databinding.MintyEiHomeBinding
@@ -47,8 +49,10 @@ import com.rapid.prominence.minty.special.SpecialAbout
 import com.rapid.prominence.minty.ei.pages.tabs.TabAlbum
 import com.rapid.prominence.minty.posBitmap
 import com.rapid.prominence.minty.roundOptions
+import com.rapid.prominence.minty.second.view.MintySecMainPage
 import com.tencent.mmkv.MMKV
 import kotlinx.coroutines.launch
+import media.library.manager.MintyApi
 
 class EiMainPage : MintyBaseActivity() {
     override fun onStart() {
@@ -192,29 +196,26 @@ class EiMainPage : MintyBaseActivity() {
     override fun onResume() {
         super.onResume()
         try {
+            //
+            if (MMKV.defaultMMKV().getBoolean(MINTY_APP_IS_M_USER,false)){
+                showLottie()
+                ThreadUtils.runOnUiThreadDelayed({
+                    try {
+                        cancelLoadingBar()
+                        startActivity(Intent(this, MintySecMainPage::class.java))
+                        finish()
+                    }catch (e : Exception){
+                        e.printStackTrace()
+                    }
+
+                },2000)
+            }
+            MintyApi.pageAEventsUpload()
             if (eiPlays != null && eiPlays?.player?.currentMetadata != null && MMKV.defaultMMKV().getBoolean("isAuth",false)){
                 eiPlays?.mediaMetadata?.let {
                     bottomSettingChange(it.value)
                 }
-                if (eiPlays?.mediaMetadata == null){
-                    //todo
-                }
             }
-            //    //todo
-//            if (MMKV.defaultMMKV().getBoolean(MUSIC_CONSTANT_IS_M_USER,false)){
-//                binding.progressBar.visibility = View.VISIBLE
-//                ThreadUtils.runOnUiThreadDelayed({
-//                    try {
-//
-//                        startActivity(Intent(this, HomeActivity::class.java))
-//                        finish()
-//                    }catch (e : Exception){
-//                        e.printStackTrace()
-//                    }
-//
-//                },2000)
-//            }
-//            SnapBasicInterfaces.pageAEventsUpload()
         }catch (e : Exception){
             e.printStackTrace()
         }
@@ -242,8 +243,7 @@ class EiMainPage : MintyBaseActivity() {
         super.onCreate(savedInstanceState)
         binding = MintyEiHomeBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        MMKV.defaultMMKV().putString(MUSIC_CONSTANT_CURRENT_PAGE,"local")
-
+        MMKV.defaultMMKV().putString(MINTY_APP_CURRENT_PAGE,"local")
         database =  InternalDatabase.newInstance(this)
         binding.pageHome.setOnClickListener {
             binding.viewPager.setCurrentItem(0,false)
@@ -268,6 +268,9 @@ class EiMainPage : MintyBaseActivity() {
             }
             startActivity(Intent(this, EiPlayer::class.java))
         }
+
+
+
 //        binding.mintyIncContainerPlay.nextButton.setOnClickListener {
 //            playerConnection?.player?.seekToNext()
 //        }
@@ -284,6 +287,8 @@ class EiMainPage : MintyBaseActivity() {
 //                playerConnection?.player?.togglePlayPause()
 //            }
 //        }
+        checkAndRequestNotificationPermission()
+
     }
 
 

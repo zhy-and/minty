@@ -8,7 +8,7 @@ import com.rapid.prominence.minty.R
 import com.rapid.prominence.minty.base.MintyBaseActivity
 import com.rapid.prominence.minty.cons.homeMoodDetInter
 import com.rapid.prominence.minty.databinding.MintyItemMoodBinding
-import com.rapid.prominence.minty.extensions.logClickEvents
+import com.rapid.prominence.minty.extensions.firebaseLog
 import com.zionhuang.innertube.pages.MoodAndGenres
 
 class HomeStyleAdapter(var homeActivity: MintyBaseActivity) : RecyclerView.Adapter<HomeStyleAdapter.MoodAndGenresViewHolder>() {
@@ -72,7 +72,7 @@ class HomeStyleAdapter(var homeActivity: MintyBaseActivity) : RecyclerView.Adapt
                         putExtra("params", it.params)
                     }
                 }, homeMoodDetInter(),false)
-                logClickEvents("home_to_style_detail")
+                firebaseLog("home_to_style_detail")
 
             }
 

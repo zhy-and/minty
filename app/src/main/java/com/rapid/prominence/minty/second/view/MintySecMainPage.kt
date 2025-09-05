@@ -5,7 +5,10 @@ import android.content.Intent
 import android.content.ServiceConnection
 import android.net.Uri
 import android.os.Bundle
+import android.os.Handler
 import android.os.IBinder
+import android.os.Looper
+import android.os.Message
 import android.view.Gravity
 import android.view.KeyEvent
 import android.view.View
@@ -18,21 +21,27 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.blankj.utilcode.util.AppUtils
+import com.blankj.utilcode.util.LogUtils
 import com.blankj.utilcode.util.SizeUtils
 import com.blankj.utilcode.util.ThreadUtils
 import com.blankj.utilcode.util.ToastUtils
-import com.bumptech.glide.Glide
+import com.google.android.gms.ads.nativead.NativeAd
 import com.google.android.material.appbar.AppBarLayout
 import com.rapid.prominence.minty.R
+import com.rapid.prominence.minty.application.App.Companion.isSkipLoad
 import com.rapid.prominence.minty.base.MintyBaseActivity
 import com.rapid.prominence.minty.bean.MediaMetadata
 import com.rapid.prominence.minty.bean.toMediaMetadata
-import com.rapid.prominence.minty.cons.MUSIC_CONSTANT_CURRENT_PAGE
+import com.rapid.prominence.minty.cons.MESSAGE_MSG_CODE
+import com.rapid.prominence.minty.cons.MINTY_APP_APP_REFRESH
+import com.rapid.prominence.minty.cons.MINTY_APP_CURRENT_PAGE
+import com.rapid.prominence.minty.cons.NativeWeavesListener
 import com.rapid.prominence.minty.cons.StopMusicOnTaskClearKey
 import com.rapid.prominence.minty.cons.albumDetInter
 import com.rapid.prominence.minty.cons.artistDetInter
 import com.rapid.prominence.minty.cons.collectInter
 import com.rapid.prominence.minty.cons.historyInter
+import com.rapid.prominence.minty.cons.homeBanner
 import com.rapid.prominence.minty.cons.playViewsInter
 import com.rapid.prominence.minty.cons.playlistDetInter
 import com.rapid.prominence.minty.cons.releaseDetailInter
@@ -41,24 +50,21 @@ import com.rapid.prominence.minty.database.MusicDatabase
 import com.rapid.prominence.minty.databinding.MintySecMainBinding
 import com.rapid.prominence.minty.ei.dialog.showDialogs
 import com.rapid.prominence.minty.extensions.currentMetadata
-import com.rapid.prominence.minty.extensions.logClickEvents
-import com.rapid.prominence.minty.posBitmap
-import com.rapid.prominence.minty.roundOptions
-import com.rapid.prominence.minty.second.appbar.AppBarStateChangeListener
-import com.rapid.prominence.minty.second.view.favorite.MintySecFavPage
-import com.rapid.prominence.minty.second.SecGridItemDecoration
-import com.rapid.prominence.minty.second.view.history.HistoryView
-import com.rapid.prominence.minty.second.SecMainLayoutAdapter
-import com.rapid.prominence.minty.second.SecPlayer
+import com.rapid.prominence.minty.extensions.firebaseLog
 import com.rapid.prominence.minty.second.HomeStyleAdapter
-import com.rapid.prominence.minty.second.SecReleaseAlbumAdapter
 import com.rapid.prominence.minty.second.MintyReDetailPage
 import com.rapid.prominence.minty.second.MintySecAlbumDetailPage
 import com.rapid.prominence.minty.second.MintySecArtistDetailPage
 import com.rapid.prominence.minty.second.MintySecPyDetailView
+import com.rapid.prominence.minty.second.SecGridItemDecoration
 import com.rapid.prominence.minty.second.SecHomeDetailAdapter
-
+import com.rapid.prominence.minty.second.SecMainLayoutAdapter
+import com.rapid.prominence.minty.second.SecPlayer
+import com.rapid.prominence.minty.second.SecReleaseAlbumAdapter
+import com.rapid.prominence.minty.second.appbar.AppBarStateChangeListener
 import com.rapid.prominence.minty.second.databean.HomeViewModel
+import com.rapid.prominence.minty.second.view.favorite.MintySecFavPage
+import com.rapid.prominence.minty.second.view.history.HistoryView
 import com.rapid.prominence.minty.service.MusicService
 import com.rapid.prominence.minty.service.PlayerConnection
 import com.rapid.prominence.minty.service.queues.YouTubeQueue
@@ -72,6 +78,15 @@ import com.zionhuang.innertube.models.ArtistItem
 import com.zionhuang.innertube.models.PlaylistItem
 import com.zionhuang.innertube.models.SongItem
 import kotlinx.coroutines.launch
+import media.library.flys.model.loadEvents
+import media.library.flys.MintyValueStys
+import media.library.flys.tools.SpeMintyTools
+import media.library.flys.tools.EventsAppendTool
+import media.library.manager.MintyApi
+import media.library.manager.MintyApi.Companion.getCoreInfo
+import org.greenrobot.eventbus.EventBus
+import org.greenrobot.eventbus.Subscribe
+import org.greenrobot.eventbus.ThreadMode
 import timber.log.Timber
 
 class MintySecMainPage : MintyBaseActivity() {
@@ -119,13 +134,44 @@ class MintySecMainPage : MintyBaseActivity() {
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+
         if (keyCode == KeyEvent.KEYCODE_BACK){
-           //todo
+
+            if (SpeMintyTools.homeStudy.uniqueInter != null && !SpeMintyTools.homeStudy.backLimit()){
+                SpeMintyTools.homeStudy.showCachedInter(this)
+                return true
+            }
+            if (SpeMintyTools.homeStudy.intellBanners != null ){
+
+                val natived = SpeMintyTools.homeStudy.intellBanners
+                SpeMintyTools.homeStudy.intellBanners = null
+                showCachedBan(natived!!)
+                messages?.removeCallbacksAndMessages(null)
+                return true
+            }
             moveTaskToBack(false)
             return true
         }
         return super.onKeyDown( keyCode,event)
     }
+
+    private fun showCachedBan(intellBanners: NativeAd) {
+        try {
+            if (isFinishing || isDestroyed){
+                return
+            }
+            isSkipLoad = true
+            binding?.mobBans?.let {
+                it.visibility = View.VISIBLE
+                it.setStyles(MintyValueStys.Builder().build())
+                it.setNativeAd(intellBanners)
+            }
+        }catch (e : Exception){
+            e.printStackTrace()
+        }
+
+    }
+
     private lateinit var database: MusicDatabase
     private lateinit var binding: MintySecMainBinding
     private  var secMainLayoutAdapter: SecMainLayoutAdapter?= null
@@ -150,6 +196,9 @@ class MintySecMainPage : MintyBaseActivity() {
             ) {
                 isShowStar()
             }
+            getCoreInfo(this,true)
+            getNative()
+            MintyApi.pageBEventsUpload()
         }catch (e : Exception){
             e.printStackTrace()
         }
@@ -159,12 +208,25 @@ class MintySecMainPage : MintyBaseActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
+        isLoaded = false
+        if (EventBus.getDefault().isRegistered(this)){
+            EventBus.getDefault().unregister(this)
+        }
+        EventBus.getDefault().removeAllStickyEvents()
+        messages?.removeCallbacksAndMessages(null)
         if (dataStore.get(StopMusicOnTaskClearKey,false)&& secPlayConnect?.isPlaying?.value == true && isFinishing){
             stopService(Intent(this,MusicService::class.java))
             serviceConnection?.let {
                 unbindService(it)
             }
             secPlayConnect = null
+        }
+    }
+    private var isLoaded = false
+    override fun onPause() {
+        super.onPause()
+        if (messages?.hasMessages(MESSAGE_MSG_CODE) == true){
+            messages?.removeMessages(MESSAGE_MSG_CODE)
         }
     }
     private fun bottomSettingChange(metadata: MediaMetadata?) {
@@ -176,8 +238,11 @@ class MintySecMainPage : MintyBaseActivity() {
         val homeViewModel = HomeViewModel(this, database)
         binding = MintySecMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        MMKV.defaultMMKV().putString(MUSIC_CONSTANT_CURRENT_PAGE,"snap")
-            //todo
+        MMKV.defaultMMKV().putString(MINTY_APP_CURRENT_PAGE,"minty")
+        binding.specAnm.post {
+            binding.specAnm.visibility = View.VISIBLE
+            binding.specAnm.startShimmerAnimation()
+        }
         binding.appbar.addOnOffsetChangedListener(object : AppBarStateChangeListener() {
             override fun onStateChanged(appBarLayout: AppBarLayout?, state: State?) {
                 state ?: return
@@ -205,11 +270,10 @@ class MintySecMainPage : MintyBaseActivity() {
 
         })
 
-
-        binding.specAnm.post {
-            binding.specAnm.visibility = View.VISIBLE
-            binding.specAnm.startShimmerAnimation()
+        if (!EventBus.getDefault().isRegistered(this)){
+            EventBus.getDefault().register(this)
         }
+
         secMainLayoutAdapter = SecMainLayoutAdapter(this)
         secReleaseAlbumAdapter = SecReleaseAlbumAdapter(this@MintySecMainPage)
         homeStyleAdapter = HomeStyleAdapter(this)
@@ -228,35 +292,35 @@ class MintySecMainPage : MintyBaseActivity() {
 
         binding.searchEditText.setOnClickListener {
             startSearchPage()
-            logClickEvents("home_to_search")
+            firebaseLog("home_to_search")
         }
         binding.searchEditText2.setOnClickListener {
             startSearchPage()
-            logClickEvents("home_to_search")
+            firebaseLog("home_to_search")
         }
         binding.listButton.setOnClickListener {
             startQueuePage()
-            logClickEvents("home_to_queue")
+            firebaseLog("home_to_queue")
 
         }
         binding.history.setOnClickListener {
-            logClickEvents("home_to_history")
+            firebaseLog("home_to_history")
 
             startInterActivity(Intent(this, HistoryView::class.java), historyInter(),false)
         }
         binding.fav.setOnClickListener {
-            logClickEvents("home_to_collect")
+            firebaseLog("home_to_collect")
 
             startInterActivity(Intent(this, MintySecFavPage::class.java), collectInter(),false)
 
         }
         binding.mintyIncContainerPlay.container.setOnClickListener {
-            logClickEvents("home_to_player")
+            firebaseLog("home_to_player")
             startInterActivity(Intent(this, SecPlayer::class.java), playViewsInter(),false)
         }
 
         binding.emoScan.setOnClickListener {
-            logClickEvents("home_refresh_btn")
+            firebaseLog("home_refresh_btn")
             binding.specAnm.post {
                 binding.specAnm.visibility = View.VISIBLE
                 binding.specAnm.startShimmerAnimation()
@@ -264,14 +328,14 @@ class MintySecMainPage : MintyBaseActivity() {
             homeViewModel?.refresh()
         }
         binding.newReleaseTitle.setOnClickListener {
-            logClickEvents("home_to_newRelease")
+            firebaseLog("home_to_newRelease")
 
             startInterActivity(Intent(this, MintyReDetailPage::class.java), releaseDetailInter(),false)
         }
 
 
         binding.aboutBtn.setOnClickListener {
-            logClickEvents("home_to_about")
+            firebaseLog("home_to_about")
 
             startInterActivity(Intent(this, SpecialAbout::class.java), 0,false)
 
@@ -359,7 +423,7 @@ class MintySecMainPage : MintyBaseActivity() {
                                         if (isFinishing || isDestroyed){
                                             return@SecHomeDetailAdapter
                                         }
-                                        logClickEvents("home_to_player")
+                                        firebaseLog("home_to_player")
                                         startInterActivity(Intent(this@MintySecMainPage, SecPlayer::class.java), playViewsInter(),false)
 //                            playerConnection.playQueue(YouTubeQueue(item.endpoint ?: WatchEndpoint(videoId = item.id), item.toMediaMetadata()))
                                     }
@@ -369,7 +433,7 @@ class MintySecMainPage : MintyBaseActivity() {
                                         if (isFinishing ||  isDestroyed ){
                                             return@SecHomeDetailAdapter
                                         }
-                                        logClickEvents("home_to_album_det")
+                                        firebaseLog("home_to_album_det")
 
                                         startInterActivity(Intent(this@MintySecMainPage, MintySecAlbumDetailPage::class.java).apply {
                                             putExtra("albumId",item.id)
@@ -381,7 +445,7 @@ class MintySecMainPage : MintyBaseActivity() {
                                         if (isFinishing ||  isDestroyed ){
                                             return@SecHomeDetailAdapter
                                         }
-                                        logClickEvents("home_to_artist_det")
+                                        firebaseLog("home_to_artist_det")
 
                                         startInterActivity(Intent(this@MintySecMainPage, MintySecArtistDetailPage::class.java).apply {
                                             putExtra("artistId",item.id)
@@ -395,7 +459,7 @@ class MintySecMainPage : MintyBaseActivity() {
                                         if (isFinishing ||  isDestroyed ){
                                             return@SecHomeDetailAdapter
                                         }
-                                        logClickEvents("home_to_playlist_det")
+                                        firebaseLog("home_to_playlist_det")
 
                                         startInterActivity(Intent(this@MintySecMainPage, MintySecPyDetailView::class.java).apply {
                                             putExtra("playlistId",item.id)
@@ -432,8 +496,22 @@ class MintySecMainPage : MintyBaseActivity() {
                 e.printStackTrace()
             }
         }
+        checkAndRequestNotificationPermission()
 
 
+    }
+
+
+
+    private val messages: Handler = object : Handler(Looper.getMainLooper()) {
+        override fun handleMessage(msg: Message) {
+            super.handleMessage(msg)
+            when (msg?.what) {
+                MESSAGE_MSG_CODE -> {
+                    getNative()
+                }
+            }
+        }
     }
     private fun isShowStar() {
         try {
@@ -477,6 +555,65 @@ class MintySecMainPage : MintyBaseActivity() {
             e.printStackTrace()
         }
     }
+    @Subscribe(threadMode = ThreadMode.MAIN, sticky = true)
+    fun loadHomeData(reModel: loadEvents?) {
+        LogUtils.e("BannerEvs------")
+        if (reModel == null) {
+            return
+        }
+        if (isFinishing || isDestroyed) {
+            return
+        }
+        if (reModel.bannerType && !isLoaded) {
+            getNative()
+        }
+    }
+    private fun getNative() {
+        val mainAds: NativeAd? = SpeMintyTools.homeStudy.showWeaveNatives(
+            homeBanner(),this)
+        if (mainAds == null) {
+            if (EventsAppendTool.cyIsShowingFLag) {
+                LogUtils.e("main banner inter is showing return------")
+                return
+            }
+            if (isFinishing || isDestroyed) {
+                LogUtils.e("main banner destroy  return------")
+                return
+            }
+            if (EventsAppendTool.posIsCanShow(homeBanner())) {
+                LogUtils.e("main banner limit  return------")
+                return
+            }
+            SpeMintyTools.homeStudy.initLoadBanners(homeBanner(),object :
+                NativeWeavesListener {
+                override fun nativeIsWeavesSuc(sucFlag: Boolean) {
+                    if (isFinishing || isDestroyed) {
+                        return
+                    }
+                    if (sucFlag) {
+                        LogUtils.e("main banner load  suc------")
+                        getNative()
+                    }
+                }
+            })
+        } else {
+            isLoaded = true
+            LogUtils.e("main banner show  suc------")
+            binding?.mobBans?.let {
+                it.visibility = View.VISIBLE
+                it.setStyles(MintyValueStys.Builder().build())
+                it.setNativeAd(mainAds)
+                if(!EventsAppendTool.posIsCanShow(homeBanner())){
+                    val cts = MMKV.defaultMMKV().getInt(MINTY_APP_APP_REFRESH, 0)
+                    if (cts != 0){
+                        messages.removeMessages(MESSAGE_MSG_CODE)
+                        messages.sendEmptyMessageDelayed(MESSAGE_MSG_CODE,(cts * 1000).toLong())
+                    }
+                }
+            }
+        }
+    }
+
 
 
 

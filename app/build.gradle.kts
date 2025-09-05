@@ -2,6 +2,8 @@ plugins {
     id("com.android.application")
     kotlin("android")
     kotlin("kapt")
+    id ("com.google.gms.google-services")
+    id ("com.google.firebase.crashlytics")
     alias(libs.plugins.hilt)
     alias(libs.plugins.kotlin.ksp)
 }
@@ -13,8 +15,8 @@ android {
         applicationId = "com.rapid.prominence.minty"
         minSdk = 24
         targetSdk = 35
-        versionCode = 2
-        versionName = "1.0.1"
+        versionCode = 3
+        versionName = "1.0.2"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -97,7 +99,16 @@ dependencies {
     implementation(libs.ktor.client.core)
 
     coreLibraryDesugaring(libs.desugaring)
-
+    implementation ("com.google.android.ump:user-messaging-platform:2.2.0")
+    implementation("com.google.android.gms:play-services-ads:22.4.0")
+    implementation ("com.squareup.okhttp3:okhttp:4.10.0")
+    implementation ("org.greenrobot:eventbus:3.3.1")
+    implementation ("com.android.installreferrer:installreferrer:2.2")
+    implementation (platform("com.google.firebase:firebase-bom:32.1.0"))
+    implementation ("com.appsflyer:af-android-sdk:6.16.2")
+    implementation ("com.google.firebase:firebase-analytics")
+    implementation ("com.google.firebase:firebase-crashlytics")
+    implementation ("com.facebook.android:facebook-android-sdk:11.3.0")
     implementation("androidx.appcompat:appcompat:1.6.1")
     implementation("com.google.android.material:material:1.9.0")
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
@@ -110,5 +121,6 @@ dependencies {
     implementation(libs.timber)
     implementation ("com.github.zhpanvip:bannerviewpager:3.5.12")
 
+    implementation  ("com.google.firebase:firebase-messaging")
 
 }

@@ -1,6 +1,9 @@
 package com.rapid.prominence.minty.second
 
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.os.Message
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
@@ -12,12 +15,19 @@ import androidx.media3.common.Timeline
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.blankj.utilcode.util.LogUtils
 import com.blankj.utilcode.util.SizeUtils
 import com.blankj.utilcode.util.ToastUtils
 import com.bumptech.glide.Glide
+import com.google.android.gms.ads.nativead.NativeAd
 import com.rapid.prominence.minty.R
 import com.rapid.prominence.minty.base.MintyBaseActivity
 import com.rapid.prominence.minty.bean.MediaMetadata
+import com.rapid.prominence.minty.cons.MESSAGE_MSG_CODE
+import com.rapid.prominence.minty.cons.MINTY_APP_APP_REFRESH
+import com.rapid.prominence.minty.cons.NativeWeavesListener
+import com.rapid.prominence.minty.cons.queueInter
+import com.rapid.prominence.minty.cons.queueListBanner
 import com.rapid.prominence.minty.database.InternalDatabase
 import com.rapid.prominence.minty.databinding.MintyQueueBinding
 import com.rapid.prominence.minty.ei.dialog.showDialogs
@@ -29,9 +39,13 @@ import com.rapid.prominence.minty.options
 import com.rapid.prominence.minty.posBitmap
 import com.rapid.prominence.minty.second.view.MintySecMainPage.Companion.secPlayConnect
 import com.rapid.prominence.minty.second.databean.HomeViewModel
+import com.tencent.mmkv.MMKV
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import media.library.flys.MintyValueStys
+import media.library.flys.tools.SpeMintyTools
+import media.library.flys.tools.EventsAppendTool
 import timber.log.Timber
 
 class SecPlayDlView : MintyBaseActivity() {
@@ -44,7 +58,7 @@ class SecPlayDlView : MintyBaseActivity() {
                 bottomSettingChange(it.value)
             }
         }
-
+        loadSpeNative()
     }
 
     private var songAdapter: ItemsAdapter?= null
@@ -59,6 +73,7 @@ class SecPlayDlView : MintyBaseActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        SpeMintyTools.homeStudy.getShowCyAds(queueInter(),this)
         binding = MintyQueueBinding.inflate(layoutInflater)
         setContentView(binding.root)
         songAdapter = ItemsAdapter()
@@ -130,7 +145,74 @@ class SecPlayDlView : MintyBaseActivity() {
         }
 
     }
+    private val handler: Handler = object : Handler(Looper.getMainLooper()) {
+        override fun handleMessage(msg: Message) {
+            super.handleMessage(msg)
+            when (msg?.what) {
+                MESSAGE_MSG_CODE -> {
+                    loadSpeNative()
+                }
+            }
+        }
+    }
 
+    override fun onPause() {
+        super.onPause()
+        if (handler?.hasMessages(MESSAGE_MSG_CODE) == true){
+            handler?.removeMessages(MESSAGE_MSG_CODE)
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        handler?.removeCallbacksAndMessages(null)
+    }
+
+
+    private fun loadSpeNative() {
+        val normalBan: NativeAd? = SpeMintyTools.homeStudy.showWeaveNatives(
+            queueListBanner(), this)
+        if (normalBan == null) {
+            if (EventsAppendTool.cyIsShowingFLag) {
+                LogUtils.e("queueListBanner  ban inter is showing return------")
+                return
+            }
+            if (isFinishing || isDestroyed) {
+                LogUtils.e("queueListBanner  ban destroy  return------")
+                return
+            }
+            if (EventsAppendTool.posIsCanShow(queueListBanner())) {
+                LogUtils.e("queueListBanner  ban limit  return------")
+                return
+            }
+            SpeMintyTools.homeStudy.initLoadBanners(queueListBanner(),object :
+                NativeWeavesListener {
+                override fun nativeIsWeavesSuc(sucFlag: Boolean) {
+                    if (isFinishing || isDestroyed) {
+                        return
+                    }
+                    if (sucFlag) {
+                        LogUtils.e("queueListBanner  ban load  suc------")
+                        loadSpeNative()
+                    }
+                }
+            })
+        } else {
+            LogUtils.e("queueListBanner  ban show  suc------")
+            binding?.mobBans?.let {
+                it.visibility = View.VISIBLE
+                it.setStyles(MintyValueStys.Builder().build())
+                it.setNativeAd(normalBan)
+                if(!EventsAppendTool.posIsCanShow(queueListBanner())){
+                    val cts = MMKV.defaultMMKV().getInt(MINTY_APP_APP_REFRESH, 0)
+                    if (cts != 0){
+                        handler.removeMessages(MESSAGE_MSG_CODE)
+                        handler.sendEmptyMessageDelayed(MESSAGE_MSG_CODE,(cts * 1000).toLong())
+                    }
+                }
+            }
+        }
+    }
     private fun initEmptyLayout() {
         binding.emptyLayout.visibility = View.VISIBLE
         binding.listLayout.visibility = View.GONE

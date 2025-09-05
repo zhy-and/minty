@@ -8,7 +8,7 @@ import com.bumptech.glide.Glide
 import com.rapid.prominence.minty.base.MintyBaseActivity
 import com.rapid.prominence.minty.cons.albumDetInter
 import com.rapid.prominence.minty.databinding.MintyItemReleaseAlbumPageBinding
-import com.rapid.prominence.minty.extensions.logClickEvents
+import com.rapid.prominence.minty.extensions.firebaseLog
 import com.rapid.prominence.minty.options
 import com.rapid.prominence.minty.randomBitmap
 import com.rapid.prominence.minty.utils.joinByBullet
@@ -46,7 +46,7 @@ class SecReleaseAlbumAdapter(var homeActivity: MintyBaseActivity) : RecyclerView
                 homeActivity?.startInterActivity(Intent(homeActivity, MintySecAlbumDetailPage::class.java).apply {
                     putExtra("albumId",album.id)
                 }, albumDetInter(),false)
-                logClickEvents("home_release_to_album_detail")
+                firebaseLog("home_release_to_album_detail")
 
             }
 

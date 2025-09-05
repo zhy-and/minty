@@ -4,6 +4,10 @@
         <!-- Customize your light theme here. -->
         <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
     </style>
+    <style name="gntRatingBar" parent="Widget.AppCompat.RatingBar.Small">
+        <item name="colorControlNormal">#ffffff</item>
+        <item name="colorControlActivated">#ffffff</item>
+    </style>
     <style name="Minty.LauchTheme" parent="Theme.AppCompat.DayNight.NoActionBar">
         <!--将顶部状态栏设置为透明，并将界面内容布局上边界上提至状态栏顶部-->
         <item name="android:windowTranslucentStatus">true</item>

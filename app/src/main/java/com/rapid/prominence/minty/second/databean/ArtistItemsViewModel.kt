@@ -25,6 +25,7 @@ class ArtistItemsViewModel @Inject constructor(
 
     val title = MutableStateFlow("")
     val itemsPage = MutableStateFlow<ItemsPage?>(null)
+    val isError = MutableStateFlow(false)
 
     init {
         viewModelScope.launch {
@@ -40,6 +41,7 @@ class ArtistItemsViewModel @Inject constructor(
                     continuation = artistItemsPage.continuation
                 )
             }.onFailure {
+                isError.value = true
                 reportException(it)
             }
         }

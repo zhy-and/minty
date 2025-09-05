@@ -212,7 +212,18 @@
                 app:layout_constraintStart_toStartOf="parent"
                 android:id="@+id/ad_con"
                 android:layout_height="wrap_content">
-
+                <media.library.flys.NormalGoView
+                    android:layout_marginHorizontal="16dp"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginBottom="7dp"
+                    android:visibility="gone"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    android:id="@+id/mob_bans"
+                    android:layout_width="match_parent"
+                    app:gnt_template_type="@layout/minty_small_ban"
+                    android:layout_height="wrap_content"/>
             </androidx.constraintlayout.widget.ConstraintLayout>
 
             <TextView

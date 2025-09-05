@@ -1,6 +1,9 @@
 package com.rapid.prominence.minty.second.view.history
 
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.os.Message
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -11,8 +14,10 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.blankj.utilcode.util.LogUtils
 import com.blankj.utilcode.util.SizeUtils
 import com.bumptech.glide.Glide
+import com.google.android.gms.ads.nativead.NativeAd
 
 import com.rapid.prominence.minty.second.databean.HistoryViewModel
 import com.rapid.prominence.minty.second.databean.HomeViewModel
@@ -25,6 +30,11 @@ import com.rapid.prominence.minty.R
 import com.rapid.prominence.minty.base.MintyBaseActivity
 import com.rapid.prominence.minty.bean.MediaMetadata
 import com.rapid.prominence.minty.bean.toMediaMetadata
+import com.rapid.prominence.minty.cons.MESSAGE_MSG_CODE
+import com.rapid.prominence.minty.cons.MINTY_APP_APP_REFRESH
+import com.rapid.prominence.minty.cons.NativeWeavesListener
+import com.rapid.prominence.minty.cons.historyBanner
+import com.rapid.prominence.minty.cons.historyInter
 import com.rapid.prominence.minty.database.InternalDatabase
 import com.rapid.prominence.minty.database.MusicDatabase
 import com.rapid.prominence.minty.database.entities.EventWithSong
@@ -41,15 +51,87 @@ import com.rapid.prominence.minty.second.SecReleaseAlbumAdapter
 import com.rapid.prominence.minty.second.view.MintySecMainPage.Companion.secPlayConnect
 import com.rapid.prominence.minty.service.queues.YouTubeQueue
 import com.rapid.prominence.minty.utils.joinByBullet
+import com.tencent.mmkv.MMKV
+import media.library.flys.MintyValueStys
+import media.library.flys.tools.SpeMintyTools
+import media.library.flys.tools.EventsAppendTool
 
 class HistoryView : MintyBaseActivity() {
+    private val handler: Handler = object : Handler(Looper.getMainLooper()) {
+        override fun handleMessage(msg: Message) {
+            super.handleMessage(msg)
+            when (msg?.what) {
+                MESSAGE_MSG_CODE -> {
+                    loadSpeNative()
+                }
+            }
+        }
+    }
 
+    override fun onPause() {
+        super.onPause()
+        if (handler?.hasMessages(MESSAGE_MSG_CODE) == true){
+            handler?.removeMessages(MESSAGE_MSG_CODE)
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        handler?.removeCallbacksAndMessages(null)
+    }
+
+
+    private fun loadSpeNative() {
+        val normalBan: NativeAd? = SpeMintyTools.homeStudy.showWeaveNatives(
+            historyBanner(), this)
+        if (normalBan == null) {
+            if (EventsAppendTool.cyIsShowingFLag) {
+                LogUtils.e("historyBanner  ban inter is showing return------")
+                return
+            }
+            if (isFinishing || isDestroyed) {
+                LogUtils.e("historyBanner  ban destroy  return------")
+                return
+            }
+            if (EventsAppendTool.posIsCanShow(historyBanner())) {
+                LogUtils.e("historyBanner  ban limit  return------")
+                return
+            }
+            SpeMintyTools.homeStudy.initLoadBanners(historyBanner(),object :
+                NativeWeavesListener {
+                override fun nativeIsWeavesSuc(sucFlag: Boolean) {
+                    if (isFinishing || isDestroyed) {
+                        return
+                    }
+                    if (sucFlag) {
+                        LogUtils.e("historyBanner  ban load  suc------")
+                        loadSpeNative()
+                    }
+                }
+            })
+        } else {
+            LogUtils.e("historyBanner  ban show  suc------")
+            binding?.mobBans?.let {
+                it.visibility = View.VISIBLE
+                it.setStyles(MintyValueStys.Builder().build())
+                it.setNativeAd(normalBan)
+                if(!EventsAppendTool.posIsCanShow(historyBanner())){
+                    val cts = MMKV.defaultMMKV().getInt(MINTY_APP_APP_REFRESH, 0)
+                    if (cts != 0){
+                        handler.removeMessages(MESSAGE_MSG_CODE)
+                        handler.sendEmptyMessageDelayed(MESSAGE_MSG_CODE,(cts * 1000).toLong())
+                    }
+                }
+            }
+        }
+    }
     private var data: MusicDatabase?= null
     private lateinit var binding: MintyQueueBinding
     private  var historyAdapter: ItemsAdapter?= null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        SpeMintyTools.homeStudy.getShowCyAds(historyInter(),this)
 
         binding = MintyQueueBinding.inflate(layoutInflater)
         setContentView(binding.root)
@@ -168,6 +250,7 @@ class HistoryView : MintyBaseActivity() {
                 bottomSettingChange(it.value)
             }
         }
+        loadSpeNative()
     }
 
     private fun bottomSettingChange(metadata: MediaMetadata?) {

@@ -4,6 +4,9 @@ package com.rapid.prominence.minty.second.search
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.os.Message
 import android.text.TextUtils
 import android.view.KeyEvent
 import android.view.View
@@ -18,19 +21,26 @@ import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.blankj.utilcode.util.LogUtils
+import com.google.android.gms.ads.nativead.NativeAd
 import com.gyf.immersionbar.ImmersionBar
 import com.rapid.prominence.minty.R
 import com.rapid.prominence.minty.base.MintyBaseActivity
 import com.rapid.prominence.minty.bean.ItemsPage
 import com.rapid.prominence.minty.bean.toMediaMetadata
 import com.rapid.prominence.minty.cons.HideExplicitKey
+import com.rapid.prominence.minty.cons.MESSAGE_MSG_CODE
+import com.rapid.prominence.minty.cons.MINTY_APP_APP_REFRESH
+import com.rapid.prominence.minty.cons.NativeWeavesListener
 import com.rapid.prominence.minty.cons.albumDetInter
 import com.rapid.prominence.minty.cons.artistDetInter
+import com.rapid.prominence.minty.cons.searchResultBanner
+import com.rapid.prominence.minty.cons.searchInter
 import com.rapid.prominence.minty.database.InternalDatabase
 import com.rapid.prominence.minty.database.MusicDatabase
 import com.rapid.prominence.minty.database.entities.SearchHistory
 import com.rapid.prominence.minty.databinding.MintySecSearchResBinding
-import com.rapid.prominence.minty.extensions.logClickEvents
+import com.rapid.prominence.minty.extensions.firebaseLog
 import com.rapid.prominence.minty.second.SearchViewAlbumAdapter
 import com.rapid.prominence.minty.second.MintySecAlbumDetailPage
 import com.rapid.prominence.minty.second.SearchViewArtAdapter
@@ -40,6 +50,7 @@ import com.rapid.prominence.minty.second.SpecialVerManager
 import com.rapid.prominence.minty.service.queues.YouTubeQueue.Companion.radio
 import com.rapid.prominence.minty.utils.dataStore
 import com.rapid.prominence.minty.utils.get
+import com.tencent.mmkv.MMKV
 import com.zionhuang.innertube.MintyMusicBe
 import com.zionhuang.innertube.MintyMusicBe.SearchFilter.Companion.FILTER_ALBUM
 import com.zionhuang.innertube.MintyMusicBe.SearchFilter.Companion.FILTER_ARTIST
@@ -52,6 +63,9 @@ import com.zionhuang.innertube.models.filterExplicit
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import media.library.flys.MintyValueStys
+import media.library.flys.tools.SpeMintyTools
+import media.library.flys.tools.EventsAppendTool
 
 
 class MusicSearchActivity : MintyBaseActivity() {
@@ -87,7 +101,78 @@ class MusicSearchActivity : MintyBaseActivity() {
             }
         }
     }
+    private val handler: Handler = object : Handler(Looper.getMainLooper()) {
+        override fun handleMessage(msg: Message) {
+            super.handleMessage(msg)
+            when (msg?.what) {
+                MESSAGE_MSG_CODE -> {
+                    loadSpeNative()
+                }
+            }
+        }
+    }
 
+    override fun onPause() {
+        super.onPause()
+        if (handler?.hasMessages(MESSAGE_MSG_CODE) == true){
+            handler?.removeMessages(MESSAGE_MSG_CODE)
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        handler?.removeCallbacksAndMessages(null)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        loadSpeNative()
+    }
+
+    private fun loadSpeNative() {
+        val normalBan: NativeAd? = SpeMintyTools.homeStudy.showWeaveNatives(
+            searchResultBanner(), this)
+        if (normalBan == null) {
+            if (EventsAppendTool.cyIsShowingFLag) {
+                LogUtils.e("searchResultBanner  ban inter is showing return------")
+                return
+            }
+            if (isFinishing || isDestroyed) {
+                LogUtils.e("searchResultBanner  ban destroy  return------")
+                return
+            }
+            if (EventsAppendTool.posIsCanShow(searchResultBanner())) {
+                LogUtils.e("searchResultBanner  ban limit  return------")
+                return
+            }
+            SpeMintyTools.homeStudy.initLoadBanners(searchResultBanner(),object :
+                NativeWeavesListener {
+                override fun nativeIsWeavesSuc(sucFlag: Boolean) {
+                    if (isFinishing || isDestroyed) {
+                        return
+                    }
+                    if (sucFlag) {
+                        LogUtils.e("searchResultBanner  ban load  suc------")
+                        loadSpeNative()
+                    }
+                }
+            })
+        } else {
+            LogUtils.e("searchResultBanner  ban show  suc------")
+            binding?.mobBans?.let {
+                it.visibility = View.VISIBLE
+                it.setStyles(MintyValueStys.Builder().build())
+                it.setNativeAd(normalBan)
+                if(!EventsAppendTool.posIsCanShow(searchResultBanner())){
+                    val cts = MMKV.defaultMMKV().getInt(MINTY_APP_APP_REFRESH, 0)
+                    if (cts != 0){
+                        handler.removeMessages(MESSAGE_MSG_CODE)
+                        handler.sendEmptyMessageDelayed(MESSAGE_MSG_CODE,(cts * 1000).toLong())
+                    }
+                }
+            }
+        }
+    }
     private fun setVisible(one: View,song: View, album: View, artist: View,view : View) {
         one.visibility = View.VISIBLE
         song.visibility = View.GONE
@@ -180,6 +265,8 @@ class MusicSearchActivity : MintyBaseActivity() {
     }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        SpeMintyTools.homeStudy.getShowCyAds(searchInter(),this)
+
         enableEdgeToEdge()
         binding = MintySecSearchResBinding.inflate(layoutInflater)
         setContentView(binding.root)
@@ -197,7 +284,7 @@ class MusicSearchActivity : MintyBaseActivity() {
         if (!TextUtils.isEmpty(content)){
             binding.tops.searchEditText.setText(content)
             binding.tops.search.post {
-                logClickEvents("search_page_search")
+                firebaseLog("search_page_search")
                 binding.tops.search.performClick()
             }
         }
@@ -231,7 +318,7 @@ class MusicSearchActivity : MintyBaseActivity() {
 
                 // 处理确认事件
                 binding.tops.search.performClick()
-                logClickEvents("search_page_search")
+                firebaseLog("search_page_search")
 
                 // 隐藏软键盘
                 val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
@@ -286,7 +373,7 @@ class MusicSearchActivity : MintyBaseActivity() {
             if (TextUtils.isEmpty(binding.tops.searchEditText.text.toString())){
                 return@setOnClickListener
             }
-            logClickEvents("search_page_search")
+            firebaseLog("search_page_search")
             binding.tops.search.performClick()
         }
 
@@ -505,7 +592,7 @@ class MusicSearchActivity : MintyBaseActivity() {
             if (TextUtils.isEmpty(binding.tops.searchEditText.text.toString())){
                 return@setOnClickListener
             }
-            logClickEvents("search_page_search_songs")
+            firebaseLog("search_page_search_songs")
 
             key = FILTER_SONG.value + binding.tops.searchEditText.text.toString()
             lifecycleScope.launch {
@@ -569,7 +656,7 @@ class MusicSearchActivity : MintyBaseActivity() {
             if (TextUtils.isEmpty(binding.tops.searchEditText.text.toString())){
                 return@setOnClickListener
             }
-            logClickEvents("search_page_search_albums")
+            firebaseLog("search_page_search_albums")
 
             key = FILTER_ALBUM.value + binding.tops.searchEditText.text.toString()
             lifecycleScope.launch {
@@ -632,7 +719,7 @@ class MusicSearchActivity : MintyBaseActivity() {
             if (TextUtils.isEmpty(binding.tops.searchEditText.text.toString())){
                 return@setOnClickListener
             }
-            logClickEvents("search_page_search_artists")
+            firebaseLog("search_page_search_artists")
 
             key = FILTER_ARTIST.value + binding.tops.searchEditText.text.toString()
             lifecycleScope.launch {
@@ -692,7 +779,7 @@ class MusicSearchActivity : MintyBaseActivity() {
             if (TextUtils.isEmpty(binding.tops.searchEditText.text.toString())){
                 return@setOnClickListener
             }
-            logClickEvents("search_page_search_videos")
+            firebaseLog("search_page_search_videos")
 
             key = FILTER_VIDEO.value + binding.tops.searchEditText.text.toString()
             lifecycleScope.launch {
@@ -768,14 +855,14 @@ class MusicSearchActivity : MintyBaseActivity() {
                     return@setOnClickListener
                 }
             }
-            logClickEvents("search_page_search")
+            firebaseLog("search_page_search")
 
             insertSearchHistory()
 
             showAnimations(true)
             viewStateMap.clear()
             //search
-            logClickEvents("search_page_search_artists")
+            firebaseLog("search_page_search_artists")
 
             if (currentType != 0){
                 when (currentType) {
@@ -942,7 +1029,7 @@ class MusicSearchActivity : MintyBaseActivity() {
             emoScan.visibility = View.VISIBLE
             emoScan.setOnClickListener {
 //                Log.e("refresh","refresh")
-                logClickEvents("search_page_refresh_search")
+                firebaseLog("search_page_refresh_search")
                 binding.tops.search.performClick()
             }
             allContainer.visibility = View.GONE

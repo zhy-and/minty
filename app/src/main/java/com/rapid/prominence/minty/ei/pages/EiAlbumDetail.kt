@@ -16,24 +16,72 @@ import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
 import android.text.TextUtils
+import android.view.View
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.blankj.utilcode.util.LogUtils
 import com.blankj.utilcode.util.SizeUtils
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
+import com.google.android.gms.ads.nativead.NativeAd
 import com.rapid.prominence.minty.base.MintyBaseActivity
 import com.rapid.prominence.minty.R
+import com.rapid.prominence.minty.cons.NativeWeavesListener
+import com.rapid.prominence.minty.cons.albumDetBanner
+import com.rapid.prominence.minty.cons.albumDetInter
 import com.rapid.prominence.minty.ei.pages.tabs.TabHome
 import com.rapid.prominence.minty.roundOptions
+import media.library.flys.MintyValueStys
+import media.library.flys.tools.SpeMintyTools
+import media.library.flys.tools.EventsAppendTool
 
 
 class EiAlbumDetail : MintyBaseActivity() {
     private lateinit var binding: MintyEiAlbumDetBinding
 
     private var adapter: TabHome.SongAdapter? = null
+    private fun loadSpeNative() {
+        val normalBan: NativeAd? = SpeMintyTools.homeStudy.showWeaveNatives(
+            albumDetBanner(), this)
+        if (normalBan == null) {
+            if (EventsAppendTool.cyIsShowingFLag) {
+                LogUtils.e("albumDetBanner  ban inter is showing return------")
+                return
+            }
+            if (isFinishing || isDestroyed) {
+                LogUtils.e("albumDetBanner  ban destroy  return------")
+                return
+            }
+            if (EventsAppendTool.posIsCanShow(albumDetBanner())) {
+                LogUtils.e("albumDetBanner  ban limit  return------")
+                return
+            }
+            SpeMintyTools.homeStudy.initLoadBanners(albumDetBanner(),object :
+                NativeWeavesListener {
+                override fun nativeIsWeavesSuc(sucFlag: Boolean) {
+                    if (isFinishing || isDestroyed) {
+                        return
+                    }
+                    if (sucFlag) {
+                        LogUtils.e("albumDetBanner  ban load  suc------")
+                        loadSpeNative()
+                    }
+                }
+            })
+        } else {
+            LogUtils.e("albumDetBanner  ban show  suc------")
+            binding?.mobBans?.let {
+                it.visibility = View.VISIBLE
+                it.setStyles(MintyValueStys.Builder().build())
+                it.setNativeAd(normalBan)
+            }
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        SpeMintyTools.homeStudy.getShowCyAds(albumDetInter(),this)
+
         binding = MintyEiAlbumDetBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
@@ -183,6 +231,7 @@ class EiAlbumDetail : MintyBaseActivity() {
                 bottomSettingChange(it.value)
             }
         }
+        loadSpeNative()
     }
 
 

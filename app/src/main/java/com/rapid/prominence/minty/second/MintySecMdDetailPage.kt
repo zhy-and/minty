@@ -2,6 +2,9 @@ package com.rapid.prominence.minty.second
 
 import android.content.Intent
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.os.Message
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
@@ -17,16 +20,24 @@ import com.zionhuang.innertube.models.SongItem
 import kotlinx.coroutines.launch
 
 import android.widget.*
+import androidx.core.view.isVisible
+import com.blankj.utilcode.util.LogUtils
 import com.blankj.utilcode.util.ToastUtils
 import com.bumptech.glide.Glide
+import com.google.android.gms.ads.nativead.NativeAd
 import com.gyf.immersionbar.ImmersionBar
 import com.rapid.prominence.minty.application.App
 import com.rapid.prominence.minty.R
 import com.rapid.prominence.minty.base.MintyBaseActivity
 import com.rapid.prominence.minty.bean.MediaMetadata
 import com.rapid.prominence.minty.bean.toMediaMetadata
+import com.rapid.prominence.minty.cons.MESSAGE_MSG_CODE
+import com.rapid.prominence.minty.cons.MINTY_APP_APP_REFRESH
+import com.rapid.prominence.minty.cons.NativeWeavesListener
 import com.rapid.prominence.minty.cons.albumDetInter
 import com.rapid.prominence.minty.cons.artistDetInter
+import com.rapid.prominence.minty.cons.homeMoodDetInter
+import com.rapid.prominence.minty.cons.homeMoodDetailBanner
 import com.rapid.prominence.minty.cons.playViewsInter
 import com.rapid.prominence.minty.cons.playlistDetInter
 import com.rapid.prominence.minty.database.InternalDatabase
@@ -44,17 +55,91 @@ import com.zionhuang.innertube.pages.BrowseResult
 import com.rapid.prominence.minty.second.databean.YouTubeBrowseViewModel
 import com.rapid.prominence.minty.service.queues.YouTubeQueue
 import com.rapid.prominence.minty.service.queues.YouTubeQueue.Companion.radio
+import com.tencent.mmkv.MMKV
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
+import media.library.flys.MintyValueStys
+import media.library.flys.tools.SpeMintyTools
+import media.library.flys.tools.EventsAppendTool
 
 class MintySecMdDetailPage : MintyBaseActivity() {
+    private val handler: Handler = object : Handler(Looper.getMainLooper()) {
+        override fun handleMessage(msg: Message) {
+            super.handleMessage(msg)
+            when (msg?.what) {
+                MESSAGE_MSG_CODE -> {
+                    loadSpeNative()
+                }
+            }
+        }
+    }
 
+    override fun onPause() {
+        super.onPause()
+        if (handler?.hasMessages(MESSAGE_MSG_CODE) == true){
+            handler?.removeMessages(MESSAGE_MSG_CODE)
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        handler?.removeCallbacksAndMessages(null)
+    }
+
+
+    private fun loadSpeNative() {
+        val normalBan: NativeAd? = SpeMintyTools.homeStudy.showWeaveNatives(
+            homeMoodDetailBanner(), this)
+        if (normalBan == null) {
+            if (EventsAppendTool.cyIsShowingFLag) {
+                LogUtils.e("homeMoodDetailBanner  ban inter is showing return------")
+                return
+            }
+            if (isFinishing || isDestroyed) {
+                LogUtils.e("homeMoodDetailBanner  ban destroy  return------")
+                return
+            }
+            if (EventsAppendTool.posIsCanShow(homeMoodDetailBanner())) {
+                LogUtils.e("homeMoodDetailBanner  ban limit  return------")
+                return
+            }
+            SpeMintyTools.homeStudy.initLoadBanners(homeMoodDetailBanner(),object :
+                NativeWeavesListener {
+                override fun nativeIsWeavesSuc(sucFlag: Boolean) {
+                    if (isFinishing || isDestroyed) {
+                        return
+                    }
+                    if (sucFlag) {
+                        LogUtils.e("homeMoodDetailBanner  ban load  suc------")
+                        loadSpeNative()
+                    }
+                }
+            })
+        } else {
+            LogUtils.e("homeMoodDetailBanner  ban show  suc------")
+            binding?.mobBans?.let {
+                it.visibility = View.VISIBLE
+                it.setStyles(MintyValueStys.Builder().build())
+                it.setNativeAd(normalBan)
+                if(!EventsAppendTool.posIsCanShow(homeMoodDetailBanner())){
+                    val cts = MMKV.defaultMMKV().getInt(MINTY_APP_APP_REFRESH, 0)
+                    if (cts != 0){
+                        handler.removeMessages(MESSAGE_MSG_CODE)
+                        handler.sendEmptyMessageDelayed(MESSAGE_MSG_CODE,(cts * 1000).toLong())
+                    }
+                }
+            }
+        }
+    }
     private lateinit var binding: MintySecMoodDetailBinding
     private lateinit var newReleaseAlbumsAdapter: YouTubeBrowseAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        SpeMintyTools.homeStudy.getShowCyAds(homeMoodDetInter(),this)
+
+
         binding = MintySecMoodDetailBinding.inflate(layoutInflater)
         setContentView(binding.root)
         ImmersionBar.with(this).transparentStatusBar().titleBar(binding.tops.root).init()
@@ -105,6 +190,26 @@ class MintySecMdDetailPage : MintyBaseActivity() {
                     }
                 }
             }
+            lifecycleScope.launch {
+                try{
+                    albumViewModel?.isError?.collect{
+                        if (it) {
+                            LogUtils.e("error")
+                            if (isFinishing || isDestroyed){
+                                return@collect
+                            }
+                            if (binding?.loadings?.isVisible == true){
+                                binding?.loadings?.visibility = View.GONE
+                                binding?.loadings?.stopShimmerAnimation()
+                            }
+                        }
+                    }
+                }catch (e : Exception){
+                    e.printStackTrace()
+                }
+
+            }
+
             lifecycleScope.launch {
 
                 secPlayConnect?.mediaMetadata?.collect{
@@ -327,6 +432,7 @@ class MintySecMdDetailPage : MintyBaseActivity() {
                 bottomSettingChange(it.value)
             }
         }
+        loadSpeNative()
     }
 
     private fun bottomSettingChange(metadata: MediaMetadata?) {

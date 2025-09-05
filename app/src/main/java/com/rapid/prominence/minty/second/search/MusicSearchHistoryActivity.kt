@@ -4,10 +4,12 @@ package com.rapid.prominence.minty.second.search
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.os.Message
 import android.text.Editable
 import android.text.TextUtils
 import android.text.TextWatcher
-import android.util.Log
 import android.view.KeyEvent
 import android.view.View
 import android.view.inputmethod.EditorInfo
@@ -24,31 +26,113 @@ import com.blankj.utilcode.util.ToastUtils
 import com.google.android.flexbox.FlexDirection
 import com.google.android.flexbox.FlexboxLayoutManager
 import com.google.android.flexbox.JustifyContent
+import com.google.android.gms.ads.nativead.NativeAd
 import com.gyf.immersionbar.ImmersionBar
 import com.rapid.prominence.minty.R
 import com.rapid.prominence.minty.base.MintyBaseActivity
+import com.rapid.prominence.minty.cons.MESSAGE_MSG_CODE
+import com.rapid.prominence.minty.cons.MINTY_APP_APP_REFRESH
+import com.rapid.prominence.minty.cons.NativeWeavesListener
+import com.rapid.prominence.minty.cons.searchHistoryBanner
 import com.rapid.prominence.minty.cons.searchRecordInter
 import com.rapid.prominence.minty.database.InternalDatabase
 import com.rapid.prominence.minty.database.MusicDatabase
 import com.rapid.prominence.minty.databinding.MintySecSearchHisBinding
-import com.rapid.prominence.minty.extensions.logClickEvents
+import com.rapid.prominence.minty.extensions.firebaseLog
 import com.rapid.prominence.minty.second.SearchHisItemAdapter
 import com.rapid.prominence.minty.second.SearchBean
 import com.rapid.prominence.minty.second.SearchSuggestAdapter
 import com.rapid.prominence.minty.second.databean.OnlineSearchSuggestionViewModel
+import com.tencent.mmkv.MMKV
+import media.library.flys.MintyValueStys
+import media.library.flys.tools.SpeMintyTools
+import media.library.flys.tools.EventsAppendTool
 
 
 class MusicSearchHistoryActivity : MintyBaseActivity() {
     private  var searchViewArtAdapter: SearchSuggestAdapter ?= null
     private  var newHistoryList: List<SearchHistory> ?= null
     private var data: MusicDatabase?= null
+    private val handler: Handler = object : Handler(Looper.getMainLooper()) {
+        override fun handleMessage(msg: Message) {
+            super.handleMessage(msg)
+            when (msg?.what) {
+                MESSAGE_MSG_CODE -> {
+                    loadSpeNative()
+                }
+            }
+        }
+    }
 
+    override fun onResume() {
+        super.onResume()
+        loadSpeNative()
+    }
+    override fun onPause() {
+        super.onPause()
+        if (handler?.hasMessages(MESSAGE_MSG_CODE) == true){
+            handler?.removeMessages(MESSAGE_MSG_CODE)
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        handler?.removeCallbacksAndMessages(null)
+    }
+
+
+    private fun loadSpeNative() {
+        val normalBan: NativeAd? = SpeMintyTools.homeStudy.showWeaveNatives(
+            searchHistoryBanner(), this)
+        if (normalBan == null) {
+            if (EventsAppendTool.cyIsShowingFLag) {
+                LogUtils.e("searchHistoryBanner  ban inter is showing return------")
+                return
+            }
+            if (isFinishing || isDestroyed) {
+                LogUtils.e("searchHistoryBanner  ban destroy  return------")
+                return
+            }
+            if (EventsAppendTool.posIsCanShow(searchHistoryBanner())) {
+                LogUtils.e("searchHistoryBanner  ban limit  return------")
+                return
+            }
+            SpeMintyTools.homeStudy.initLoadBanners(searchHistoryBanner(),object :
+                NativeWeavesListener {
+                override fun nativeIsWeavesSuc(sucFlag: Boolean) {
+                    if (isFinishing || isDestroyed) {
+                        return
+                    }
+                    if (sucFlag) {
+                        LogUtils.e("searchHistoryBanner  ban load  suc------")
+                        loadSpeNative()
+                    }
+                }
+            })
+        } else {
+            LogUtils.e("searchHistoryBanner  ban show  suc------")
+            binding?.mobBans?.let {
+                it.visibility = View.VISIBLE
+                it.setStyles(MintyValueStys.Builder().build())
+                it.setNativeAd(normalBan)
+                if(!EventsAppendTool.posIsCanShow(searchHistoryBanner())){
+                    val cts = MMKV.defaultMMKV().getInt(MINTY_APP_APP_REFRESH, 0)
+                    if (cts != 0){
+                        handler.removeMessages(MESSAGE_MSG_CODE)
+                        handler.sendEmptyMessageDelayed(MESSAGE_MSG_CODE,(cts * 1000).toLong())
+                    }
+                }
+            }
+        }
+    }
 
     private lateinit var binding: MintySecSearchHisBinding
 
     var isFirst = false
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        SpeMintyTools.homeStudy.getShowCyAds(searchRecordInter(),this)
+        
         enableEdgeToEdge()
         binding = MintySecSearchHisBinding.inflate(layoutInflater)
         setContentView(binding.root)
@@ -201,7 +285,7 @@ class MusicSearchHistoryActivity : MintyBaseActivity() {
             ToastUtils.showShort("Please input content")
             return
         }
-        logClickEvents("search_enter_to_search")
+        firebaseLog("search_enter_to_search")
         startInterActivity(Intent(this@MusicSearchHistoryActivity, MusicSearchActivity::class.java).apply {
             putExtra("search_txt",binding.tops.searchEditText.text.toString())
         }, searchRecordInter(),true)

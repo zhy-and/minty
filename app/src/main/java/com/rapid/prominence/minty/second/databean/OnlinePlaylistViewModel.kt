@@ -16,6 +16,7 @@ class OnlinePlaylistViewModel  constructor(
 ) : ViewModel() {
 
     val playlist = MutableStateFlow<PlaylistItem?>(null)
+    val isError = MutableStateFlow(false)
     val playlistSongs = MutableStateFlow<List<SongItem>>(emptyList())
 
     init {
@@ -25,6 +26,7 @@ class OnlinePlaylistViewModel  constructor(
                     playlist.value = playlistPage.playlist
                     playlistSongs.value = playlistPage.songs
                 }.onFailure {
+                    isError.value = true
                     reportException(it)
                 }
         }

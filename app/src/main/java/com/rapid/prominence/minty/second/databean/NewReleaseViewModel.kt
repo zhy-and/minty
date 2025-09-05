@@ -26,6 +26,7 @@ class NewReleaseViewModel @Inject constructor(
 ) : ViewModel() {
     private val _newReleaseAlbums = MutableStateFlow<List<AlbumItem>>(emptyList())
     val newReleaseAlbums = _newReleaseAlbums.asStateFlow()
+    val isError = MutableStateFlow(false)
 
     init {
         viewModelScope.launch {
@@ -47,6 +48,7 @@ class NewReleaseViewModel @Inject constructor(
                     }
                     .filterExplicit(context.dataStore.get(HideExplicitKey, false))
             }.onFailure {
+                isError.value = true
                 reportException(it)
             }
         }

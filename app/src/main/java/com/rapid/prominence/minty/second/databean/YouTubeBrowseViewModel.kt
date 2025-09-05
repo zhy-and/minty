@@ -21,12 +21,13 @@ class YouTubeBrowseViewModel @Inject constructor(
 ) : ViewModel() {
 
     val result = MutableStateFlow<BrowseResult?>(null)
-
+    val isError = MutableStateFlow(false)
     init {
         viewModelScope.launch {
             MintyMusicBe.browse(browseId, params).onSuccess {
                 result.value = it.filterExplicit(context.dataStore.get(HideExplicitKey, false))
             }.onFailure {
+                isError.value = true
                 reportException(it)
             }
         }

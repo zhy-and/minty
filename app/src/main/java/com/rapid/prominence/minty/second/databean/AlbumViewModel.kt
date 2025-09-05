@@ -23,7 +23,7 @@ class AlbumViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
     val otherVersions = MutableStateFlow<List<AlbumItem>>(emptyList())
     val songLists = MutableStateFlow<List<SongItem>>(emptyList())
-
+    val isError = MutableStateFlow(false)
     init {
         viewModelScope.launch {
             val album = database.album(albumId).first()
@@ -37,6 +37,7 @@ class AlbumViewModel @Inject constructor(
                 songLists.value = it.songs
                 otherVersions.value = it.otherVersions
             }.onFailure {
+                isError.value = true
                 reportException(it)
                 if (it.message?.contains("NOT_FOUND") == true) {
                     // This album no longer exists in YouTube Music

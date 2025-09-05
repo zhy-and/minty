@@ -3,6 +3,9 @@ package com.rapid.prominence.minty.second
 
 import android.content.Intent
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.os.Message
 import android.text.TextUtils
 import android.view.Gravity
 import android.view.LayoutInflater
@@ -18,9 +21,11 @@ import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.blankj.utilcode.util.LogUtils
 import com.blankj.utilcode.util.ToastUtils
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
+import com.google.android.gms.ads.nativead.NativeAd
 import com.gyf.immersionbar.ImmersionBar
 import com.rapid.prominence.minty.application.App
 import com.rapid.prominence.minty.R
@@ -30,7 +35,11 @@ import com.rapid.prominence.minty.artOptions3
 import com.rapid.prominence.minty.base.MintyBaseActivity
 import com.rapid.prominence.minty.bean.MediaMetadata
 import com.rapid.prominence.minty.bean.toMediaMetadata
+import com.rapid.prominence.minty.cons.MESSAGE_MSG_CODE
+import com.rapid.prominence.minty.cons.MINTY_APP_APP_REFRESH
+import com.rapid.prominence.minty.cons.NativeWeavesListener
 import com.rapid.prominence.minty.cons.albumDetInter
+import com.rapid.prominence.minty.cons.artistDetBanner
 import com.rapid.prominence.minty.cons.artistDetInter
 import com.rapid.prominence.minty.cons.playlistDetInter
 import com.rapid.prominence.minty.cons.projectDetInter
@@ -40,7 +49,7 @@ import com.rapid.prominence.minty.database.entities.SongEntity
 import com.rapid.prominence.minty.databinding.MintySecArtPageBinding
 import com.rapid.prominence.minty.ei.dialog.showDialogs
 import com.rapid.prominence.minty.extensions.currentMetadata
-import com.rapid.prominence.minty.extensions.logClickEvents
+import com.rapid.prominence.minty.extensions.firebaseLog
 import com.rapid.prominence.minty.extensions.toMediaItem
 import com.rapid.prominence.minty.randomBitmap
 import com.rapid.prominence.minty.second.view.MintySecMainPage.Companion.secPlayConnect
@@ -48,12 +57,16 @@ import com.rapid.prominence.minty.second.databean.ArtistViewModel
 import com.rapid.prominence.minty.service.queues.YouTubeQueue
 import com.rapid.prominence.minty.service.queues.YouTubeQueue.Companion.radio
 import com.rapid.prominence.minty.utils.joinByBullet
+import com.tencent.mmkv.MMKV
 import com.zionhuang.innertube.models.*
 import com.zionhuang.innertube.pages.ArtistSection
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import media.library.flys.MintyValueStys
+import media.library.flys.tools.SpeMintyTools
+import media.library.flys.tools.EventsAppendTool
 
 
 class MintySecArtistDetailPage : MintyBaseActivity() {
@@ -64,6 +77,8 @@ class MintySecArtistDetailPage : MintyBaseActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        SpeMintyTools.homeStudy.getShowCyAds(artistDetInter(),this)
+
         binding = MintySecArtPageBinding.inflate(layoutInflater)
         setContentView(binding.root)
         enableEdgeToEdge()
@@ -107,7 +122,7 @@ class MintySecArtistDetailPage : MintyBaseActivity() {
                 binding.specAnm.startShimmerAnimation()
             }
             binding.playBtns.setOnClickListener {
-                logClickEvents("artist_det_play_btn")
+                firebaseLog("artist_det_play_btn")
 
                 queue?.let {
                     startPlayerPage()
@@ -212,7 +227,7 @@ class MintySecArtistDetailPage : MintyBaseActivity() {
                             putExtra("params",it.params)
                             putExtra("title",section.title)
                         }, projectDetInter(),false)
-                        logClickEvents("art_det_to_item_detail")
+                        firebaseLog("art_det_to_item_detail")
 
                     }
                 }
@@ -472,10 +487,78 @@ class MintySecArtistDetailPage : MintyBaseActivity() {
                 bottomSettingChange(it.value)
             }
         }
+        loadSpeNative()
     }
 
 
+    private val handler: Handler = object : Handler(Looper.getMainLooper()) {
+        override fun handleMessage(msg: Message) {
+            super.handleMessage(msg)
+            when (msg?.what) {
+                MESSAGE_MSG_CODE -> {
+                    loadSpeNative()
+                }
+            }
+        }
+    }
 
+    override fun onPause() {
+        super.onPause()
+        if (handler?.hasMessages(MESSAGE_MSG_CODE) == true){
+            handler?.removeMessages(MESSAGE_MSG_CODE)
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        handler?.removeCallbacksAndMessages(null)
+    }
+
+
+    private fun loadSpeNative() {
+        val normalBan: NativeAd? = SpeMintyTools.homeStudy.showWeaveNatives(
+            artistDetBanner(), this)
+        if (normalBan == null) {
+            if (EventsAppendTool.cyIsShowingFLag) {
+                LogUtils.e("artistDetBanner  ban inter is showing return------")
+                return
+            }
+            if (isFinishing || isDestroyed) {
+                LogUtils.e("artistDetBanner  ban destroy  return------")
+                return
+            }
+            if (EventsAppendTool.posIsCanShow(artistDetBanner())) {
+                LogUtils.e("artistDetBanner  ban limit  return------")
+                return
+            }
+            SpeMintyTools.homeStudy.initLoadBanners(artistDetBanner(),object :
+                NativeWeavesListener {
+                override fun nativeIsWeavesSuc(sucFlag: Boolean) {
+                    if (isFinishing || isDestroyed) {
+                        return
+                    }
+                    if (sucFlag) {
+                        LogUtils.e("artistDetBanner  ban load  suc------")
+                        loadSpeNative()
+                    }
+                }
+            })
+        } else {
+            LogUtils.e("artistDetBanner  ban show  suc------")
+            binding?.mobBans?.let {
+                it.visibility = View.VISIBLE
+                it.setStyles(MintyValueStys.Builder().build())
+                it.setNativeAd(normalBan)
+                if(!EventsAppendTool.posIsCanShow(artistDetBanner())){
+                    val cts = MMKV.defaultMMKV().getInt(MINTY_APP_APP_REFRESH, 0)
+                    if (cts != 0){
+                        handler.removeMessages(MESSAGE_MSG_CODE)
+                        handler.sendEmptyMessageDelayed(MESSAGE_MSG_CODE,(cts * 1000).toLong())
+                    }
+                }
+            }
+        }
+    }
 
 
 
