@@ -24,8 +24,13 @@ import com.blankj.utilcode.util.AppUtils
 import com.blankj.utilcode.util.LogUtils
 import com.blankj.utilcode.util.ThreadUtils
 import com.blankj.utilcode.util.Utils
+import com.bytedance.sdk.openadsdk.api.PAGConstant
+import com.google.ads.mediation.pangle.PangleMediationAdapter
 import com.google.android.gms.ads.MobileAds
+import com.google.android.gms.ads.RequestConfiguration
 import com.google.android.gms.ads.identifier.AdvertisingIdClient
+import com.mbridge.msdk.MBridgeConstans
+import com.mbridge.msdk.out.MBridgeSDKFactory
 import com.rapid.prominence.minty.BuildConfig
 import com.rapid.prominence.minty.R
 import com.rapid.prominence.minty.cons.ContentCountryKey
@@ -54,6 +59,7 @@ import com.rapid.prominence.minty.utils.dataStore
 import com.rapid.prominence.minty.utils.get
 import com.rapid.prominence.minty.view.AppStart
 import com.tencent.mmkv.MMKV
+import com.unity3d.ads.metadata.MetaData
 import com.zionhuang.innertube.MintyMusicBe
 import com.zionhuang.innertube.models.YouTubeLocale
 import dagger.hilt.android.HiltAndroidApp
@@ -72,6 +78,7 @@ import media.library.flys.tools.EventsAppendTool.lauchFlag
 import media.library.manager.MintyWorkQueue
 import timber.log.Timber
 import java.net.Proxy
+import java.util.Arrays
 import java.util.Locale
 import java.util.UUID
 
@@ -133,6 +140,9 @@ class App : Application(), ImageLoaderFactory {
         )
         .build()
     private fun initManager() {
+//        //todo
+//        var config = RequestConfiguration.Builder().setTestDeviceIds(Arrays.asList("BE7678159E1EF50B7E22B167D305D6F2")).build()
+//        MobileAds.setRequestConfiguration(config)
         MobileAds.initialize(this)
         MintyWorkQueue.get().initNetWork()
         initReferInfos()
@@ -158,6 +168,9 @@ class App : Application(), ImageLoaderFactory {
                         val media_source = conversionDataMap["media_source"] as String?
                         if (!TextUtils.isEmpty(media_source)){
                             if (media_source?.contains("facebook",true) == true){
+                                MMKV.defaultMMKV().putBoolean(MINTY_APP_IS_M_USER,true)
+                            }
+                            if (media_source?.contains("googleadwords_int",true) == true || media_source?.contains("google",true) == true){
                                 MMKV.defaultMMKV().putBoolean(MINTY_APP_IS_M_USER,true)
                             }
                         }
@@ -211,7 +224,12 @@ class App : Application(), ImageLoaderFactory {
                                         }else if (referrerUrl.contains("instagram")){
                                             MMKV.defaultMMKV().putBoolean(MINTY_APP_IS_M_USER,true)
                                             MMKV.defaultMMKV().putString(MINTY_APP_GOOGLE_REFER_SOURCE,"instagram")
-                                        }else{
+                                        }
+                                        else if (referrerUrl.contains("gclid")){
+                                            MMKV.defaultMMKV().putBoolean(MINTY_APP_IS_M_USER,true)
+                                            MMKV.defaultMMKV().putString(MINTY_APP_GOOGLE_REFER_SOURCE,"gclid")
+                                        }
+                                        else{
                                             MMKV.defaultMMKV().putString(MINTY_APP_GOOGLE_REFER_SOURCE,"other")
                                         }
                                         referrerClient?.endConnection()
@@ -371,6 +389,10 @@ class App : Application(), ImageLoaderFactory {
         if (BuildConfig.DEBUG){
             Timber.plant(Timber.DebugTree())
         }
+        val gdprMetaData = MetaData(this)
+        gdprMetaData["gdpr.consent"] = true
+        gdprMetaData.commit()
+         MBridgeSDKFactory.getMBridgeSDK().setConsentStatus(this, MBridgeConstans.IS_SWITCH_ON)
         initManager()
         val locale = Locale.getDefault()
         val languageTag = locale.toLanguageTag().replace("-Hant", "") // replace zh-Hant-* to zh-*

@@ -10,6 +10,7 @@ import com.google.android.gms.ads.AdLoader
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.FullScreenContentCallback
 import com.google.android.gms.ads.LoadAdError
+import com.google.android.gms.ads.MobileAds
 import com.google.android.gms.ads.interstitial.InterstitialAd
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
 import com.google.android.gms.ads.nativead.NativeAd
@@ -34,15 +35,18 @@ import com.rapid.prominence.minty.cons.albumDetInter
 import com.rapid.prominence.minty.cons.artistDetBanner
 import com.rapid.prominence.minty.cons.artistDetInter
 import com.rapid.prominence.minty.cons.collectBanner
+import com.rapid.prominence.minty.cons.collectInter
 import com.rapid.prominence.minty.cons.finishPageInterFor
 import com.rapid.prominence.minty.cons.finishPageInterOne
 import com.rapid.prominence.minty.cons.finishPageInterThr
 import com.rapid.prominence.minty.cons.finishPageInterTwo
+import com.rapid.prominence.minty.cons.historyInter
 import com.rapid.prominence.minty.cons.homeBanner
 import com.rapid.prominence.minty.cons.musColdStart
 import com.rapid.prominence.minty.cons.musHotStart
 import com.rapid.prominence.minty.cons.playViewBanner
 import com.rapid.prominence.minty.cons.playViewsInter
+import com.rapid.prominence.minty.cons.queueInter
 import com.rapid.prominence.minty.cons.queueListBanner
 import com.rapid.prominence.minty.cons.searchInter
 import com.rapid.prominence.minty.cons.searchRecordInter
@@ -144,6 +148,8 @@ class SpeMintyTools {
                     override fun onAdLoaded(interstitialAd: InterstitialAd) {
                         // The mInterstitialAd reference will be null until
                         // an ad is loaded.
+                        LogUtils.d("inter Adapter class name:" + interstitialAd.responseInfo?.toString())
+
                         LogUtils.e(
                             "inter ad load suc =====" + EventsAppendTool.basicInfoLog(
                                 interPos
@@ -158,10 +164,14 @@ class SpeMintyTools {
 
                     override fun onAdFailedToLoad(loadAdError: LoadAdError) {
                         // Handle the error
+//                        //todo
+//                        MobileAds.openAdInspector(App.instance!!) { error ->
+//                            // Error will be non-null if ad inspector closed due to an error.
+//                        }
                         LogUtils.e(
                             "inter ad load error =====" + EventsAppendTool.basicInfoLog(
                                 interPos
-                            ) + ""
+                            ) + loadAdError.toString()
                         )
                         notifyCySts(false)
                         tperklyTranslateIntersLis?.interIsWeavesSuc(false)
@@ -381,6 +391,10 @@ class SpeMintyTools {
             }
 
             override fun onAdImpression() {
+//                //todo
+//                MobileAds.openAdInspector(App.instance!!) { error ->
+//                    // Error will be non-null if ad inspector closed due to an error.
+//                }
                 // Called when an impression is recorded for an ad.
             }
 
@@ -438,6 +452,7 @@ class SpeMintyTools {
                    -> {
                        if (!TextUtils.isEmpty(it.qwaqzg)) {
                            musKpIds = it.qwaqzg
+//                           musKpIds = "ca-app-pub-7939871296303059/9205873615"
                        }
                    }
 
@@ -446,17 +461,19 @@ class SpeMintyTools {
 
                    -> {
                        if (!TextUtils.isEmpty(it.qwaqzg)) {
-                            banWeavesIds = it.qwaqzg
+                                 banWeavesIds = it.qwaqzg
+//                            banWeavesIds = "ca-app-pub-7939871296303059/8193709695"
 
                        }
                    }
 
                    searchInter(),  searchRecordInter(), albumDetInter(),artistDetInter(),
-                    playViewsInter(), finishPageInterOne(), finishPageInterTwo()
+                    playViewsInter(), finishPageInterOne(), finishPageInterTwo(), historyInter(),collectInter(), queueInter()
                    -> {
                        if (!TextUtils.isEmpty(it.qwaqzg)) {
 
-                            interWeavesId = it.qwaqzg
+                                interWeavesId = it.qwaqzg
+//                            interWeavesId = "ca-app-pub-7939871296303059/8028523315"
 
                        }
 
@@ -515,6 +532,8 @@ class SpeMintyTools {
             val context = App.instance ?: return
             val loader = AdLoader.Builder(context, unitVoxyId)
                 .forNativeAd { nativeAd ->
+
+                    LogUtils.d("Banner Adapter class name:" + nativeAd.responseInfo?.toString())
                     nativeAd.setOnPaidEventListener {
                         valueUpload(it,"Native",unitVoxyId,postion)
                     }
@@ -544,8 +563,12 @@ class SpeMintyTools {
                         LogUtils.e(
                             "native  onAdFailedToLoad ------" + EventsAppendTool.basicInfoLog(
                                 postion
-                            )
+                            )+adError.toString()
                         )
+//                        //todo
+//                        MobileAds.openAdInspector(App.instance!!) { error ->
+//                            // Error will be non-null if ad inspector closed due to an error.
+//                        }
                         notifyNative(mintyConfigicNatPools,false)
                         resultAdLoadBack?.nativeIsWeavesSuc(false)
                     }
@@ -576,6 +599,10 @@ class SpeMintyTools {
 
                     override fun onAdImpression() {
                         try {
+//                            //todo
+//                            MobileAds.openAdInspector(context) { error ->
+//                                // Error will be non-null if ad inspector closed due to an error.
+//                            }
                             if (currentPos.toInt() != -1) {
                                 postion = currentPos
                             }

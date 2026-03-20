@@ -8,6 +8,7 @@ import com.google.android.gms.ads.appopen.AppOpenAd
 import android.text.TextUtils
 import com.blankj.utilcode.util.LogUtils
 import com.google.android.gms.ads.AdError
+import com.google.android.gms.ads.MobileAds
 import com.rapid.prominence.minty.application.App
 import com.rapid.prominence.minty.base.MintyBaseActivity
 import com.rapid.prominence.minty.cons.ShowListener
@@ -71,6 +72,8 @@ class KepingValueTools{
                  * @param ad the loaded app open ad.
                  */
                 override fun onAdLoaded(ad: AppOpenAd) {
+                    LogUtils.d("kp Adapter class name:" + ad.responseInfo?.toString())
+
                     intellObj = ad
                     startIsLoading = false
                     startTimes = Date().time
@@ -86,7 +89,7 @@ class KepingValueTools{
                 override fun onAdFailedToLoad(loadAdError: LoadAdError) {
                     startIsLoading = false
                     upListener?.LoadedError()
-                    LogUtils.d("AppOpenAdLoadCallback onAdFailedToLoad: " + loadAdError.message)
+                    LogUtils.d("AppOpenAdLoadCallback onAdFailedToLoad: " + loadAdError.toString())
                 }
             }
         )
@@ -203,6 +206,10 @@ class KepingValueTools{
 
                 /** Called when fullscreen content is shown. */
                 override fun onAdShowedFullScreenContent() {
+                    //todo
+//                    MobileAds.openAdInspector(context) { error ->
+//                        // Error will be non-null if ad inspector closed due to an error.
+//                    }
                     LogUtils.d("onAdShowedFullScreenContent.")
                     listener?.dispathError()
                     EventsAppendTool.showCountAdd(pos)

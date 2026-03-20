@@ -122,6 +122,8 @@
             android:name="com.google.firebase.messaging.default_notification_color"
             android:resource="@color/black" />
         <meta-data android:name="com.facebook.sdk.ApplicationId" android:value="@string/facebook_app_id"/>
+        <!-- 配置 Client Token -->
+        <meta-data android:name="com.facebook.sdk.ClientToken" android:value="@string/facebook_client_token"/>
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
             android:value="ca-app-pub-7939871296303059~3051610024"/>

@@ -1,13 +1,13 @@
 [versions]
 androidGradlePlugin = "8.6.0"
 json = "20240303"
-kotlin = "2.0.10"
+kotlin = "2.1.0"
 lifecycle = "2.8.4"
 media3 = "1.4.1"
 room = "2.6.1"
-hilt = "2.51.1"
+hilt = "2.55"
 ktor = "2.3.12"
-ksp = "2.0.10-1.0.24"
+ksp = "2.1.0-1.0.29"
 
 
 [libraries]

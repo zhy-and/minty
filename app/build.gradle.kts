@@ -15,15 +15,15 @@ android {
         applicationId = "com.rapid.prominence.minty"
         minSdk = 24
         targetSdk = 35
-        versionCode = 3
-        versionName = "1.0.2"
+        versionCode = 4
+        versionName = "1.0.3"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
         release {
             isMinifyEnabled = true
-            isShrinkResources = true
+//            isShrinkResources = true
             isCrunchPngs = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
@@ -100,7 +100,7 @@ dependencies {
 
     coreLibraryDesugaring(libs.desugaring)
     implementation ("com.google.android.ump:user-messaging-platform:2.2.0")
-    implementation("com.google.android.gms:play-services-ads:22.4.0")
+    implementation("com.google.android.gms:play-services-ads:25.0.0")
     implementation ("com.squareup.okhttp3:okhttp:4.10.0")
     implementation ("org.greenrobot:eventbus:3.3.1")
     implementation ("com.android.installreferrer:installreferrer:2.2")
@@ -108,7 +108,7 @@ dependencies {
     implementation ("com.appsflyer:af-android-sdk:6.16.2")
     implementation ("com.google.firebase:firebase-analytics")
     implementation ("com.google.firebase:firebase-crashlytics")
-    implementation ("com.facebook.android:facebook-android-sdk:11.3.0")
+    implementation ("com.facebook.android:facebook-android-sdk:latest.release")
     implementation("androidx.appcompat:appcompat:1.6.1")
     implementation("com.google.android.material:material:1.9.0")
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
@@ -122,5 +122,12 @@ dependencies {
     implementation ("com.github.zhpanvip:bannerviewpager:3.5.12")
 
     implementation  ("com.google.firebase:firebase-messaging")
+
+    implementation("com.google.ads.mediation:facebook:6.21.0.1")
+    implementation("com.google.ads.mediation:mintegral:17.0.91.0")
+    implementation("com.google.ads.mediation:pangle:7.9.1.1.0")
+    implementation("com.unity3d.ads:unity-ads:4.16.5")
+    implementation("com.google.ads.mediation:unity:4.16.6.0")
+
 
 }

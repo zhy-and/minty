@@ -9,6 +9,8 @@ import static media.library.manager.MintyApi.commonKys;
 import static media.library.manager.MintyApi.commonUniIds;
 
 import com.appsflyer.AFAdRevenueData;
+import com.appsflyer.AFInAppEventParameterName;
+import com.appsflyer.AFInAppEventType;
 import com.appsflyer.AdRevenueScheme;
 import com.appsflyer.AppsFlyerLib;
 import com.appsflyer.MediationNetwork;
@@ -136,14 +138,23 @@ public class MintyStuTools {
     }
 
     private static void initAFEvents(AdValue adValue, String adId, String adType) {
+        double adValuesDou = new BigDecimal(String.valueOf(adValue.getValueMicros())).divide(new BigDecimal(1000000.0)).doubleValue();
         AppsFlyerLib appsflyer = AppsFlyerLib.getInstance();
 //
+
+        Map<String, Object> eventValues = new HashMap<>();
+        eventValues.put(AFInAppEventParameterName.CURRENCY,adValue.getCurrencyCode());
+        eventValues.put(AFInAppEventParameterName.REVENUE, adValuesDou);
+        appsflyer.logEvent(App.instance, AFInAppEventType.PURCHASE,eventValues);
+
+
+
 //// Create an instance of AFAdRevenueData
         AFAdRevenueData adRevenueData = new AFAdRevenueData(
                 "admob",       // monetizationNetwork
                 MediationNetwork.GOOGLE_ADMOB, // mediationNetwork
-                "USD",           // currencyIso4217Code
-              new BigDecimal(String.valueOf(adValue.getValueMicros())).divide(new BigDecimal(1000000.0)).doubleValue()          // revenue
+                "USD",adValuesDou           // currencyIso4217Code
+                      // revenue
         );
 
         Map<String, Object> additionalParameters = new HashMap<>();

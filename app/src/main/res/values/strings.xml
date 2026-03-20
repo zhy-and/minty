@@ -32,6 +32,7 @@
     <string name="minty_d">74856873</string>
     <string name="minty_ser">https://gofh.mintymu.com</string>
     <string name="facebook_app_id">786486600503542</string>
+    <string name="facebook_client_token">a76d9c5185eb4a52b1a635ae6f142c6b</string>
     <string name="error_no_stream">No stream available</string>
     <string name="error_no_internet">No network connection</string>
     <string name="error_timeout">Timeout</string>
