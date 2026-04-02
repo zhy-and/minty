@@ -22,6 +22,7 @@ import com.rapid.prominence.minty.cons.playListDetBanner
 import com.rapid.prominence.minty.cons.playlistDetInter
 import com.rapid.prominence.minty.databinding.MintySecAlbumPageBinding
 import com.rapid.prominence.minty.extensions.currentMetadata
+import com.rapid.prominence.minty.extensions.firebaseLog
 import com.rapid.prominence.minty.roundOptions2
 import com.rapid.prominence.minty.second.view.MintySecMainPage.Companion.secPlayConnect
 import com.rapid.prominence.minty.second.databean.OnlinePlaylistViewModel
@@ -152,6 +153,7 @@ class MintySecPyDetailView : MintyBaseActivity() {
             }
         }
         binding.playBtns.setOnClickListener {
+            firebaseLog("playlist_det_play_btn")
             playList?.let {
                 secPlayConnect?.playQueue(YouTubeQueue(it))
                 startPlayerPage()

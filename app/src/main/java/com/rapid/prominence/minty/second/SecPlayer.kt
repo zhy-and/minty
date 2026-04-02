@@ -116,10 +116,10 @@ class SecPlayer : MintyBaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         SpeMintyTools.homeStudy.getShowCyAds(playViewsInter(),this)
-
         binding = MintyEiPlaysBinding.inflate(layoutInflater)
         setContentView(binding.root)
         try {
+            firebaseLog("event_bp")
             if (secPlayConnect == null || secPlayConnect?.mediaMetadata == null || secPlayConnect?.mediaMetadata?.value == null){
                 binding.allImg.visibility = View.VISIBLE
             }else{

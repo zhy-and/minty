@@ -1,7 +1,6 @@
 package com.zionhuang.innertube
 
-import com.zionhuang.innertube.encoder.brotli
-import com.zionhuang.innertube.models.Context
+import com.zionhuang.innertube.models.body.Context
 import com.zionhuang.innertube.models.YouTubeClient
 import com.zionhuang.innertube.models.YouTubeLocale
 import com.zionhuang.innertube.models.body.*
@@ -32,7 +31,8 @@ class InStudio {
         gl = Locale.getDefault().country,
         hl = Locale.getDefault().toLanguageTag()
     )
-    var visitorData: String = "CgtsZG1ySnZiQWtSbyiMjuGSBg%3D%3D"
+    var visitorData: String? = null
+    var dataSyncId: String? = null
     var cookie: String? = null
         set(value) {
             field = value
@@ -62,7 +62,6 @@ class InStudio {
         }
 
         install(ContentEncoding) {
-            brotli(1.0F)
             gzip(0.9F)
             deflate(0.8F)
         }
@@ -74,7 +73,7 @@ class InStudio {
         }
 
         defaultRequest {
-            url("https://music.youtube.com/youtubei/v1/")
+            url(YouTubeClient.API_URL_YOUTUBE_MUSIC)
         }
     }
 
@@ -82,24 +81,21 @@ class InStudio {
         contentType(ContentType.Application.Json)
         headers {
             append("X-Goog-Api-Format-Version", "1")
-            append("X-YouTube-Client-Name", client.clientName)
+            append("X-YouTube-Client-Name", client.clientId /* Not a typo. The Client-Name header does contain the client id. */)
             append("X-YouTube-Client-Version", client.clientVersion)
-            append("x-origin", "https://music.youtube.com")
-            if (client.referer != null) {
-                append("Referer", client.referer)
-            }
-            if (setLogin) {
+            append("X-Origin", YouTubeClient.ORIGIN_YOUTUBE_MUSIC)
+            append("Referer", YouTubeClient.REFERER_YOUTUBE_MUSIC)
+            if (setLogin && client.loginSupported) {
                 cookie?.let { cookie ->
                     append("cookie", cookie)
                     if ("SAPISID" !in cookieMap) return@let
                     val currentTime = System.currentTimeMillis() / 1000
-                    val sapisidHash = sha1("$currentTime ${cookieMap["SAPISID"]} https://music.youtube.com")
+                    val sapisidHash = sha1("$currentTime ${cookieMap["SAPISID"]} ${YouTubeClient.ORIGIN_YOUTUBE_MUSIC}")
                     append("Authorization", "SAPISIDHASH ${currentTime}_${sapisidHash}")
                 }
             }
         }
         userAgent(client.userAgent)
-        parameter("key", client.api_key)
         parameter("prettyPrint", false)
     }
 
@@ -112,7 +108,11 @@ class InStudio {
         ytClient(client, setLogin = useLoginForBrowse)
         setBody(
             SearchBody(
-                context = client.toContext(locale, visitorData),
+                context = client.toContext(
+                    locale,
+                    visitorData,
+                    if (useLoginForBrowse) dataSyncId else null
+                ),
                 query = query,
                 params = params
             )
@@ -121,16 +121,19 @@ class InStudio {
         parameter("ctoken", continuation)
     }
 
+
     suspend fun player(
         client: YouTubeClient,
         videoId: String,
         playlistId: String?,
+        signatureTimestamp: Int?,
+        webPlayerPot: String?,
     ) = httpClient.post("player") {
         ytClient(client, setLogin = true)
         setBody(
             PlayerBody(
-                context = client.toContext(locale, visitorData).let {
-                    if (client == YouTubeClient.TVHTML5) {
+                context = client.toContext(locale, visitorData, dataSyncId).let {
+                    if (client.isEmbedded) {
                         it.copy(
                             thirdParty = Context.ThirdParty(
                                 embedUrl = "https://www.youtube.com/watch?v=${videoId}"
@@ -139,15 +142,23 @@ class InStudio {
                     } else it
                 },
                 videoId = videoId,
-                playlistId = playlistId
+                playlistId = playlistId,
+                playbackContext = if (client.useSignatureTimestamp && signatureTimestamp != null) {
+                    PlayerBody.PlaybackContext(
+                        PlayerBody.PlaybackContext.ContentPlaybackContext(
+                            signatureTimestamp
+                        )
+                    )
+                } else null,
+                serviceIntegrityDimensions = if (client.useWebPoTokens && webPlayerPot != null) {
+                    PlayerBody.ServiceIntegrityDimensions(webPlayerPot)
+                } else null
             )
         )
     }
 
-    suspend fun pipedStreams(videoId: String) =
-        httpClient.get("https://pipedapi.kavin.rocks/streams/${videoId}") {
-            contentType(ContentType.Application.Json)
-        }
+
+
 
     suspend fun browse(
         client: YouTubeClient,
@@ -159,16 +170,16 @@ class InStudio {
         ytClient(client, setLogin = setLogin || useLoginForBrowse)
         setBody(
             BrowseBody(
-                context = client.toContext(locale, visitorData),
+                context = client.toContext(
+                    locale,
+                    visitorData,
+                    if (setLogin || useLoginForBrowse) dataSyncId else null
+                ),
                 browseId = browseId,
-                params = params
+                params = params,
+                continuation = continuation
             )
         )
-        parameter("continuation", continuation)
-        parameter("ctoken", continuation)
-        if (continuation != null) {
-            parameter("type", "next")
-        }
     }
 
     suspend fun next(
@@ -183,7 +194,7 @@ class InStudio {
         ytClient(client, setLogin = true)
         setBody(
             NextBody(
-                context = client.toContext(locale, visitorData),
+                context = client.toContext(locale, visitorData, dataSyncId),
                 videoId = videoId,
                 playlistId = playlistId,
                 playlistSetVideoId = playlistSetVideoId,
@@ -201,7 +212,7 @@ class InStudio {
         ytClient(client)
         setBody(
             GetSearchSuggestionsBody(
-                context = client.toContext(locale, visitorData),
+                context = client.toContext(locale, visitorData, null),
                 input = input
             )
         )
@@ -215,7 +226,7 @@ class InStudio {
         ytClient(client)
         setBody(
             GetQueueBody(
-                context = client.toContext(locale, visitorData),
+                context = client.toContext(locale, visitorData, null),
                 videoIds = videoIds,
                 playlistId = playlistId
             )
@@ -232,7 +243,7 @@ class InStudio {
         }
         setBody(
             GetTranscriptBody(
-                context = client.toContext(locale, null),
+                context = client.toContext(locale, null, null),
                 params = "\n${11.toChar()}$videoId".encodeBase64()
             )
         )
@@ -242,6 +253,8 @@ class InStudio {
 
     suspend fun accountMenu(client: YouTubeClient) = httpClient.post("account/account_menu") {
         ytClient(client, setLogin = true)
-        setBody(AccountMenuBody(client.toContext(locale, visitorData)))
+        setBody(AccountMenuBody(client.toContext(locale, visitorData, dataSyncId)))
     }
+
+
 }

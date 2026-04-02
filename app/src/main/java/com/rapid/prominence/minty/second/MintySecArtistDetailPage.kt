@@ -370,20 +370,28 @@ class MintySecArtistDetailPage : MintyBaseActivity() {
                 holder.itemView.setOnClickListener {
                     when (item) {
                         is SongItem -> {
+                            firebaseLog("art_det_click_song")
+
                             secPlayConnect?.playQueue(radio(item.toMediaMetadata()))
                            startPlayerPage()
                         }
                         is AlbumItem ->   {
+                            firebaseLog("art_det_click_album")
+
                             startInterActivity(Intent(this@MintySecArtistDetailPage, MintySecAlbumDetailPage::class.java).apply {
                                 putExtra("albumId",item.id)
                             }, albumDetInter(),false)
                         }
                         is ArtistItem -> {
+                            firebaseLog("art_det_click_artist")
+
                             startInterActivity(Intent(this@MintySecArtistDetailPage, MintySecArtistDetailPage::class.java).apply {
                                 putExtra("artistId",item.id)
                             }, artistDetInter(),false)
                         }
                         is PlaylistItem -> {
+                            firebaseLog("art_det_click_playlist")
+
                             startInterActivity(Intent(this@MintySecArtistDetailPage, MintySecPyDetailView::class.java).apply {
                                 putExtra("playlistId",item.id)
                             }, playlistDetInter(),false)

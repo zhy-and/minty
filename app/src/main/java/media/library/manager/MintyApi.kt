@@ -28,6 +28,8 @@ import com.rapid.prominence.minty.cons.MINTY_APP_APP_REFRESH
 import com.rapid.prominence.minty.cons.MINTY_APP_CURRENT_PAGE
 import com.rapid.prominence.minty.cons.MINTY_APP_GOOGLE_REFER_SOURCE
 import com.rapid.prominence.minty.cons.MINTY_APP_IS_M_USER
+import com.rapid.prominence.minty.cons.MMKV_MINTY_TOTAL_LINES
+import com.rapid.prominence.minty.cons.MMKV_MINTY_TOTAL_LINES_TWO
 import com.rapid.prominence.minty.cons.MMKV_NOTIFICATION_CONTENT
 import com.rapid.prominence.minty.cons.MMKV_NOTIFICATION_TITLE
 import com.rapid.prominence.minty.ei.main.EiMainPage
@@ -631,6 +633,14 @@ class MintyApi {
                                                     if ("standard_line" == i.hyohx){
                                                         MMKV.defaultMMKV()
                                                             .putString(MMKV_MINTY_LINES, i.nalzxc)
+                                                    }
+                                                    if ("total_line_first" == i.hyohx){
+                                                        MMKV.defaultMMKV()
+                                                            .putString(MMKV_MINTY_TOTAL_LINES, i.nalzxc)
+                                                    }
+                                                    if ("total_line_second" == i.hyohx){
+                                                        MMKV.defaultMMKV()
+                                                            .putString(MMKV_MINTY_TOTAL_LINES_TWO, i.nalzxc)
                                                     }
                                                     if ("upload_coef" == i.hyohx){
                                                         MMKV.defaultMMKV()

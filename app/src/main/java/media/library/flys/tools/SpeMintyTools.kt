@@ -114,6 +114,7 @@ class SpeMintyTools {
         tperklyTranslateIntersLis: TemTranslateIntersLis? = null
     ) {
         try {
+            LogUtils.e("inter load----------------------")
             var adId = ""
             // 缓存拦截 插页成功回调
             if (interPoolsIsLoading()) {

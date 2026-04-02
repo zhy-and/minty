@@ -18,7 +18,6 @@ import com.facebook.appevents.AppEventsLogger;
 import com.google.android.gms.ads.AdValue;
 import com.rapid.prominence.minty.application.App;
 import com.tencent.mmkv.MMKV;
-
 import java.util.Currency;
 import java.util.HashMap;
 import java.util.Map;
@@ -130,6 +129,8 @@ public class MintyStuTools {
                 }
             } else {
             }
+                    //todo
+            AdMobTaichiAroHandler.INSTANCE.handlePaidEvent(adValue);
             MintyApi.Companion.handleValues(adId,adType,adValue,configValues,pos);
 
         } catch (Exception e){
@@ -192,3 +193,4 @@ public class MintyStuTools {
     }
 
 }
+//
