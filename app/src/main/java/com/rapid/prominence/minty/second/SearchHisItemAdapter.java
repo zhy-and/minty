@@ -61,8 +61,16 @@ public class SearchHisItemAdapter extends RecyclerView.Adapter<SearchHisItemAdap
     }
 
     public void removeItem(int position) {
-        data.remove(position);
-        notifyItemRemoved(position);
+        try{
+            if (position < data.size()){
+                data.remove(position);
+                notifyItemRemoved(position);
+            }
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder {

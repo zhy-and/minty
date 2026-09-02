@@ -140,6 +140,8 @@ class App : Application(), ImageLoaderFactory {
         )
         .build()
     private fun initManager() {
+        //todo
+//        MMKV.defaultMMKV().putBoolean(MINTY_APP_IS_M_USER,true)
 //        //todo
 //        var config = RequestConfiguration.Builder().setTestDeviceIds(Arrays.asList("BE7678159E1EF50B7E22B167D305D6F2")).build()
 //        MobileAds.setRequestConfiguration(config)
@@ -152,6 +154,8 @@ class App : Application(), ImageLoaderFactory {
         SupervisorJob() + Dispatchers.Main.immediate
     )
     private fun initAppFly() {
+      //todo
+//         MMKV.defaultMMKV().putBoolean(MINTY_APP_IS_M_USER,true)
         LogUtils.getConfig().isLogSwitch = BuildConfig.DEBUG
         AppsFlyerLib.getInstance().init("Qdx2CL5Loy69WyHCQn3U3", null, this)
         AppsFlyerLib.getInstance().start(this)

@@ -2,6 +2,7 @@ package com.rapid.prominence.minty.database
 
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
+import android.database.sqlite.SQLiteDatabaseLockedException
 import androidx.core.content.contentValuesOf
 import androidx.room.*
 import androidx.room.migration.AutoMigrationSpec
@@ -14,9 +15,12 @@ import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 import java.util.*
+import java.util.concurrent.Executor
+import java.util.concurrent.Executors
 
 class MusicDatabase(
     private val delegate: InternalDatabase,
+    private val onClose: () -> Unit = {},
 ) : DatabaseDao by delegate.dao {
     val openHelper: SupportSQLiteOpenHelper
         get() = delegate.openHelper
@@ -24,7 +28,11 @@ class MusicDatabase(
     fun query(block: MusicDatabase.() -> Unit) = with(delegate) {
         try {
             queryExecutor.execute {
-                block(this@MusicDatabase)
+                runCatching {
+                    block(this@MusicDatabase)
+                }.onFailure {
+                    it.printStackTrace()
+                }
             }
         }catch (e : Exception){
             e.printStackTrace()
@@ -35,8 +43,12 @@ class MusicDatabase(
         try {
         transactionExecutor.execute {
 
-                runInTransaction {
-                    block(this@MusicDatabase)
+                runCatching {
+                    runInTransaction {
+                        block(this@MusicDatabase)
+                    }
+                }.onFailure {
+                    it.printStackTrace()
                 }
 
 
@@ -46,7 +58,10 @@ class MusicDatabase(
         }
     }
 
-    fun close() = delegate.close()
+    fun close() {
+        delegate.close()
+        onClose()
+    }
 }
 
 @Database(
@@ -92,13 +107,62 @@ abstract class InternalDatabase : RoomDatabase() {
     companion object {
         const val DB_NAME = "song.db"
 
+        private val databaseQueryExecutor = Executors.newFixedThreadPool(4).catchSQLiteDatabaseLocked()
+        private val databaseTransactionExecutor = Executors.newSingleThreadExecutor().catchSQLiteDatabaseLocked()
+
+        @Volatile
+        private var INSTANCE: MusicDatabase? = null
+
         fun newInstance(context: Context): MusicDatabase =
-            MusicDatabase(
-                delegate = Room.databaseBuilder(context, InternalDatabase::class.java, DB_NAME)
-                    .addMigrations(MIGRATION_1_2)
-                    .build()
-            )
+            INSTANCE ?: synchronized(this) {
+                INSTANCE ?: MusicDatabase(
+                    delegate = Room.databaseBuilder(
+                        context.applicationContext,
+                        InternalDatabase::class.java,
+                        DB_NAME
+                    )
+                        .addCallback(object : RoomDatabase.Callback() {
+                            override fun onOpen(db: SupportSQLiteDatabase) {
+                                super.onOpen(db)
+                                // PRAGMA busy_timeout returns a row; execSQL() cannot run queries.
+                                runCatching {
+                                    db.query("PRAGMA busy_timeout = 3000".toSQLiteQuery()).use { }
+                                }
+                            }
+                        })
+                        .addMigrations(MIGRATION_1_2)
+                        .setJournalMode(RoomDatabase.JournalMode.WRITE_AHEAD_LOGGING)
+                        .setQueryExecutor(databaseQueryExecutor)
+                        .setTransactionExecutor(databaseTransactionExecutor)
+                        .build(),
+                    onClose = {
+                        synchronized(this) {
+                            INSTANCE = null
+                        }
+                    }
+                ).also {
+                    INSTANCE = it
+                }
+            }
     }
+}
+
+private class SQLiteDatabaseLockedCatchingExecutor(
+    private val delegate: Executor,
+) : Executor {
+    override fun execute(command: Runnable) {
+        delegate.execute {
+            try {
+                command.run()
+            } catch (e: SQLiteDatabaseLockedException) {
+                e.printStackTrace()
+            }
+        }
+    }
+}
+
+private fun Executor.catchSQLiteDatabaseLocked(): Executor {
+    return SQLiteDatabaseLockedCatchingExecutor(this)
 }
 
 val MIGRATION_1_2 = object : Migration(1, 2) {

@@ -89,7 +89,7 @@ class SongAdapter(var songs: ArrayList<SongItem> = arrayListOf(), private val on
                         database = InternalDatabase.newInstance(it)
                         database?.transaction {
                             lifecycleScope.launch {
-                                song(item.id).first().let {
+                                songSnapshot(item.id).let {
                                         its ->
                                     if (its == null){
 
@@ -130,7 +130,7 @@ class SongAdapter(var songs: ArrayList<SongItem> = arrayListOf(), private val on
                         }
                         database?.transaction {
                             lifecycleScope.launch {
-                                song(item.id).first().let {
+                                songSnapshot(item.id).let {
                                         its ->
 //                                    Log.e("test",it.toString())
                                     if (its == null){

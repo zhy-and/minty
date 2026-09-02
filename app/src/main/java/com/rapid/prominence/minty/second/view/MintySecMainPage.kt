@@ -17,6 +17,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.core.view.isVisible
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -587,9 +588,18 @@ class MintySecMainPage : MintyBaseActivity() {
             SpeMintyTools.homeStudy.initLoadBanners(homeBanner(),object :
                 NativeWeavesListener {
                 override fun nativeIsWeavesSuc(sucFlag: Boolean) {
-                    if (isFinishing || isDestroyed) {
+                    if (isFinishing || isDestroyed ) {
                         return
                     }
+                    try{
+                        if (!lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+                            LogUtils.e("home not resumed return------")
+                            return
+                        }
+                    }catch (e : Exception){
+                        e.printStackTrace()
+                    }
+
                     if (sucFlag) {
                         LogUtils.e("main banner load  suc------")
                         getNative()

@@ -93,7 +93,7 @@ class SecDetailSongsAdapter(
                             database = InternalDatabase.newInstance(it)
                             database?.transaction {
                                 lifecycleScope.launch {
-                                    song(album.id).first().let {
+                                    songSnapshot(album.id).let {
                                             its ->
                                         if (its == null){
 
@@ -138,7 +138,7 @@ class SecDetailSongsAdapter(
                             }
                             database?.transaction {
                                 lifecycleScope.launch {
-                                    song(album.id).first().let {
+                                    songSnapshot(album.id).let {
                                             its ->
 //                                        Log.e("test",it.toString())
                                         if (its == null){

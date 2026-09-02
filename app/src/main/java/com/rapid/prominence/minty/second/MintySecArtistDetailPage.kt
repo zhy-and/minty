@@ -410,7 +410,7 @@ class MintySecArtistDetailPage : MintyBaseActivity() {
                                 database = InternalDatabase.newInstance(it)
                                 database?.transaction {
                                     lifecycleScope.launch {
-                                        song(item.id).first().let {
+                                        songSnapshot(item.id).let {
                                                 its ->
                                             if (its == null){
 
@@ -451,7 +451,7 @@ class MintySecArtistDetailPage : MintyBaseActivity() {
                                 }
                                 database?.transaction {
                                     lifecycleScope.launch {
-                                        song(item.id).first().let {
+                                        songSnapshot(item.id).let {
                                                 its ->
 //                                            Log.e("test",it.toString())
                                             if (its == null){

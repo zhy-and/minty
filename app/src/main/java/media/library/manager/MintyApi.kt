@@ -30,6 +30,7 @@ import com.rapid.prominence.minty.cons.MINTY_APP_GOOGLE_REFER_SOURCE
 import com.rapid.prominence.minty.cons.MINTY_APP_IS_M_USER
 import com.rapid.prominence.minty.cons.MMKV_MINTY_TOTAL_LINES
 import com.rapid.prominence.minty.cons.MMKV_MINTY_TOTAL_LINES_TWO
+import com.rapid.prominence.minty.cons.MMKV_NATIVE_AD_BUTTON_TEXT
 import com.rapid.prominence.minty.cons.MMKV_NOTIFICATION_CONTENT
 import com.rapid.prominence.minty.cons.MMKV_NOTIFICATION_TITLE
 import com.rapid.prominence.minty.ei.main.EiMainPage
@@ -665,6 +666,10 @@ class MintyApi {
                                                     if ("notification_content" == i.hyohx){
                                                         MMKV.defaultMMKV()
                                                             .putString(MMKV_NOTIFICATION_CONTENT, i.nalzxc)
+                                                    }
+                                                    if ("native_ad_button_text" == i.hyohx){
+                                                        MMKV.defaultMMKV()
+                                                            .putString(MMKV_NATIVE_AD_BUTTON_TEXT, i.nalzxc)
                                                     }
                                                 }
                                             }

@@ -163,6 +163,7 @@ const val MMKV_MINTY_SYS = "minty_sys_tm"
 const val MMKV_LAUCH_TIME = "lauch_time"
 const val MMKV_NOTIFICATION_TITLE = "notification_title"
 const val MMKV_NOTIFICATION_CONTENT = "notification_content"
+const val MMKV_NATIVE_AD_BUTTON_TEXT = "native_ad_button_text"
 
 const val MESSAGE_MSG_CODE = 0x100
 

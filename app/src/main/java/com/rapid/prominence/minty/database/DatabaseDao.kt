@@ -284,6 +284,10 @@ interface DatabaseDao {
     @Query("SELECT * FROM song WHERE id = :songId")
     fun song(songId: String?): Flow<Song?>
 
+    @Transaction
+    @Query("SELECT * FROM song WHERE id = :songId")
+    suspend fun songSnapshot(songId: String?): Song?
+
     @Query("SELECT * FROM song_artist_map WHERE songId = :songId")
     fun songArtistMap(songId: String): List<SongArtistMap>
 

@@ -332,7 +332,7 @@ class SecPlayer : MintyBaseActivity() {
                 }
                 database.transaction {
                     lifecycleScope.launch {
-                        secPlayConnect?.currentSong?.first().let {
+                        database.songSnapshot(secPlayConnect?.mediaMetadata?.value?.id).let {
                             it?.song?.apply {
                                 withContext(Dispatchers.IO){
                                     update(toggleLike())
@@ -457,6 +457,9 @@ class SecPlayer : MintyBaseActivity() {
         // 监听播放状态变化
         secPlayConnect?.player?.addListener(object : Player.Listener {
             override fun onPlaybackStateChanged(playbackState: Int) {
+                if (binding.allImg.isVisible){
+                    binding.allImg.visibility = View.GONE
+                }
                 refreshPlayPauseButton()
                 refreshProgress()
                 refreshLoadingStatus(playbackState)

@@ -70,8 +70,9 @@ class BackupRestoreViewModel @Inject constructor(
                                 runBlocking(Dispatchers.IO) {
                                     database.checkpoint()
                                 }
+                                val databasePath = database.openHelper.writableDatabase.path
                                 database.close()
-                                FileOutputStream(database.openHelper.writableDatabase.path).use { outputStream ->
+                                FileOutputStream(databasePath).use { outputStream ->
                                     inputStream.copyTo(outputStream)
                                 }
                             }

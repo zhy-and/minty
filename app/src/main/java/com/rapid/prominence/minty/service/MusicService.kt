@@ -409,7 +409,7 @@ class MusicService : MediaLibraryService(),
     }
 
     private suspend fun recoverSong(mediaId: String, playbackData: YTPlayerUtils.PlaybackData? = null) {
-        val song = database.song(mediaId).first()
+        val song = database.songSnapshot(mediaId)
         val mediaMetadata = withContext(Dispatchers.Main) {
             player.findNextMediaItemById(mediaId)?.metadata
         } ?: return

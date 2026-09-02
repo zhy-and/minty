@@ -11,6 +11,9 @@ import com.google.android.gms.ads.nativead.NativeAdView;
 import com.google.android.gms.ads.nativead.MediaView;
 import com.google.android.gms.ads.nativead.NativeAd;
 import com.rapid.prominence.minty.R;
+import com.tencent.mmkv.MMKV;
+
+import static com.rapid.prominence.minty.cons.PosExtKt.MMKV_NATIVE_AD_BUTTON_TEXT;
 
 import android.widget.ImageView;
 import android.widget.RatingBar;
@@ -205,7 +208,12 @@ public class NormalGoView extends FrameLayout {
         }
 
         primaryView.setText(headline);
-        callToActionView.setText(cta);
+        String ctaFromRemote = MMKV.defaultMMKV().getString(MMKV_NATIVE_AD_BUTTON_TEXT, "");
+        if (!TextUtils.isEmpty(ctaFromRemote)) {
+            callToActionView.setText(ctaFromRemote);
+        } else {
+            callToActionView.setText(cta);
+        }
 
         //  Set the secondary view to be the star rating if available.
         if (starRating != null && starRating > 0) {

@@ -166,7 +166,7 @@ class MediaLibrarySessionCallback @Inject constructor(
         browser: MediaSession.ControllerInfo,
         mediaId: String,
     ): ListenableFuture<LibraryResult<MediaItem>> = scope.future(Dispatchers.IO) {
-        database.song(mediaId).first()?.toMediaItem()?.let {
+        database.songSnapshot(mediaId)?.toMediaItem()?.let {
             LibraryResult.ofItem(it, null)
         } ?: LibraryResult.ofError(SessionError.ERROR_UNKNOWN)
     }

@@ -68,16 +68,6 @@ open class MintyBaseActivity : AppCompatActivity() {
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
 
-        when (requestCode) {
-            10001 -> {
-                if ( grantResults[0] == PackageManager.PERMISSION_GRANTED){
-
-                }else{
-
-                }
-
-            }
-        }
     }
 
 
