@@ -10,6 +10,7 @@ import android.text.TextUtils
 import android.view.KeyEvent
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.activity.addCallback
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -140,6 +141,7 @@ open class MintyBaseActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        onBackPressedDispatcher.addCallback(this) { handleBackPressed() }
         if (localClassName.contains("LocalHomeActivity")){
             ImmersionBar.with(this).transparentStatusBar().init()
         }
@@ -220,34 +222,21 @@ open class MintyBaseActivity : AppCompatActivity() {
     private fun checkPageOne(): Boolean {
         return this.localClassName.contains("MainPlayer")
     }
-    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
-        if (keyCode == KeyEvent.KEYCODE_BACK){
-            if (checkPageOne()){
-                LogUtils.e("------------------------one back ")
-                SpeMintyTools.homeStudy.getShowCyAds(finishPageInterOne(),this)
-                finish()
-                return true
-            }else if(checkPageTwo()){
-                LogUtils.e("------------------------two back ")
-                SpeMintyTools.homeStudy.getShowCyAds(finishPageInterTwo(),this)
-                finish()
-                return true
-            }else if(checkPageThr()){
-                LogUtils.e("------------------------thr back ")
-                SpeMintyTools.homeStudy.getShowCyAds(finishPageInterThr(),this)
-                finish()
-                return true
-            }else if(checkPageFor()){
-                LogUtils.e("------------------------for back ")
-                SpeMintyTools.homeStudy.getShowCyAds(finishPageInterFor(),this)
-                finish()
-                return true
-            }else{
-                finish()
-                return true
-            }
+    protected open fun handleBackPressed() {
+        if (checkPageOne()){
+            LogUtils.e("------------------------one back ")
+            SpeMintyTools.homeStudy.getShowCyAds(finishPageInterOne(),this)
+        }else if(checkPageTwo()){
+            LogUtils.e("------------------------two back ")
+            SpeMintyTools.homeStudy.getShowCyAds(finishPageInterTwo(),this)
+        }else if(checkPageThr()){
+            LogUtils.e("------------------------thr back ")
+            SpeMintyTools.homeStudy.getShowCyAds(finishPageInterThr(),this)
+        }else if(checkPageFor()){
+            LogUtils.e("------------------------for back ")
+            SpeMintyTools.homeStudy.getShowCyAds(finishPageInterFor(),this)
         }
-        return  super.onKeyDown(keyCode,event)
+        finish()
     }
     private fun checkPageTwo(): Boolean {
         return (this.localClassName.contains("MintySecMdDetailPage")

@@ -10,7 +10,6 @@ import android.os.IBinder
 import android.os.Looper
 import android.os.Message
 import android.view.Gravity
-import android.view.KeyEvent
 import android.view.View
 import android.widget.RatingBar
 import androidx.compose.runtime.getValue
@@ -134,26 +133,19 @@ class MintySecMainPage : MintyBaseActivity() {
         }
     }
 
-    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
-
-        if (keyCode == KeyEvent.KEYCODE_BACK){
-
-            if (SpeMintyTools.homeStudy.uniqueInter != null && !SpeMintyTools.homeStudy.backLimit()){
-                SpeMintyTools.homeStudy.showCachedInter(this)
-                return true
-            }
-            if (SpeMintyTools.homeStudy.intellBanners != null ){
-
-                val natived = SpeMintyTools.homeStudy.intellBanners
-                SpeMintyTools.homeStudy.intellBanners = null
-                showCachedBan(natived!!)
-                messages?.removeCallbacksAndMessages(null)
-                return true
-            }
-            moveTaskToBack(false)
-            return true
+    override fun handleBackPressed() {
+        if (SpeMintyTools.homeStudy.uniqueInter != null && !SpeMintyTools.homeStudy.backLimit()){
+            SpeMintyTools.homeStudy.showCachedInter(this)
+            return
         }
-        return super.onKeyDown( keyCode,event)
+        if (SpeMintyTools.homeStudy.intellBanners != null ){
+            val natived = SpeMintyTools.homeStudy.intellBanners
+            SpeMintyTools.homeStudy.intellBanners = null
+            showCachedBan(natived!!)
+            messages?.removeCallbacksAndMessages(null)
+            return
+        }
+        moveTaskToBack(false)
     }
 
     private fun showCachedBan(intellBanners: NativeAd) {

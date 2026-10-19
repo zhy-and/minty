@@ -8,7 +8,6 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.IBinder
 import android.text.TextUtils
-import android.view.KeyEvent
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -172,12 +171,8 @@ class EiMainPage : MintyBaseActivity() {
         }
     }
 
-    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
-        if (keyCode == KeyEvent.KEYCODE_BACK){
-            moveTaskToBack(false)
-            return true
-        }
-        return super.onKeyDown( keyCode,event)
+    override fun handleBackPressed() {
+        moveTaskToBack(false)
     }
     private lateinit var database: MusicDatabase
     private lateinit var binding: MintyEiHomeBinding

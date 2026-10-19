@@ -4,7 +4,6 @@ import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.view.KeyEvent
 import com.blankj.utilcode.util.LogUtils
 import com.rapid.prominence.minty.application.App
 import com.rapid.prominence.minty.application.App.Companion.isCanJumpOm
@@ -29,12 +28,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 class AppStart : MintyBaseActivity() {
     private lateinit var binding: ActivityMainBinding
-    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
-        if (keyCode == KeyEvent.KEYCODE_BACK) {
-            return true
-        }
-        return super.onKeyDown(keyCode, event)
-    }
+    override fun handleBackPressed() = Unit
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)

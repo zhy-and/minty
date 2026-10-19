@@ -8,6 +8,7 @@ import com.zionhuang.innertube.MintyMusicBe.SearchFilter.Companion.FILTER_FEATUR
 import com.zionhuang.innertube.MintyMusicBe.SearchFilter.Companion.FILTER_SONG
 import com.zionhuang.innertube.MintyMusicBe.SearchFilter.Companion.FILTER_VIDEO
 import com.zionhuang.innertube.models.WatchEndpoint
+import com.zionhuang.innertube.models.YouTubeClient.Companion.ANDROID_VR_NO_AUTH
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.request.get
@@ -31,7 +32,7 @@ class MintyMusicBeTest {
     @Test
     fun `Check 'player' endpoint`() = runBlocking {
         VIDEO_IDS.forEach { videoId ->
-            val playerResponse = youTube.player(videoId).getOrThrow()
+            val playerResponse = youTube.player(videoId, client = ANDROID_VR_NO_AUTH).getOrThrow()
             assertTrue(playerResponse.playabilityStatus.status == "OK")
         }
     }
@@ -42,7 +43,7 @@ class MintyMusicBeTest {
     @Test
     fun `Check playable stream`() = runBlocking {
         VIDEO_IDS.forEach { videoId ->
-            val playerResponse = youTube.player(videoId).getOrThrow()
+            val playerResponse = youTube.player(videoId, client = ANDROID_VR_NO_AUTH).getOrThrow()
             val format = playerResponse.streamingData!!.adaptiveFormats[0]
             val url = format.url!!
             println(url)
