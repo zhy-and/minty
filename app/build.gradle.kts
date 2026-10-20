@@ -122,6 +122,8 @@ dependencies {
     implementation ("com.github.zhpanvip:bannerviewpager:3.5.12")
 
     implementation  ("com.google.firebase:firebase-messaging")
+    implementation("com.google.firebase:firebase-config")
+    implementation("androidx.lifecycle:lifecycle-process:2.8.4")
 
     implementation("com.google.ads.mediation:facebook:6.21.0.1")
     implementation("com.google.ads.mediation:mintegral:17.0.91.0")

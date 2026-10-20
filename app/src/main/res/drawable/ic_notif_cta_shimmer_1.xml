@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="300dp"
+    android:height="48dp"
+    android:viewportWidth="300"
+    android:viewportHeight="48">
+    <!-- Source-level capsule mask: works even when SystemUI ignores RemoteViews clipToOutline. -->
+    <clip-path
+        android:pathData="M66,0 H234 A66,24 0,0 1,300 24 A66,24 0,0 1,234 48 H66 A66,24 0,0 1,0 24 A66,24 0,0 1,66 0 Z" />
+    <path
+        android:fillColor="#2DFFFFFF"
+        android:pathData="M-18,0 L36,0 L-14,48 L-68,48 Z" />
+    <path
+        android:fillColor="#70FFFFFF"
+        android:pathData="M-8,0 L16,0 L-34,48 L-58,48 Z" />
+</vector>

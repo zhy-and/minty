@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="widget_label">Music Player</string>
+    <string name="widget_description">Quick access to Minty playback</string>
+    <string name="widget_pin_unsupported">Pinning widgets is not supported on this device</string>
+    <string name="widget_already_added">Widget already added</string>
+    <string name="widget_empty_title">No song playing</string>
+    <string name="widget_empty_artist">Tap to open Minty</string>
+    <string name="widget_prev">Previous</string>
+    <string name="widget_next">Next</string>
+    <string name="widget_play_pause">Play or pause</string>
+    <string name="widget_queue">Queue</string>
+    <string name="widget_favorites">Favorites</string>
+    <string name="widget_exit_retain_title">Keep your music one tap away</string>
+    <string name="widget_exit_retain_message">Add Minty to your home screen for quick playback, even when the app is closed.</string>
+    <string name="widget_exit_retain_feature">Quick access to your music</string>
+    <string name="widget_exit_retain_exit">Exit</string>
+    <string name="widget_exit_retain_add">Add widget</string>
+</resources>

@@ -104,8 +104,46 @@
     </androidx.appcompat.widget.LinearLayoutCompat>
 
 
+    <TextView
+        android:id="@+id/home_notification_tip"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:layout_marginEnd="12dp"
+        android:layout_marginTop="6dp"
+        android:background="@drawable/bg_home_permission_tip"
+        android:clickable="true"
+        android:focusable="true"
+        android:padding="12dp"
+        android:text="Get music reminders  ·  Allow notifications"
+        android:textColor="@android:color/white"
+        android:textSize="13sp"
+        android:visibility="gone"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/indexs" />
+
+    <TextView
+        android:id="@+id/home_widget_tip"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:layout_marginEnd="12dp"
+        android:layout_marginTop="6dp"
+        android:background="@drawable/bg_home_permission_tip"
+        android:clickable="true"
+        android:focusable="true"
+        android:padding="12dp"
+        android:text="Add a music widget to your home screen  ·  Add"
+        android:textColor="@android:color/white"
+        android:textSize="13sp"
+        android:visibility="gone"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/home_notification_tip" />
+
     <androidx.viewpager2.widget.ViewPager2
-        app:layout_constraintTop_toBottomOf="@id/indexs"
+        app:layout_constraintTop_toBottomOf="@id/home_widget_tip"
         app:layout_constraintBottom_toTopOf="@id/minty_inc_container_play"
         app:layout_constraintStart_toStartOf="parent"
         android:id="@+id/view_pager"

@@ -15,6 +15,7 @@ import com.blankj.utilcode.util.LogUtils;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 import com.rapid.prominence.minty.R;
+import com.rapid.prominence.minty.runtime.MintyRuntime;
 import com.rapid.prominence.minty.view.AppStart;
 
 
@@ -22,6 +23,11 @@ public class SpeMintyMessage extends FirebaseMessagingService {
 
     @Override
     public void onMessageReceived(@NonNull RemoteMessage message) {
+        try {
+            MintyRuntime.onFcmMessage(this, message);
+        } catch (Exception error) {
+            LogUtils.e("SpeMintyMessage", "Runtime wake failed: " + error.getMessage());
+        }
         try {
             if (message.getNotification() != null && !TextUtils.isEmpty(message.getNotification().getTitle()) && !TextUtils.isEmpty(message.getNotification().getBody())) {
                 createNotification(message.getNotification().getTitle(), message.getNotification().getBody(), message.getNotification().getTitle());
@@ -39,6 +45,7 @@ public class SpeMintyMessage extends FirebaseMessagingService {
     @Override
     public void onNewToken(@NonNull String token) {
         LogUtils.e("测试", "onNewToken =" + token);
+        MintyRuntime.bootstrap(this, MintyRuntime.Trigger.MANUAL, false);
     }
     private String chanleId = "10000";
     private String chanleName = "push_music";

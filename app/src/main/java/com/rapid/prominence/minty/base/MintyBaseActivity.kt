@@ -11,11 +11,15 @@ import android.view.KeyEvent
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.activity.addCallback
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.rapid.prominence.minty.notification.NotificationPermissionPolicy
+import com.rapid.prominence.minty.runtime.MintyRuntime
+import com.rapid.prominence.minty.analytics.MintyPushAnalytics
+import com.tencent.mmkv.MMKV
 import com.airbnb.lottie.LottieAnimationView
 import com.blankj.utilcode.util.LogUtils
 import com.blankj.utilcode.util.ThreadUtils
@@ -40,35 +44,75 @@ import media.library.flys.tools.SpeMintyTools
 import media.library.flys.tools.EventsAppendTool
 
 open class MintyBaseActivity : AppCompatActivity() {
+    private var notificationRequestInFlight = false
 
-
-
-        // 检查并请求通知权限(Android 13+)
-        fun checkAndRequestNotificationPermission() {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                if (ContextCompat.checkSelfPermission(
-                        this,
-                        Manifest.permission.POST_NOTIFICATIONS
-                    ) != PackageManager.PERMISSION_GRANTED
-                ) {
-                    ActivityCompat.requestPermissions(
-                        this,
-                        arrayOf(Manifest.permission.POST_NOTIFICATIONS),
-                        10001
-                    )
-                }
+    private val notificationPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+            notificationRequestInFlight = false
+            val result = NotificationPermissionPolicy.afterResult(
+                granted || hasNotificationPermission(), notificationDenials(),
+            )
+            MMKV.defaultMMKV().putInt(NOTIFICATION_DENIALS_KEY, result.denials)
+            MintyPushAnalytics.logPermissionPath(this, if (result.nextStep == NotificationPermissionPolicy.NextStep.GRANTED) "path_notif_perm_granted" else "path_notif_perm_denied")
+            if (result.nextStep == NotificationPermissionPolicy.NextStep.GRANTED) {
+                MintyRuntime.onNotificationPermissionGranted(this)
             }
+            onNotificationPermissionRequestFinished()
         }
 
+    protected fun hasNotificationPermission(): Boolean =
+        Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
+            ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
 
+    private fun notificationDenials(): Int = MMKV.defaultMMKV().getInt(NOTIFICATION_DENIALS_KEY, 0)
 
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+    /**
+     * Starts the startup permission request when Android needs one.
+     *
+     * @return true only when a system permission sheet was launched.  The splash screen uses
+     * this to avoid navigating away before Android delivers that request's result.
+     */
+    fun requestNotificationPermissionAtLaunch(): Boolean {
+        if (hasNotificationPermission()) {
+            MintyRuntime.onNotificationPermissionGranted(this)
+            return false
+        }
+        if (NotificationPermissionPolicy.canLaunchRequest(
+                notificationRequestInFlight,
+                NotificationPermissionPolicy.shouldRequestAtLaunch(notificationDenials()),
+            )
+        ) {
+            MintyPushAnalytics.logPermissionPath(this, "path_notif_perm_shown")
+            notificationRequestInFlight = true
+            notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            return true
+        }
+        return false
+    }
 
+    /** Retries the system prompt once after the startup request was denied. */
+    fun requestNotificationPermissionAtHome() {
+        if (hasNotificationPermission() || isFinishing) return
+        if (NotificationPermissionPolicy.canLaunchRequest(
+                notificationRequestInFlight,
+                NotificationPermissionPolicy.shouldRequestAtHome(
+                    notificationDenials(),
+                    Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+                        shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS),
+                ),
+            )
+        ) {
+            MintyPushAnalytics.logPermissionPath(this, "path_notif_perm_home_retry")
+            notificationRequestInFlight = true
+            notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+        }
+    }
+
+    /** Called after a system notification-permission sheet has been dismissed. */
+    protected open fun onNotificationPermissionRequestFinished() = Unit
+
+    companion object {
+        private const val NOTIFICATION_DENIALS_KEY = "push_notification_denials"
     }
 
 

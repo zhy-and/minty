@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="notif_toolbar_brand_title">Minty Music</string>
+    <string name="notif_toolbar_hint">Tap to open</string>
+    <string name="notif_toolbar_search">Search</string>
+    <string name="notif_toolbar_playlists">Library</string>
+    <string name="notif_toolbar_ai_music">Favorites</string>
+    <string name="notif_channel_name">Minty Music Toolbar</string>
+    <string name="notif_channel_desc">Persistent toolbar for quick Minty Music access</string>
+</resources>

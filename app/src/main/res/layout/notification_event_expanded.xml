@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingStart="4dp"
+    android:paddingTop="4dp"
+    android:paddingEnd="4dp"
+    android:paddingBottom="6dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:id="@+id/notif_event_icon"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:background="@drawable/bg_notif_event_icon"
+            android:contentDescription="@null"
+            android:padding="5dp"
+            android:scaleType="centerInside"
+            android:src="@drawable/ic_notif_note" />
+
+        <TextView
+            android:id="@+id/notif_event_title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:layout_weight="1"
+            android:ellipsize="end"
+            android:maxLines="2"
+            android:textColor="@color/notif_event_title"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <FrameLayout
+        android:id="@+id/notif_event_action_wrap"
+        android:layout_width="match_parent"
+        android:layout_height="36dp"
+        android:layout_marginTop="8dp"
+        android:background="@drawable/bg_notif_cta_clip"
+        android:clipToOutline="true"
+        android:outlineProvider="background">
+
+        <ImageView
+            android:id="@+id/notif_event_action_bg"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:contentDescription="@null"
+            android:scaleType="fitXY" />
+
+        <ProgressBar
+            android:id="@+id/notif_event_action_pulse_blue"
+            style="@android:style/Widget.ProgressBar.Horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:indeterminate="true"
+            android:indeterminateDrawable="@drawable/anim_notif_cta_scale_blue"
+            android:indeterminateOnly="true"
+            android:max="100"
+            android:visibility="gone" />
+
+        <ProgressBar
+            android:id="@+id/notif_event_action_pulse_green"
+            style="@android:style/Widget.ProgressBar.Horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:indeterminate="true"
+            android:indeterminateDrawable="@drawable/anim_notif_cta_scale_green"
+            android:indeterminateOnly="true"
+            android:max="100"
+            android:visibility="gone" />
+
+        <ProgressBar
+            android:id="@+id/notif_event_action_pulse_red"
+            style="@android:style/Widget.ProgressBar.Horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:indeterminate="true"
+            android:indeterminateDrawable="@drawable/anim_notif_cta_scale_red"
+            android:indeterminateOnly="true"
+            android:max="100"
+            android:visibility="gone" />
+
+        <ProgressBar
+            android:id="@+id/notif_event_action_pulse_yellow"
+            style="@android:style/Widget.ProgressBar.Horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:indeterminate="true"
+            android:indeterminateDrawable="@drawable/anim_notif_cta_scale_yellow"
+            android:indeterminateOnly="true"
+            android:max="100"
+            android:visibility="gone" />
+
+        <ProgressBar
+            android:id="@+id/notif_event_action_pulse_black"
+            style="@android:style/Widget.ProgressBar.Horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:indeterminate="true"
+            android:indeterminateDrawable="@drawable/anim_notif_cta_scale_black"
+            android:indeterminateOnly="true"
+            android:max="100"
+            android:visibility="gone" />
+
+        <ProgressBar
+            android:id="@+id/notif_event_action_pulse"
+            style="@android:style/Widget.ProgressBar.Horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:indeterminate="true"
+            android:indeterminateDrawable="@drawable/anim_notif_cta_shimmer"
+            android:indeterminateOnly="true"
+            android:max="100"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/notif_event_action"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:text="@string/notif_event_action_open_home"
+            android:textColor="@color/white"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+    </FrameLayout>
+</LinearLayout>

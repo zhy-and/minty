@@ -3,5 +3,6 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="new_color">#1E1D18</color>
+    <color name="dd_red">#FFF34A35</color>
 
 </resources>

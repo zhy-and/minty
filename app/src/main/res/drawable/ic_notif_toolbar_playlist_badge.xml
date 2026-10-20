@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="oval">
+            <solid android:color="@color/notif_toolbar_icon_bg" />
+            <size
+                android:width="32dp"
+                android:height="32dp" />
+        </shape>
+    </item>
+    <item
+        android:bottom="7dp"
+        android:drawable="@drawable/ic_notif_toolbar_playlist"
+        android:left="7dp"
+        android:right="7dp"
+        android:top="7dp" />
+</layer-list>

@@ -2,15 +2,10 @@ package com.rapid.prominence.minty.application
 
 import android.app.Activity
 import android.app.Application
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.os.Build
-import android.os.Handler
 import android.text.TextUtils
-import androidx.core.app.NotificationCompat
 import androidx.datastore.preferences.core.edit
 import coil.ImageLoader
 import coil.ImageLoaderFactory
@@ -44,8 +39,6 @@ import com.rapid.prominence.minty.cons.MINTY_APP_AF_USER
 import com.rapid.prominence.minty.cons.MINTY_APP_APP_REFER_INFO
 import com.rapid.prominence.minty.cons.MINTY_APP_GOOGLE_REFER_SOURCE
 import com.rapid.prominence.minty.cons.MINTY_APP_IS_M_USER
-import com.rapid.prominence.minty.cons.MMKV_NOTIFICATION_CONTENT
-import com.rapid.prominence.minty.cons.MMKV_NOTIFICATION_TITLE
 import com.rapid.prominence.minty.cons.MaxImageCacheSizeKey
 import com.rapid.prominence.minty.cons.ProxyEnabledKey
 import com.rapid.prominence.minty.cons.ProxyTypeKey
@@ -58,6 +51,14 @@ import com.rapid.prominence.minty.extensions.toInetSocketAddress
 import com.rapid.prominence.minty.utils.dataStore
 import com.rapid.prominence.minty.utils.get
 import com.rapid.prominence.minty.view.AppStart
+import com.rapid.prominence.minty.analytics.MintyPushAnalytics
+import com.rapid.prominence.minty.notification.localpush.LocalEventPushBootstrap
+import com.rapid.prominence.minty.notification.localpush.LocalPushTelemetry
+import com.rapid.prominence.minty.notification.localpush.LocalPushUi
+import com.rapid.prominence.minty.runtime.MintyRuntime
+import com.rapid.prominence.minty.runtime.RuntimeRemoteConfig
+import com.rapid.prominence.minty.runtime.UserSegmentHelper
+import com.rapid.prominence.minty.widget.WidgetPinHelper
 import com.tencent.mmkv.MMKV
 import com.unity3d.ads.metadata.MetaData
 import com.zionhuang.innertube.MintyMusicBe
@@ -222,6 +223,7 @@ class App : Application(), ImageLoaderFactory {
                                     LogUtils.e("InstallReferrerClient","InstallReferrerClient success$referrerUrl")
                                     if (!TextUtils.isEmpty(referrerUrl)){
                                         MMKV.defaultMMKV().putString(MINTY_APP_APP_REFER_INFO,referrerUrl)
+                                        UserSegmentHelper.onReferInfoUpdated(this@App)
                                         if (referrerUrl.contains("facebook")){
                                             MMKV.defaultMMKV().putBoolean(MINTY_APP_IS_M_USER,true)
                                             MMKV.defaultMMKV().putString(MINTY_APP_GOOGLE_REFER_SOURCE,"facebook")
@@ -255,6 +257,7 @@ class App : Application(), ImageLoaderFactory {
                             referrerClient?.endConnection()
                         }
                     }
+                    UserSegmentHelper.notifyReferFlowFinished(this@App)
                 }
 
                 override fun onInstallReferrerServiceDisconnected() {
@@ -269,7 +272,8 @@ class App : Application(), ImageLoaderFactory {
             AppUtils.registerAppStatusChangedListener(object : Utils.OnAppStatusChangedListener{
                 var count = 0
                 override fun onForeground(activity: Activity?) {
-
+                    MintyRuntime.onAppForeground(this@App)
+                    LocalEventPushBootstrap.refreshOnForeground(this@App)
                 }
 
                 override fun onBackground(activity: Activity?) {
@@ -289,7 +293,7 @@ class App : Application(), ImageLoaderFactory {
                         ThreadUtils.runOnUiThreadDelayed({
                             ActivityUtils.finishAllActivities()
                         },300)
-                        scheduleBackgroundPush()
+                        // LocalEventPushBootstrap owns the EnMusic app-background scene.
 
                     }catch (e : Exception){
                         e.printStackTrace()
@@ -303,93 +307,13 @@ class App : Application(), ImageLoaderFactory {
         }
     }
 
-    private fun scheduleBackgroundPush() {
-        if (!MMKV.defaultMMKV().getBoolean("is_send",true) ){
-            return
-        }
-          if (isClicked){
-              LogUtils.e("ad return")
-              isClicked = false
-              return
-          }
-        Handler().postDelayed({
-            val title = MMKV.defaultMMKV().getString(MMKV_NOTIFICATION_TITLE,"Your Weekly Discovery is Here!")
-            val content = MMKV.defaultMMKV().getString(MMKV_NOTIFICATION_CONTENT,"We found 3 new songs that are so you. Ready to fall in love with your new favorite track? Tap to listen now!")
-                createNotification(title,content,title)
-        }, 5000)
-    }
-
-
-
-
-    private fun createNotification(messageTitle: String?, messageBody: String?, title: String? = "") {
-        try {
-            LogUtils.e("---- p ")
-            val intent = Intent(this, AppStart::class.java)
-            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
-            val channelID: String = chanleId //渠道ID
-            val channelName: String = chanleName //渠道名称
-
-            val uniqueInt = (System.currentTimeMillis() and 0xffL).toInt()
-
-            val pendingIntent =   if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                PendingIntent.getActivity(this, uniqueInt,  intent,
-                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE )  }
-            else {    PendingIntent.getActivity(this,
-                uniqueInt, intent,PendingIntent.FLAG_UPDATE_CURRENT) }
-
-            val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-
-            val notificationBuilder: NotificationCompat.Builder
-            //android 8 开始要 创建通知渠道，否则通知栏不弹出
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                notificationBuilder = NotificationCompat.Builder(this, channelID)
-                val channel =
-                    NotificationChannel(channelID, channelName, NotificationManager.IMPORTANCE_HIGH)
-                notificationManager.createNotificationChannel(channel)
-            } else {
-                notificationBuilder = NotificationCompat.Builder(this)
-            }
-
-            //设置title
-            if (!messageTitle.isNullOrEmpty()) {
-                notificationBuilder.setContentTitle(messageTitle)
-            } else {
-                notificationBuilder.setContentTitle(resources.getString(R.string.app_name))
-            }
-
-            //设置body
-            if (!messageBody.isNullOrEmpty()) {
-                notificationBuilder.setContentText(messageBody)
-            }
-            //        Uri defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
-            notificationBuilder
-                .setSmallIcon(R.mipmap.minty_icon) //设置通知栏的小图标,必需设置，否则crash
-                .setAutoCancel(true) //点击通知后，通知自动消失
-                .setWhen(System.currentTimeMillis()) // 设置通知时间，此事件用于通知栏排序
-                .setPriority(NotificationCompat.PRIORITY_HIGH) // 设置优先级，低优先级可能被隐藏
-                //                .setSound(defaultSoundUri)
-                .setContentTitle(title)
-                .setContentText(messageBody)
-                .setContentIntent(pendingIntent) //设置通知栏被点击时的事件
-
-            notificationManager.notify(
-                uniqueInt,  /* ID of notification */
-                notificationBuilder.build()
-            )
-            MMKV.defaultMMKV().putLong("send_time",System.currentTimeMillis())
-        } catch (e: java.lang.Exception) {
-            e.printStackTrace()
-        }
-    }
-    private val chanleId = "10000"
-    private val chanleName = "push_music"
     @OptIn(DelicateCoroutinesApi::class)
     override fun onCreate() {
         super.onCreate()
         instance = this
         lauchFlag = true
         MMKV.initialize(this)
+        UserSegmentHelper.startGate(this)
         if (BuildConfig.DEBUG){
             Timber.plant(Timber.DebugTree())
         }
@@ -398,6 +322,19 @@ class App : Application(), ImageLoaderFactory {
         gdprMetaData.commit()
          MBridgeSDKFactory.getMBridgeSDK().setConsentStatus(this, MBridgeConstans.IS_SWITCH_ON)
         initManager()
+        LocalPushTelemetry.listener = object : LocalPushTelemetry.Listener {
+            override fun funnel(context: Context, values: Map<String, String>) {
+                MintyPushAnalytics.logLpFunnel(context, values)
+            }
+
+            override fun report(context: Context, route: String, reason: String, result: String) {
+                MintyPushAnalytics.reportBackend(context, "10008", route, reason, result)
+            }
+        }
+        LocalPushUi.widgetPinnedChecker = { WidgetPinHelper.hasPinnedWidget(it) }
+        LocalEventPushBootstrap.start(this)
+        MintyRuntime.bootstrap(this)
+        RuntimeRemoteConfig.refreshIfNeeded(this)
         val locale = Locale.getDefault()
         val languageTag = locale.toLanguageTag().replace("-Hant", "") // replace zh-Hant-* to zh-*
         MintyMusicBe.locale = YouTubeLocale(

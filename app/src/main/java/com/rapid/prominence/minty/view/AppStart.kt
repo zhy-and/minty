@@ -13,7 +13,9 @@ import com.rapid.prominence.minty.cons.MMKV_LAUCH_TIME
 import com.rapid.prominence.minty.cons.checkRDP
 import com.rapid.prominence.minty.databinding.ActivityMainBinding
 import com.rapid.prominence.minty.ei.main.EiMainPage
+import com.rapid.prominence.minty.notification.NotificationPermissionPolicy
 import com.rapid.prominence.minty.second.view.MintySecMainPage
+import com.rapid.prominence.minty.widget.MusicPlayerAppWidgetProvider
 import com.tencent.mmkv.MMKV
 import media.library.flys.GoogleMobileAdsConsentManager
 import media.library.flys.model.DismissEvents
@@ -28,11 +30,16 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 class AppStart : MintyBaseActivity() {
     private lateinit var binding: ActivityMainBinding
+    private var waitForNotificationPermissionResult = false
+    private var homeNavigationPending = false
     override fun handleBackPressed() = Unit
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        // Match EnMusic's timing: request only after the splash has a content view.  Asking
+        // before that point can lose the denial callback on some Android builds.
+        waitForNotificationPermissionResult = requestNotificationPermissionAtLaunch()
         try {
             if (!EventBus.getDefault().isRegistered(this)) {
                 EventBus.getDefault().register(this)
@@ -82,15 +89,33 @@ class AppStart : MintyBaseActivity() {
 
 
     private fun toHomePage() {
-        val lauchTime =  MMKV.defaultMMKV().getInt(MMKV_LAUCH_TIME,15)
+        if (NotificationPermissionPolicy.shouldDeferHomeNavigation(waitForNotificationPermissionResult)) {
+            homeNavigationPending = true
+            return
+        }
+        val openPlayer = intent.getBooleanExtra("local_push_open_player", false)
+        val requestWidget = intent.getBooleanExtra("local_push_request_widget_pin", false)
+        val lauchTime = if (openPlayer || requestWidget) 0 else MMKV.defaultMMKV().getInt(MMKV_LAUCH_TIME,15)
         messManager?.postDelayed({
-            if (MMKV.defaultMMKV().getBoolean(MINTY_APP_IS_M_USER,false)){
-                startActivity(Intent(this, MintySecMainPage::class.java))
-            }else{
-                startActivity(Intent(this, EiMainPage::class.java))
+            val homeIntent = if (MMKV.defaultMMKV().getBoolean(MINTY_APP_IS_M_USER,false)) {
+                Intent(this, MintySecMainPage::class.java)
+            } else {
+                Intent(this, EiMainPage::class.java)
+            }.apply {
+                putExtra(MusicPlayerAppWidgetProvider.EXTRA_OPEN_PLAYER, openPlayer)
+                putExtra("local_push_request_widget_pin", requestWidget)
             }
+            startActivity(homeIntent)
             finish()
         }, lauchTime * 1000L)
+    }
+
+    override fun onNotificationPermissionRequestFinished() {
+        waitForNotificationPermissionResult = false
+        if (homeNavigationPending && !isFinishing && !isDestroyed) {
+            homeNavigationPending = false
+            toHomePage()
+        }
     }
 
     override fun onDestroy() {

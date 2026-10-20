@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="notif_event_icon_bg">#FF293229</color>
+    <color name="notif_event_title">#FFF4F8F1</color>
+    <color name="notif_event_cta_on_light">#FF102015</color>
+    <color name="notif_icon_brand">#FF2EEB69</color>
+    <color name="notif_icon_warm">#FFFFB38F</color>
+    <color name="notif_icon_warning">#FFFFC65A</color>
+    <color name="notif_icon_alert">#FFFF8A7C</color>
+    <color name="notif_icon_success">#FF63E69D</color>
+    <color name="notif_icon_muted">#FFC8C6D0</color>
+    <color name="notif_icon_sleep">#FFAFC1B4</color>
+    <color name="notif_icon_network">#FF75D6FF</color>
+</resources>

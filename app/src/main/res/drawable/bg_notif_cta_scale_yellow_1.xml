@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Mid inset = breathe scale-down step. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:bottom="2dp"
+        android:left="4dp"
+        android:right="4dp"
+        android:top="2dp">
+        <shape android:shape="rectangle">
+            <corners android:radius="999dp" />
+            <gradient
+                android:angle="0"
+                android:endColor="#E0CA00"
+                android:startColor="#FAE860"
+                android:type="linear" />
+        </shape>
+    </item>
+    <item
+        android:bottom="2dp"
+        android:drawable="@drawable/ic_notif_cta_shimmer_1"
+        android:left="4dp"
+        android:right="4dp"
+        android:top="2dp" />
+</layer-list>

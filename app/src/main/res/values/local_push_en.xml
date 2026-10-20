@@ -1,0 +1,310 @@
+<resources>
+<string name="notif_event_channel_name">Minty reminders</string>
+
+<string name="notif_event_channel_desc">Local reminders from Minty</string>
+
+<string name="notif_event_screenshot_title">Another screenshot? Open Minty when you\'re ready</string>
+
+<string-array name="notif_event_screenshot_titles">
+        <item>Another screenshot? Open Minty when you\'re ready</item>
+        <item>New screenshot found — tap to open Minty</item>
+        <item>Screenshots piling up — take a music break</item>
+        <item>Don\'t forget your favorite music</item>
+        <item>New screenshot +1 — return to your music</item>
+    </string-array>
+
+<string name="notif_event_install_title">New app installed — return to your music</string>
+
+<string name="notif_event_uninstall_title">App uninstalled — return to Minty</string>
+
+<string name="notif_event_battery_below_50_title">50% left — just enough for this mixtape. Press play.</string>
+
+<string-array name="notif_event_battery_below_50_titles">
+        <item>50% left — just enough for this mixtape. Press play.</item>
+        <item>50% battery report: not quite done with this playlist yet. Continue?</item>
+        <item>Halfway there — perfect time to slow down with a mellow track.</item>
+        <item>Half the battery, half the quiet — leave the rest to the music.</item>
+        <item>50% is enough for the music to walk this stretch with you.</item>
+    </string-array>
+
+<string name="notif_event_battery_below_20_title">Battery under 20% — don\'t let the music die mid-song. Plug in and keep listening.</string>
+
+<string-array name="notif_event_battery_below_20_titles">
+        <item>Battery under 20% — don\'t let the music die mid-song. Plug in and keep listening.</item>
+        <item>Low battery alert! Your playlist is waiting — hum along while you charge.</item>
+        <item>The vibe\'s peaking but the battery isn\'t. Plug in — the mood goes on.</item>
+        <item>Low battery, no intermission. Plug in — the music will be right back.</item>
+        <item>20% battery, 100% mood — plug in and let the music fill up too.</item>
+    </string-array>
+
+<string name="notif_event_charging_title">Charging time is music time — let the songs keep you company.</string>
+
+<string-array name="notif_event_charging_titles">
+        <item>Charging time is music time — let the songs keep you company.</item>
+        <item>Phone\'s charging. Are you? Recharge with some music too.</item>
+        <item>Phone\'s recharging — what\'s your recharging anthem?</item>
+        <item>Plugged in? Now cue yourself a song.</item>
+        <item>Don\'t just wait while charging — finally play those saved songs.</item>
+    </string-array>
+
+<string name="notif_event_charging_full_title">Battery full — keep enjoying the music</string>
+
+<string name="notif_event_charging_to_80_title" formatted="false">80% battery, 100% vibe — the music stays on.</string>
+
+<string-array name="notif_event_charging_to_80_titles">
+        <item>80% battery, 100% vibe — the music stays on.</item>
+        <item>Nearly charged — stay for tonight\'s headliner track.</item>
+        <item>80% battery ping: it\'s been a while since you pressed play.</item>
+        <item>Nearly full charge, nearly full heart — music will top it off.</item>
+        <item>Battery filling up — tonight\'s BGM should clock in too.</item>
+    </string-array>
+
+<string name="notif_event_charging_disconnect_title">Unplugged — don\'t forget to bring the music along.</string>
+
+<string-array name="notif_event_charging_disconnect_titles">
+        <item>Unplugged — don\'t forget to bring the music along.</item>
+        <item>Full battery deserves a full-energy song.</item>
+        <item>Charged up — now tune your mood. Press play.</item>
+        <item>Battery at 100%, soundtrack standing by.</item>
+        <item>The moment the cable\'s out, let the music lead.</item>
+    </string-array>
+
+<string name="notif_event_app_update_title">App updated — come back for music</string>
+
+<string name="notif_event_network_change_title">WiFi\'s back and so is your music. Tap to tune in.</string>
+
+<string-array name="notif_event_network_change_titles">
+        <item>WiFi\'s back and so is your music. Tap to tune in.</item>
+        <item>No network? No problem. Your offline playlist never leaves.</item>
+        <item>Back online — treat your ears to lossless quality again.</item>
+        <item>WiFi connected — your radio mode is one tap away.</item>
+        <item>The blackout was a pause, the music\'s the plot. Resume.</item>
+    </string-array>
+
+<string name="notif_event_screen_lock_title">Screen dark, listening bright.</string>
+
+<string-array name="notif_event_screen_lock_titles">
+        <item>Screen dark, listening bright.</item>
+        <item>Screen off — just sound and you.</item>
+        <item>The moment it goes dark, music takes over.</item>
+        <item>Screen off, deep-listen mode on.</item>
+        <item>After the blackout: good headphones and a whole album.</item>
+    </string-array>
+
+<string name="notif_event_screen_on_after_lock_title">Screen\'s lit — light up your ears too.</string>
+
+<string-array name="notif_event_screen_on_after_lock_titles">
+        <item>Screen\'s lit — light up your ears too.</item>
+        <item>The screen woke up — wake your ears with a track.</item>
+        <item>Screen on: a song is waiting for you.</item>
+        <item>Screen\'s on — stay for one line of the song.</item>
+        <item>Screen on? Perfect — new tracks just landed.</item>
+    </string-array>
+
+<string name="notif_event_storage_free_drop_title">Phone storage changed — open Minty</string>
+
+<string name="notif_event_scheduled_push_1_title">New music found on your device — guess what turned up.</string>
+
+<string name="notif_event_scheduled_push_2_title">That hour\'s here — a soft tune to drift off with.</string>
+
+<string name="notif_event_scheduled_push_3_title">Put music on your home screen, and it plays in one press.</string>
+
+<string name="notif_event_app_inactive_title">It\'s been a while, and your playlist kind of misses you.</string>
+
+<string-array name="notif_event_app_inactive_titles">
+        <item>It\'s been a while, and your playlist kind of misses you.</item>
+        <item>A whole day without music — even your headphones miss you.</item>
+        <item>Today\'s BGM slot is still empty, waiting for you.</item>
+        <item>Days away? A fresh playlist\'s already packed.</item>
+        <item>That paused song has been waiting for you to continue.</item>
+    </string-array>
+
+<string-array name="notif_event_scheduled_push_1_titles">
+        <item>New music found on your device — guess what turned up.</item>
+        <item>Scan surprise: a few hidden gems from the bottom of the box.</item>
+        <item>Library refreshed — come claim the songs that are yours.</item>
+        <item>Messy playlist? A quick tidy fixes it.</item>
+        <item>Still \"Untitled\"? This playlist deserves a real name.</item>
+        <item>The songs you play often deserve a playlist of their own.</item>
+        <item>An album you saved just updated — worth a look.</item>
+        <item>While sorting, found one you haven\'t played in ages.</item>
+        <item>That album you saved — 3 tracks still unheard.</item>
+        <item>That genre you love just got new arrivals.</item>
+        <item>Rock, pop or folk — which flavor tonight?</item>
+        <item>Your playlists lean one genre — ready to branch out?</item>
+        <item>AI just made something new, tuned exactly to your taste.</item>
+        <item>AI music isn\'t cold — it remembers what you love.</item>
+        <item>AI continued a track from what you played last week.</item>
+        <item>Those saved songs — how long since you last played them?</item>
+        <item>Favorites overflowing — folders make them easier to find.</item>
+        <item>Cleanup plan: drop the meh, keep the love.</item>
+    </string-array>
+
+<string-array name="notif_event_scheduled_push_2_titles">
+        <item>That hour\'s here — a soft tune to drift off with.</item>
+        <item>The sleep playlist\'s ready — just close your eyes.</item>
+        <item>Before goodnight, one last gentle song.</item>
+        <item>Today\'s worries end here — the music takes over to soothe.</item>
+        <item>Night mode on — music fades as the dreams deepen.</item>
+    </string-array>
+
+<string-array name="notif_event_scheduled_push_3_titles">
+        <item>Put music on your home screen, and it plays in one press.</item>
+        <item>Add the widget, and great songs are within reach.</item>
+        <item>Place the widget, and the play button lives on your screen.</item>
+        <item>Widget in hand, an instant shuffle is always available.</item>
+        <item>There\'s still an empty music slot on your home screen.</item>
+    </string-array>
+
+<string name="notif_event_action_open_home">GO</string>
+
+<string name="notif_event_wired_headset_connect_title">Headphones in — the world mutes, the music maxes.</string>
+
+<string-array name="notif_event_wired_headset_connect_titles">
+        <item>Headphones in — the world mutes, the music maxes.</item>
+        <item>Welcome back to your private concert.</item>
+        <item>Plugged in, your personal DJ is on the decks.</item>
+        <item>Headphones detected — so is the mood for music.</item>
+        <item>Connected. Your repeat-one era starts now.</item>
+    </string-array>
+
+<string name="notif_event_wired_headset_disconnect_title">Unplugged — remember to save what you were playing.</string>
+
+<string-array name="notif_event_wired_headset_disconnect_titles">
+        <item>Unplugged — remember to save what you were playing.</item>
+        <item>Cable\'s out, playlist\'s still waiting.</item>
+        <item>That last track was good, right? Save it.</item>
+        <item>Unplugged — don\'t forget the song that got you.</item>
+        <item>Disconnected — the playlist\'s still hot.</item>
+    </string-array>
+
+<string name="notif_event_bluetooth_connect_title">BT device detected — party mode can switch on anytime.</string>
+
+<string-array name="notif_event_bluetooth_connect_titles">
+        <item>BT device detected — party mode can switch on anytime.</item>
+        <item>Bluetooth in place, the music can roll.</item>
+        <item>Device ready, and your playlist\'s synced into place.</item>
+        <item>New device linked — an old favorite is the best way to test it.</item>
+        <item>Speaker linked — tonight\'s BGM is yours to decide.</item>
+    </string-array>
+
+<string name="notif_event_bluetooth_disconnect_title">Disconnected, progress all saved — resume whenever.</string>
+
+<string-array name="notif_event_bluetooth_disconnect_titles">
+        <item>Disconnected, progress all saved — resume whenever.</item>
+        <item>Disconnected? A good excuse to switch listening styles.</item>
+        <item>No encore lost — continue the show right on your phone.</item>
+        <item>Connection lost, but that song of yours isn\'t over.</item>
+        <item>Disconnected — don\'t leave this good song halfway.</item>
+    </string-array>
+
+<string name="notif_event_audio_focus_lost_title">The song got interrupted? It\'s still right there waiting.</string>
+
+<string-array name="notif_event_audio_focus_lost_titles">
+        <item>The song got interrupted? It\'s still right there waiting.</item>
+        <item>Someone hijacked your BGM? Time to take it back.</item>
+        <item>All handled? Your song\'s been waiting.</item>
+        <item>Come back — this song\'s hitting its peak right now.</item>
+        <item>Right where it paused, the best part is hiding.</item>
+    </string-array>
+
+<string name="notif_event_volume_above_50_title">High-volume warning — this chorus genuinely earns it.</string>
+
+<string-array name="notif_event_volume_above_50_titles">
+        <item>High-volume warning — this chorus genuinely earns it.</item>
+        <item>Volume up, and the joy should follow.</item>
+        <item>One note: volume\'s high — protect those ears even for a great song.</item>
+        <item>Volume up, chorus incoming — are you ready?</item>
+        <item>That volume — even the neighbors want your playlist.</item>
+    </string-array>
+
+<string name="notif_event_volume_below_20_title">Volume under 20%, but the feeling\'s not gone.</string>
+
+<string-array name="notif_event_volume_below_20_titles">
+        <item>Volume under 20%, but the feeling\'s not gone.</item>
+        <item>Those who listen softly understand music best.</item>
+        <item>In quiet mode, this track hits different — surprisingly good.</item>
+        <item>A near-silent night deserves a slow serenade.</item>
+        <item>Under 20%, just right for some alone time.</item>
+    </string-array>
+
+<string name="notif_event_user_unlock_title">Unlocked. The play button awaits.</string>
+
+<string-array name="notif_event_user_unlock_titles">
+        <item>Unlocked. The play button awaits.</item>
+        <item>You unlocked your phone — let music unlock your mood.</item>
+        <item>Just unlocked? Music fits this moment.</item>
+        <item>Unlock done — your queue is standing by.</item>
+        <item>Phone\'s open — don\'t skip today\'s new songs.</item>
+    </string-array>
+
+<string name="notif_event_boot_completed_title">Boot done, and your playlist\'s already on deck.</string>
+
+<string-array name="notif_event_boot_completed_titles">
+        <item>Boot done, and your playlist\'s already on deck.</item>
+        <item>A new day starts at boot with a song.</item>
+        <item>Boot success — a song to settle the fresh start.</item>
+        <item>Just booted, don\'t swipe yet — a song first.</item>
+        <item>Boot ping: a song\'s waiting for you to open up.</item>
+    </string-array>
+
+<string name="notif_event_playback_paused_title">A song paused right here, waiting on your \"continue.\"</string>
+
+<string-array name="notif_event_playback_paused_titles">
+        <item>A song paused right here, waiting on your \"continue.\"</item>
+        <item>The music paused, the story isn\'t over — come back.</item>
+        <item>That melody from last time still waits to pick back up.</item>
+        <item>The second half of that song is even better — don\'t miss it.</item>
+        <item>Come finish this one — it\'s almost done.</item>
+    </string-array>
+
+<string name="notif_event_playback_background_title">Your personal radio is live on air right now.</string>
+
+<string-array name="notif_event_playback_background_titles">
+        <item>Your personal radio is live on air right now.</item>
+        <item>It\'s playing now, and the chorus is almost here.</item>
+        <item>This sound fits the you of this exact moment.</item>
+        <item>Now playing: a song that really fits you.</item>
+        <item>BGM in progress — protect the rhythm.</item>
+    </string-array>
+
+<string name="notif_event_app_background_title">Don\'t ditch your song</string>
+
+<string name="notif_event_app_background_content">5 seconds out, and the melody\'s already missing you.</string>
+
+<string-array name="notif_event_app_background_titles">
+        <item>Don\'t ditch your song</item>
+        <item>Where\'d you go?</item>
+        <item>5s absence alert</item>
+        <item>Music\'s calling</item>
+        <item>Don\'t miss this second</item>
+        <item>Music still open</item>
+        <item>Wait, song\'s not done</item>
+        <item>Come back, the good part\'s here</item>
+    </string-array>
+
+<string-array name="notif_event_app_background_contents">
+        <item>5 seconds out, and the melody\'s already missing you.</item>
+        <item>The music\'s waiting backstage; come back.</item>
+        <item>Your BGM\'s still rolling; come take over.</item>
+        <item>Still sounding back there; come take a look.</item>
+        <item>5s backstage, and the song\'s peaking.</item>
+        <item>5s out, and it resumes in a single move.</item>
+        <item>5s backstage; don\'t miss this part.</item>
+        <item>5s backstage, and this bit\'s worth it.</item>
+    </string-array>
+
+<string name="notif_event_audio_download_title">Download complete, and the new track\'s in your offline list.</string>
+
+<string-array name="notif_event_audio_download_titles">
+        <item>Download complete, and the new track\'s in your offline list.</item>
+        <item>Fresh download in — come give it a listening check.</item>
+        <item>Downloaded — repeat-one is now an option.</item>
+        <item>100% downloaded — this song is yours for good.</item>
+        <item>Offline stash +1, and your no-network playlist grows.</item>
+    </string-array>
+
+<string name="notif_days_unit">day</string>
+
+
+</resources>

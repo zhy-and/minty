@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_notif_toolbar_card"
+    android:orientation="vertical"
+    android:paddingStart="12dp"
+    android:paddingTop="10dp"
+    android:paddingEnd="12dp"
+    android:paddingBottom="12dp">
+
+    <LinearLayout
+        android:id="@+id/notif_header"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingBottom="12dp">
+
+        <ImageView
+            android:layout_width="18dp"
+            android:layout_height="18dp"
+            android:contentDescription="@null"
+            android:scaleType="centerInside"
+            android:src="@drawable/ic_notif_toolbar_note" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:layout_weight="1"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:text="@string/notif_toolbar_brand_title"
+            android:textColor="@color/notif_toolbar_text"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+
+        <ImageView
+            android:layout_width="18dp"
+            android:layout_height="18dp"
+            android:contentDescription="@null"
+            android:scaleType="centerInside"
+            android:src="@drawable/ic_notif_toolbar_chevron" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <LinearLayout
+            android:id="@+id/notif_action_search"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:contentDescription="@null"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_notif_toolbar_search_badge" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="5dp"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:text="@string/notif_toolbar_search"
+                android:textColor="@color/notif_toolbar_text"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <ImageView
+            android:layout_width="1dp"
+            android:layout_height="34dp"
+            android:contentDescription="@null"
+            android:scaleType="fitXY"
+            android:src="@drawable/bg_notif_toolbar_divider" />
+
+        <LinearLayout
+            android:id="@+id/notif_action_playlists"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:contentDescription="@null"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_notif_toolbar_playlist_badge" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="5dp"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:text="@string/notif_toolbar_playlists"
+                android:textColor="@color/notif_toolbar_text"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <ImageView
+            android:layout_width="1dp"
+            android:layout_height="34dp"
+            android:contentDescription="@null"
+            android:scaleType="fitXY"
+            android:src="@drawable/bg_notif_toolbar_divider" />
+
+        <LinearLayout
+            android:id="@+id/notif_action_favorites"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:contentDescription="@null"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_notif_toolbar_favorite_badge" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="5dp"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:text="@string/notif_toolbar_ai_music"
+                android:textColor="@color/notif_toolbar_text"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+    </LinearLayout>
+</LinearLayout>

@@ -60,6 +60,8 @@ import com.rapid.prominence.minty.second.SecGridItemDecoration
 import com.rapid.prominence.minty.second.SecHomeDetailAdapter
 import com.rapid.prominence.minty.second.SecMainLayoutAdapter
 import com.rapid.prominence.minty.second.SecPlayer
+import com.rapid.prominence.minty.widget.MusicPlayerAppWidgetProvider
+import com.rapid.prominence.minty.widget.WidgetEntryUi
 import com.rapid.prominence.minty.second.SecReleaseAlbumAdapter
 import com.rapid.prominence.minty.second.appbar.AppBarStateChangeListener
 import com.rapid.prominence.minty.second.databean.HomeViewModel
@@ -90,6 +92,22 @@ import org.greenrobot.eventbus.ThreadMode
 import timber.log.Timber
 
 class MintySecMainPage : MintyBaseActivity() {
+    private var pendingOpenPlayer = false
+
+    private fun openPlayerIfRequested() {
+        if (pendingOpenPlayer && secPlayConnect != null) {
+            pendingOpenPlayer = false
+            startActivity(Intent(this, SecPlayer::class.java))
+        }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        pendingOpenPlayer = intent.getBooleanExtra(MusicPlayerAppWidgetProvider.EXTRA_OPEN_PLAYER, false)
+        WidgetEntryUi.requestFromNotification(this, intent)
+        openPlayerIfRequested()
+    }
     override fun onStart() {
         super.onStart()
         startService(Intent(this@MintySecMainPage, MusicService::class.java))
@@ -104,6 +122,7 @@ class MintySecMainPage : MintyBaseActivity() {
             try {
                 if (service is  MusicService.MusicBinder) {
                     secPlayConnect = PlayerConnection(this@MintySecMainPage, service, database, lifecycleScope)
+                    openPlayerIfRequested()
                     lifecycleScope.launch {
 
                         secPlayConnect?.mediaMetadata?.collect{
@@ -145,7 +164,7 @@ class MintySecMainPage : MintyBaseActivity() {
             messages?.removeCallbacksAndMessages(null)
             return
         }
-        moveTaskToBack(false)
+        WidgetEntryUi.showExitRetain(this) { moveTaskToBack(false) }
     }
 
     private fun showCachedBan(intellBanners: NativeAd) {
@@ -178,6 +197,8 @@ class MintySecMainPage : MintyBaseActivity() {
     }
     override fun onResume() {
         super.onResume()
+        // Home-top notification/widget tips are intentionally disabled for now.
+        requestNotificationPermissionAtHome()
         try {
             if (secPlayConnect != null && secPlayConnect?.player?.currentMetadata != null){
                 secPlayConnect?.mediaMetadata?.let {
@@ -227,10 +248,12 @@ class MintySecMainPage : MintyBaseActivity() {
     }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        pendingOpenPlayer = intent.getBooleanExtra(MusicPlayerAppWidgetProvider.EXTRA_OPEN_PLAYER, false)
         database =  InternalDatabase.newInstance(this)
         val homeViewModel = HomeViewModel(this, database)
         binding = MintySecMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        WidgetEntryUi.requestFromNotification(this, intent)
         MMKV.defaultMMKV().putString(MINTY_APP_CURRENT_PAGE,"minty")
         binding.specAnm.post {
             binding.specAnm.visibility = View.VISIBLE
@@ -489,9 +512,6 @@ class MintySecMainPage : MintyBaseActivity() {
                 e.printStackTrace()
             }
         }
-        checkAndRequestNotificationPermission()
-
-
     }
 
 

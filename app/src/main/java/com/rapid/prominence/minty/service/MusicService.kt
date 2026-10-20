@@ -89,6 +89,9 @@ import com.rapid.prominence.minty.extensions.currentMetadata
 import com.rapid.prominence.minty.extensions.findNextMediaItemById
 import com.rapid.prominence.minty.extensions.mediaItems
 import com.rapid.prominence.minty.extensions.metadata
+import com.rapid.prominence.minty.widget.MusicPlayerAppWidgetProvider
+import com.rapid.prominence.minty.notification.localpush.PlaybackPushWatcher
+import com.rapid.prominence.minty.notification.localpush.AudioFocusPushBridge
 import com.rapid.prominence.minty.extensions.toMediaItem
 import com.rapid.prominence.minty.service.queues.EmptyQueue
 import com.rapid.prominence.minty.service.queues.ListQueue
@@ -153,6 +156,8 @@ import kotlin.time.Duration.Companion.seconds
 class MusicService : MediaLibraryService(),
     Player.Listener,
     PlaybackStatsListener.Callback {
+    private var audioFocusSuppressed = false
+    private var widgetProgressJob: Job? = null
     @Inject
     lateinit var database: MusicDatabase
 
@@ -563,6 +568,55 @@ class MusicService : MediaLibraryService(),
     }
 
     override fun onEvents(player: Player, events: Player.Events) {
+        if (events.contains(Player.EVENT_PLAYBACK_SUPPRESSION_REASON_CHANGED)) {
+            val transientLoss = player.playbackSuppressionReason ==
+                Player.PLAYBACK_SUPPRESSION_REASON_TRANSIENT_AUDIO_FOCUS_LOSS
+            if (transientLoss && !audioFocusSuppressed) {
+                AudioFocusPushBridge.onTransientAudioFocusLoss(this)
+            }
+            audioFocusSuppressed = transientLoss
+        }
+        if (events.containsAny(
+                Player.EVENT_MEDIA_ITEM_TRANSITION,
+                Player.EVENT_PLAYBACK_STATE_CHANGED,
+                Player.EVENT_PLAY_WHEN_READY_CHANGED,
+                Player.EVENT_POSITION_DISCONTINUITY,
+                Player.EVENT_TIMELINE_CHANGED,
+            )) {
+            val metadata = player.currentMetadata
+            MusicPlayerAppWidgetProvider.updatePlayback(
+                this,
+                metadata?.title,
+                metadata?.artists?.joinToString(", ") { it.name },
+                player.duration.coerceAtLeast(0L),
+                player.currentPosition.coerceAtLeast(0L),
+                player.isPlaying,
+            )
+            widgetProgressJob?.cancel()
+            if (player.isPlaying) {
+                widgetProgressJob = scope.launch {
+                    while (isActive && player.isPlaying) {
+                        delay(15_000L)
+                        if (isActive && player.isPlaying) {
+                            val currentMetadata = player.currentMetadata
+                            MusicPlayerAppWidgetProvider.updatePlayback(
+                                this@MusicService,
+                                currentMetadata?.title,
+                                currentMetadata?.artists?.joinToString(", ") { it.name },
+                                player.duration.coerceAtLeast(0L),
+                                player.currentPosition.coerceAtLeast(0L),
+                                true,
+                            )
+                        }
+                    }
+                }
+            }
+            PlaybackPushWatcher.onPlaybackChanged(
+                this,
+                hasSong = player.currentMediaItem != null,
+                isPlaying = player.isPlaying,
+            )
+        }
         if (events.containsAny(Player.EVENT_PLAYBACK_STATE_CHANGED, Player.EVENT_PLAY_WHEN_READY_CHANGED)) {
             val isBufferingOrReady = player.playbackState == Player.STATE_BUFFERING || player.playbackState == Player.STATE_READY
             if (isBufferingOrReady && player.playWhenReady) {
@@ -805,6 +859,7 @@ class MusicService : MediaLibraryService(),
     }
 
     override fun onDestroy() {
+        widgetProgressJob?.cancel()
         if (dataStore.get(PersistentQueueKey, true)) {
             saveQueueToDisk()
         }

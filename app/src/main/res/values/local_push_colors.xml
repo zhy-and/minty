@@ -1,0 +1,24 @@
+<resources>
+<color name="notif_event_icon_bg">#FFE6F7EC</color>
+<color name="notif_event_title">#FF1E1D18</color>
+    
+<color name="notif_event_cta_on_light">#111111</color>
+    
+    
+<color name="notif_icon_brand">#FFF33900</color>
+    
+<color name="notif_icon_warm">#FFFF8A50</color>
+    
+<color name="notif_icon_warning">#FFE85D04</color>
+    
+<color name="notif_icon_alert">#FFD93628</color>
+    
+<color name="notif_icon_success">#FF2F9E6B</color>
+    
+<color name="notif_icon_muted">#FF8C8996</color>
+    
+<color name="notif_icon_sleep">#FF5C6B7A</color>
+    
+<color name="notif_icon_network">#FF13AEEB</color>
+
+</resources>

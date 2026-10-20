@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Used as ProgressBar indeterminateDrawable — SystemUI calls Animatable.start(). -->
+<animation-list xmlns:android="http://schemas.android.com/apk/res/android"
+    android:oneshot="false">
+    <item android:drawable="@drawable/bg_notif_cta_pulse_0" android:duration="150" />
+    <item android:drawable="@drawable/bg_notif_cta_pulse_05" android:duration="150" />
+    <item android:drawable="@drawable/bg_notif_cta_pulse_1" android:duration="150" />
+    <item android:drawable="@drawable/bg_notif_cta_pulse_15" android:duration="150" />
+    <item android:drawable="@drawable/bg_notif_cta_pulse_2" android:duration="150" />
+    <item android:drawable="@drawable/bg_notif_cta_pulse_15" android:duration="150" />
+    <item android:drawable="@drawable/bg_notif_cta_pulse_1" android:duration="150" />
+    <item android:drawable="@drawable/bg_notif_cta_pulse_05" android:duration="150" />
+    <item android:drawable="@drawable/bg_notif_cta_pulse_0" android:duration="120" />
+    <item android:drawable="@drawable/bg_notif_cta_pulse_3" android:duration="120" />
+</animation-list>

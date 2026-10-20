@@ -49,11 +49,40 @@ import com.rapid.prominence.minty.ei.pages.tabs.TabAlbum
 import com.rapid.prominence.minty.posBitmap
 import com.rapid.prominence.minty.roundOptions
 import com.rapid.prominence.minty.second.view.MintySecMainPage
+import com.rapid.prominence.minty.widget.MusicPlayerAppWidgetProvider
+import com.rapid.prominence.minty.widget.WidgetEntryUi
+import com.rapid.prominence.minty.runtime.NotificationToolbarHelper
 import com.tencent.mmkv.MMKV
 import kotlinx.coroutines.launch
 import media.library.manager.MintyApi
 
 class EiMainPage : MintyBaseActivity() {
+    private var pendingOpenPlayer = false
+
+    private fun openPlayerIfRequested() {
+        if (pendingOpenPlayer && eiPlays != null) {
+            pendingOpenPlayer = false
+            startActivity(Intent(this, EiPlayer::class.java))
+        }
+    }
+
+    private fun openToolbarTabIfRequested() {
+        when (intent.getStringExtra(NotificationToolbarHelper.EXTRA_ACTION)) {
+            "favorites" -> binding.viewPager.setCurrentItem(3, false)
+            "library" -> binding.viewPager.setCurrentItem(0, false)
+        }
+        intent.removeExtra(NotificationToolbarHelper.EXTRA_ACTION)
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        pendingOpenPlayer = intent.getBooleanExtra(MusicPlayerAppWidgetProvider.EXTRA_OPEN_PLAYER, false)
+        WidgetEntryUi.requestFromNotification(this, intent)
+        openToolbarTabIfRequested()
+        openPlayerIfRequested()
+    }
+
     override fun onStart() {
         super.onStart()
         startService(Intent(this@EiMainPage, MusicService::class.java))
@@ -162,6 +191,7 @@ class EiMainPage : MintyBaseActivity() {
                 if (isReload){
                     updateUI()
                 }
+                openPlayerIfRequested()
             }
         }
 
@@ -172,7 +202,7 @@ class EiMainPage : MintyBaseActivity() {
     }
 
     override fun handleBackPressed() {
-        moveTaskToBack(false)
+        WidgetEntryUi.showExitRetain(this) { moveTaskToBack(false) }
     }
     private lateinit var database: MusicDatabase
     private lateinit var binding: MintyEiHomeBinding
@@ -190,6 +220,8 @@ class EiMainPage : MintyBaseActivity() {
     }
     override fun onResume() {
         super.onResume()
+        // Home-top notification/widget tips are intentionally disabled for now.
+        requestNotificationPermissionAtHome()
         try {
             //
             if (MMKV.defaultMMKV().getBoolean(MINTY_APP_IS_M_USER,false)){
@@ -236,8 +268,10 @@ class EiMainPage : MintyBaseActivity() {
     }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        pendingOpenPlayer = intent.getBooleanExtra(MusicPlayerAppWidgetProvider.EXTRA_OPEN_PLAYER, false)
         binding = MintyEiHomeBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        WidgetEntryUi.requestFromNotification(this, intent)
         MMKV.defaultMMKV().putString(MINTY_APP_CURRENT_PAGE,"local")
         database =  InternalDatabase.newInstance(this)
         binding.pageHome.setOnClickListener {
@@ -253,6 +287,7 @@ class EiMainPage : MintyBaseActivity() {
             binding.viewPager.setCurrentItem(3,false)
         }
         setupViewPager()
+        openToolbarTabIfRequested()
         setupTabLayout()
         // Initialize adapters
         // Set up RecyclerViews
@@ -282,8 +317,6 @@ class EiMainPage : MintyBaseActivity() {
 //                playerConnection?.player?.togglePlayPause()
 //            }
 //        }
-        checkAndRequestNotificationPermission()
-
     }
 
 

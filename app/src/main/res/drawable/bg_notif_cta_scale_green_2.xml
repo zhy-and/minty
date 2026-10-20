@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Max inset = breathe scale peak. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:bottom="4dp"
+        android:left="10dp"
+        android:right="10dp"
+        android:top="4dp">
+        <shape android:shape="rectangle">
+            <corners android:radius="999dp" />
+            <gradient
+                android:angle="0"
+                android:endColor="#0E9956"
+                android:startColor="#15B86D"
+                android:type="linear" />
+        </shape>
+    </item>
+    <item
+        android:bottom="4dp"
+        android:drawable="@drawable/ic_notif_cta_shimmer_3"
+        android:left="10dp"
+        android:right="10dp"
+        android:top="4dp" />
+</layer-list>
