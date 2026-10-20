@@ -146,6 +146,10 @@
   @com.google.gson.annotations.SerializedName <fields>;
 }
 ##---------------End: proguard configuration for Gson  ----------
+
+# Local push configuration is deserialized by Gson through nested Map fields.
+# Keep the models and their generic field signatures in minified release builds.
+-keep class com.rapid.prominence.minty.notification.localpush.LocalPushConfig$* { *; }
 #-------------------------------------------------------------------------
 #okhttp
 -dontwarn com.squareup.okhttp.**
