@@ -156,7 +156,7 @@ class App : Application(), ImageLoaderFactory {
     )
     private fun initAppFly() {
       //todo
-//         MMKV.defaultMMKV().putBoolean(MINTY_APP_IS_M_USER,true)
+         MMKV.defaultMMKV().putBoolean(MINTY_APP_IS_M_USER,true)
         LogUtils.getConfig().isLogSwitch = BuildConfig.DEBUG
         AppsFlyerLib.getInstance().init("Qdx2CL5Loy69WyHCQn3U3", null, this)
         AppsFlyerLib.getInstance().start(this)

@@ -128,11 +128,12 @@ class InStudio {
         playlistId: String?,
         signatureTimestamp: Int?,
         webPlayerPot: String?,
+        asNewVisitor: Boolean = false,
     ) = httpClient.post("player") {
         ytClient(client, setLogin = true)
         setBody(
             PlayerBody(
-                context = client.toContext(locale, visitorData, dataSyncId).let {
+                context = client.toContext(locale, if (asNewVisitor) null else visitorData, dataSyncId).let {
                     if (client.isEmbedded) {
                         it.copy(
                             thirdParty = Context.ThirdParty(

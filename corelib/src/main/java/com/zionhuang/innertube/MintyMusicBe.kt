@@ -458,8 +458,8 @@ object MintyMusicBe {
                 ArtistItemsPage.fromMusicTwoRowItemRenderer(it) as? PlaylistItem
             }
     }
-    suspend fun player(videoId: String, playlistId: String? = null, client: YouTubeClient, signatureTimestamp: Int? = null, webPlayerPot: String? = null): Result<PlayerResponse> = runCatching {
-        inStudio.player(client, videoId, playlistId, signatureTimestamp, webPlayerPot).body<PlayerResponse>()
+    suspend fun player(videoId: String, playlistId: String? = null, client: YouTubeClient, signatureTimestamp: Int? = null, webPlayerPot: String? = null, asNewVisitor: Boolean = false): Result<PlayerResponse> = runCatching {
+        inStudio.player(client, videoId, playlistId, signatureTimestamp, webPlayerPot, asNewVisitor).body<PlayerResponse>()
     }
 
     suspend fun next(endpoint: WatchEndpoint, continuation: String? = null): Result<NextResult> = runCatching {

@@ -12,14 +12,11 @@ import android.net.ConnectivityManager
 import android.util.Log
 import androidx.media3.common.PlaybackException
 import com.rapid.prominence.minty.cons.AudioQuality
-import com.rapid.prominence.minty.utils.YTPlayerUtils.MAIN_CLIENT
-import com.rapid.prominence.minty.utils.YTPlayerUtils.STREAM_FALLBACK_CLIENTS
-import com.rapid.prominence.minty.utils.YTPlayerUtils.validateStatus
 import com.zionhuang.innertube.MintyMusicBe
 import com.zionhuang.innertube.NewPipeUtils
 import com.zionhuang.innertube.models.YouTubeClient
 import com.zionhuang.innertube.models.YouTubeClient.Companion.IOS
-import com.zionhuang.innertube.models.YouTubeClient.Companion.WEB_REMIX
+import com.zionhuang.innertube.models.YouTubeClient.Companion.VISIONOS
 import com.zionhuang.innertube.models.response.PlayerResponse
 import okhttp3.OkHttpClient
 
@@ -31,17 +28,8 @@ object YTPlayerUtils {
         .proxy(MintyMusicBe.proxy)
         .build()
 
-    private val poTokenGenerator = PoTokenGenerator()
-
     /**
-     * The main client is used for metadata and initial streams.
-     * Do not use other clients for this because it can result in inconsistent metadata.
-     * For example other clients can have different normalization targets (loudnessDb).
-     *
-     * [com.zionhuang.innertube.models.YouTubeClient.ANDROID_VR_NO_AUTH] Is temporally used as it is out only working client
-     * [com.zionhuang.innertube.models.YouTubeClient.WEB_REMIX] should be preferred here because currently it is the only client which provides:
-     * - the correct metadata (like loudnessDb)
-     * - premium formats
+     * Try the existing VR client first, then VISIONOS before the token-limited IOS client.
      */
     private val MAIN_CLIENT: YouTubeClient = YouTubeClient(
         clientName = "ANDROID_VR",
@@ -60,7 +48,8 @@ object YTPlayerUtils {
 //        ANDROID,
 //        TVHTML5,
 //        TVHTML5_SIMPLY_EMBEDDED_PLAYER,
-        IOS, // recent api changes produce error 403 after 30 seconds
+        VISIONOS,
+        IOS,
     )
 
 
@@ -86,35 +75,17 @@ object YTPlayerUtils {
     ): Result<PlaybackData> = runCatching {
         Log.d(TAG, "Playback info requested: $videoId")
 
-        /**
-         * This is required for some clients to get working streams however
-         * it should not be forced for the [MAIN_CLIENT] because the response of the [MAIN_CLIENT]
-         * is required even if the streams won't work from this client.
-         * This is why it is allowed to be null.
-         */
-        val signatureTimestamp = getSignatureTimestampOrNull(videoId)
-
         val isLoggedIn = MintyMusicBe.cookie != null
-        val sessionId =
-//            if (isLoggedIn) {
-//                // signed in sessions use dataSyncId as identifier
-//                MintyMusicBe.dataSyncId
-//            } else {
-            // signed out sessions use visitorData as identifier
-            MintyMusicBe.visitorData
-//            }
-
-        Log.d(TAG, "[$videoId] signatureTimestamp: $signatureTimestamp, isLoggedIn: $isLoggedIn")
-
-        val (webPlayerPot, webStreamingPot) = getWebClientPoTokenOrNull(videoId, sessionId)?.let {
-            Pair(it.playerRequestPoToken, it.streamingDataPoToken)
-        } ?: Pair(null, null).also {
-            Log.w(TAG, "[$videoId] No po token")
-        }
+        Log.d(TAG, "[$videoId] isLoggedIn: $isLoggedIn")
 
         val mainPlayerResponse =
-            MintyMusicBe.player(videoId, playlistId, MAIN_CLIENT, signatureTimestamp, webPlayerPot)
+            MintyMusicBe.player(videoId, playlistId, MAIN_CLIENT)
                 .getOrThrow()
+
+        StreamCheck.visitorDataToAdopt(
+            MintyMusicBe.visitorData,
+            mainPlayerResponse.responseContext.visitorData,
+        )?.let { MintyMusicBe.visitorData = it }
 
         val audioConfig = mainPlayerResponse.playerConfig?.audioConfig
         val videoDetails = mainPlayerResponse.videoDetails
@@ -125,68 +96,66 @@ object YTPlayerUtils {
         var streamExpiresInSeconds: Int? = null
 
         var streamPlayerResponse: PlayerResponse? = null
-        for (clientIndex in (-1 until STREAM_FALLBACK_CLIENTS.size)) {
+        var lastHttpStatus: Int? = null
+        val clients = listOf(MAIN_CLIENT) + STREAM_FALLBACK_CLIENTS
+        clientLoop@ for ((clientIndex, client) in clients.withIndex()) {
             // reset for each client
             format = null
             streamUrl = null
             streamExpiresInSeconds = null
-
-            // decide which client to use for streams and load its player response
-            val client: YouTubeClient
-            if (clientIndex == -1) {
-                Log.d(TAG, "Trying client: ${MAIN_CLIENT.clientName}")
-                // try with streams from main client first
-                client = MAIN_CLIENT
-                streamPlayerResponse = mainPlayerResponse
-            } else {
-                Log.d(TAG, "Trying fallback client: ${STREAM_FALLBACK_CLIENTS[clientIndex].clientName}")
-                // after main client use fallback clients
-                client = STREAM_FALLBACK_CLIENTS[clientIndex]
-
-                if (client.loginRequired && !isLoggedIn) {
-                    // skip client if it requires login but user is not logged in
-                    continue
-                }
-
-                streamPlayerResponse =
-                    MintyMusicBe.player(videoId, playlistId, client, signatureTimestamp, webPlayerPot)
-                        .getOrNull()
-            }
-
-            Log.d(
-                TAG, "[$videoId] stream client: ${client.clientName}, " +
-                        "playabilityStatus: ${streamPlayerResponse?.playabilityStatus?.let {
-                            it.status + (it.reason?.let { " - $it" } ?: "")
-                        }}")
-
-            // process current client response
-            if (streamPlayerResponse?.playabilityStatus?.status == "OK") {
-                format =
-                    findFormat(
-                        streamPlayerResponse,
-                        audioQuality,
-                        connectivityManager,
-                    ) ?: continue
-                streamUrl = findUrlOrNull(format, videoId) ?: continue
-                streamExpiresInSeconds =
-                    streamPlayerResponse.streamingData?.expiresInSeconds ?: continue
-
-                if (client.useWebPoTokens && webStreamingPot != null) {
-                    streamUrl += "&pot=$webStreamingPot";
-                }
-
-                if (clientIndex == STREAM_FALLBACK_CLIENTS.size - 1) {
-                    /** skip [validateStatus] for last client */
-                    break
-                }
-                if (validateStatus(streamUrl)) {
-                    // working stream found
-                    Log.i(TAG, "[$videoId] [${client.clientName}] found working stream")
-                    break
+            if (client.loginRequired && !isLoggedIn) continue
+            var retriedWithFreshVisitor = false
+            while (true) {
+                streamPlayerResponse = if (clientIndex == 0 && !retriedWithFreshVisitor) {
+                    mainPlayerResponse
                 } else {
-                    Log.w(TAG, "[$videoId] [${client.clientName}] got bad http status code")
+                    MintyMusicBe.player(videoId, playlistId, client).getOrNull()
                 }
+                Log.d(TAG, "[$videoId] stream client: ${client.clientName}, " +
+                    "playabilityStatus: ${streamPlayerResponse?.playabilityStatus?.status} - " +
+                    streamPlayerResponse?.playabilityStatus?.reason)
+
+                val response = streamPlayerResponse
+                if (response?.playabilityStatus?.status == "OK") {
+                    val candidateFormat = findFormat(response, audioQuality, connectivityManager)
+                    val candidateUrl = candidateFormat?.let { findUrlOrNull(it, videoId) }
+                    val expires = response.streamingData?.expiresInSeconds
+                    if (candidateFormat != null && candidateUrl != null && expires != null) {
+                        val status = streamStatus(candidateUrl)
+                        lastHttpStatus = status
+                        if (StreamCheck.accept(status, clientIndex == clients.lastIndex)) {
+                            format = candidateFormat
+                            streamUrl = candidateUrl
+                            streamExpiresInSeconds = expires
+                            Log.i(TAG, "[$videoId] [${client.clientName}] found working stream (HEAD $status)")
+                            break@clientLoop
+                        }
+                        Log.w(TAG, "[$videoId] [${client.clientName}] stream HEAD $status")
+                    }
+                }
+
+                if (client == VISIONOS && !retriedWithFreshVisitor) {
+                    retriedWithFreshVisitor = true
+                    val freshVisitor = MintyMusicBe.player(
+                        videoId, client = MAIN_CLIENT, asNewVisitor = true,
+                    ).getOrNull()?.responseContext?.visitorData
+                        ?.takeIf { StreamCheck.looksLikeVisitorData(it) && it != MintyMusicBe.visitorData }
+                    if (freshVisitor != null) {
+                        MintyMusicBe.visitorData = freshVisitor
+                        Log.i(TAG, "[$videoId] retrying VISIONOS with fresh visitorData")
+                        continue
+                    }
+                }
+                break
             }
+        }
+
+        if (streamUrl == null && lastHttpStatus != null) {
+            throw PlaybackException(
+                "YouTube refused the stream (HTTP $lastHttpStatus)",
+                null,
+                PlaybackException.ERROR_CODE_REMOTE_ERROR,
+            )
         }
 
         if (streamPlayerResponse == null) {
@@ -209,11 +178,11 @@ object YTPlayerUtils {
             throw Exception("Could not find stream url")
         }
 
-        Log.d(TAG, "[$videoId] stream url: $streamUrl")
+        Log.d(TAG, "[$videoId] stream URL resolved")
 
         PlaybackData(
-            audioConfig,
-            videoDetails,
+            audioConfig ?: streamPlayerResponse.playerConfig?.audioConfig,
+            videoDetails ?: streamPlayerResponse.videoDetails,
             playbackTracking,
             format,
             streamUrl,
@@ -229,7 +198,7 @@ object YTPlayerUtils {
         videoId: String,
         playlistId: String? = null,
     ): Result<PlayerResponse> =
-        MintyMusicBe.player(videoId, playlistId, client = WEB_REMIX) // ANDROID_VR does not work with history
+        MintyMusicBe.player(videoId, playlistId, client = VISIONOS)
 
     private fun findFormat(
         playerResponse: PlayerResponse,
@@ -251,30 +220,16 @@ object YTPlayerUtils {
      * If this returns true the url is likely to work.
      * If this returns false the url might cause an error during playback.
      */
-    private fun validateStatus(url: String): Boolean {
+    private fun streamStatus(url: String): Int? {
         try {
             val requestBuilder = okhttp3.Request.Builder()
                 .head()
                 .url(url)
-            val response = httpClient.newCall(requestBuilder.build()).execute()
-            return response.isSuccessful
+            return httpClient.newCall(requestBuilder.build()).execute().use { it.code }
         } catch (e: Exception) {
             reportException(e)
         }
-        return false
-    }
-
-    /**
-     * Wrapper around the [NewPipeUtils.getSignatureTimestamp] function which reports exceptions
-     */
-    private fun getSignatureTimestampOrNull(
-        videoId: String
-    ): Int? {
-        return NewPipeUtils.getSignatureTimestamp(videoId)
-            .onFailure {
-                reportException(it)
-            }
-            .getOrNull()
+        return null
     }
 
     /**
@@ -291,19 +246,4 @@ object YTPlayerUtils {
             .getOrNull()
     }
 
-    /**
-     * Wrapper around the [PoTokenGenerator.getWebClientPoToken] function which reports exceptions
-     */
-    private fun getWebClientPoTokenOrNull(videoId: String, sessionId: String?): PoTokenResult? {
-        if (sessionId == null) {
-            Log.d(TAG, "[$videoId] Session identifier is null")
-            return null
-        }
-        try {
-            return poTokenGenerator.getWebClientPoToken(videoId, sessionId)
-        } catch (e: Exception) {
-            reportException(e)
-        }
-        return null
-    }
 }

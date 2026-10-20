@@ -9,6 +9,9 @@ data class YouTubeClient(
     val clientId: String,
     val userAgent: String,
     val osVersion: String? = null,
+    val osName: String? = null,
+    val deviceMake: String? = null,
+    val deviceModel: String? = null,
     val loginSupported: Boolean = false,
     val loginRequired: Boolean = false,
     val useSignatureTimestamp: Boolean = false,
@@ -24,7 +27,10 @@ data class YouTubeClient(
             osVersion = osVersion,
             gl = locale.gl,
             hl = locale.hl,
-            visitorData = visitorData
+            visitorData = visitorData,
+            osName = osName,
+            deviceMake = deviceMake,
+            deviceModel = deviceModel,
         ),
         user = com.zionhuang.innertube.models.body.Context.User(
             onBehalfOfUser = if (loginSupported) dataSyncId else null
@@ -40,6 +46,17 @@ data class YouTubeClient(
         const val ORIGIN_YOUTUBE_MUSIC = "https://music.youtube.com"
         const val REFERER_YOUTUBE_MUSIC = "$ORIGIN_YOUTUBE_MUSIC/"
         const val API_URL_YOUTUBE_MUSIC = "$ORIGIN_YOUTUBE_MUSIC/youtubei/v1/"
+
+        val VISIONOS = YouTubeClient(
+            clientName = "VISIONOS",
+            clientVersion = "1.02",
+            clientId = "101",
+            userAgent = "com.google.ios.youtube/1.02 (RealityDevice17,1; U; visionOS 2_3)",
+            osVersion = "2.3.21O5565d",
+            osName = "visionOS",
+            deviceMake = "Apple",
+            deviceModel = "RealityDevice17,1",
+        )
 
         val WEB = YouTubeClient(
             clientName = "WEB",

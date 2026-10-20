@@ -169,6 +169,7 @@ class MusicService : MediaLibraryService(),
 
     private var scope = CoroutineScope(Dispatchers.Main) + Job()
     private val binder = MusicBinder()
+    private val streamAddresses = StreamAddresses()
 
     private lateinit var connectivityManager: ConnectivityManager
 
@@ -653,6 +654,7 @@ class MusicService : MediaLibraryService(),
     }
 
     override fun onPlayerError(error: PlaybackException) {
+        streamAddresses.playerFailedOn(player.currentMediaItem?.mediaId)
         if (dataStore.get(AutoSkipNextOnErrorKey, false) &&
             isInternetAvailable(this) &&
             player.hasNextMediaItem()
@@ -684,7 +686,6 @@ class MusicService : MediaLibraryService(),
             .setFlags(FLAG_IGNORE_CACHE_ON_ERROR)
 
     private fun createDataSourceFactory(): DataSource.Factory {
-        val songUrlCache = HashMap<String, Pair<String, Long>>()
         return ResolvingDataSource.Factory(createCacheDataSource()) { dataSpec ->
             if (dataSpec.uri?.scheme == "content") {
                 // 直接使用 ContentResolver 处理 content:// URI
@@ -700,9 +701,9 @@ class MusicService : MediaLibraryService(),
                 return@Factory dataSpec
             }
 
-            songUrlCache[mediaId]?.takeIf { it.second < System.currentTimeMillis() }?.let {
+            streamAddresses.of(mediaId, System.currentTimeMillis())?.let {
                 scope.launch(Dispatchers.IO) { recoverSong(mediaId) }
-                return@Factory dataSpec.withUri(it.first.toUri())
+                return@Factory dataSpec.withUri(it.toUri())
             }
 
             // Check whether format exists so that users from older version can view format details
@@ -767,9 +768,12 @@ class MusicService : MediaLibraryService(),
 
             val streamUrl = playbackData.streamUrl
 
-            songUrlCache[mediaId] =
-                streamUrl to System.currentTimeMillis() + (playbackData.streamExpiresInSeconds * 1000L)
-            dataSpec.withUri(streamUrl.toUri()).subrange(dataSpec.uriPositionOffset, CHUNK_LENGTH)
+            streamAddresses.keep(
+                mediaId,
+                streamUrl,
+                System.currentTimeMillis() + (playbackData.streamExpiresInSeconds * 1000L),
+            )
+            dataSpec.withUri(streamUrl.toUri())
         }
     }
 
