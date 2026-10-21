@@ -57,7 +57,7 @@ object NotificationToolbarHelper {
     private fun pendingIntent(context: Context, action: String, code: Int): PendingIntent {
         val isSecond = runCatching { MMKV.defaultMMKV().getBoolean(MINTY_APP_IS_M_USER, false) }.getOrDefault(false)
         val target = when (action) {
-            SEARCH -> MusicSearchActivity::class.java
+            SEARCH -> if (isSecond) MusicSearchActivity::class.java else EiMainPage::class.java
             FAVORITES -> if (isSecond) MintySecFavPage::class.java else EiMainPage::class.java
             LIBRARY -> if (isSecond) MintySecMainPage::class.java else EiMainPage::class.java
             else -> AppStart::class.java
